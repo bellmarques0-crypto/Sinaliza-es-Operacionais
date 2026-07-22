@@ -29,12 +29,18 @@ interface DBData {
   };
 }
 
-const DB_DIR = path.join(process.cwd(), 'data');
+const isVercel = !!process.env.VERCEL || !!process.env.VERCEL_ENV;
+const DB_DIR = isVercel ? '/tmp/data' : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DB_DIR, 'db.json');
+const ROOT_DB_FILE = path.join(process.cwd(), 'data', 'db.json');
 
 function ensureDirectoryExists(dirPath: string) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+  } catch (err) {
+    console.warn(`Could not create directory ${dirPath}:`, err);
   }
 }
 
@@ -219,29 +225,43 @@ function getInitialData(): DBData {
 let dbMemory: DBData | null = null;
 
 export function loadDatabase(): DBData {
-  ensureDirectoryExists(DB_DIR);
   if (!dbMemory) {
+    ensureDirectoryExists(DB_DIR);
     if (fs.existsSync(DB_FILE)) {
       try {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
         dbMemory = JSON.parse(raw);
       } catch (err) {
-        console.error('Error reading database file, resetting to initial data:', err);
-        dbMemory = getInitialData();
-        saveDatabase();
+        console.error('Error reading database file:', err);
       }
-    } else {
-      dbMemory = getInitialData();
-      saveDatabase();
     }
+
+    if (!dbMemory && fs.existsSync(ROOT_DB_FILE)) {
+      try {
+        const raw = fs.readFileSync(ROOT_DB_FILE, 'utf-8');
+        dbMemory = JSON.parse(raw);
+      } catch (err) {
+        console.error('Error reading root database file:', err);
+      }
+    }
+
+    if (!dbMemory) {
+      dbMemory = getInitialData();
+    }
+
+    saveDatabase();
   }
   return dbMemory!;
 }
 
 export function saveDatabase() {
-  ensureDirectoryExists(DB_DIR);
-  if (dbMemory) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), 'utf-8');
+  try {
+    ensureDirectoryExists(DB_DIR);
+    if (dbMemory) {
+      fs.writeFileSync(DB_FILE, JSON.stringify(dbMemory, null, 2), 'utf-8');
+    }
+  } catch (err) {
+    console.warn('Could not save database file to disk (retaining in-memory state):', err);
   }
 }
 

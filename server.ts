@@ -17,9 +17,14 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Ensure uploads folder exists
-const uploadsDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+const isVercelEnv = !!process.env.VERCEL || !!process.env.VERCEL_ENV;
+const uploadsDir = isVercelEnv ? '/tmp/uploads' : path.join(process.cwd(), 'uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (e) {
+  console.warn('Could not create uploads directory:', e);
 }
 
 // Serve uploads statically
@@ -786,4 +791,8 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
+  startServer();
+}
+
+export default app;
