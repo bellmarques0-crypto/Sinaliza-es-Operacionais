@@ -1,0 +1,6 @@
+{
+  "name": "Sistema de Sinalizações de Colaboradores",
+  "description": "Sistema corporativo para gestão, registro, auditoria e acompanhamento executivo de sinalizações de colaboradores.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
