@@ -111,20 +111,15 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Login ou senha incorretos.' });
     }
 
-    console.log('🔐 Verificando senha...');
-    const validPassword = bcrypt.compareSync(senha, user.senha || '');
-    console.log('✅ Senha válida?', validPassword);
-
-    if (!validPassword) {
-      return res.status(401).json({ error: 'Login ou senha incorretos.' });
-    }
-
     if (user.status === 'Inativo') {
       return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
     }
 
-    const validPassword = bcrypt.compareSync(senha, user.senha || '');
-    if (!validPassword) {
+    console.log('🔐 Verificando senha...');
+    const senhaValida = bcrypt.compareSync(senha, user.senha || '');
+    console.log('✅ Senha válida?', senhaValida);
+
+    if (!senhaValida) {
       return res.status(401).json({ error: 'Login ou senha incorretos.' });
     }
 
