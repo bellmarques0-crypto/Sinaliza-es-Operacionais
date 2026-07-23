@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import {
-  usuários,
+  Usuario,
   Supervisor,
   Operador,
   Produto,
@@ -72,49 +72,48 @@ const toSinalizacao = (data: any): Sinalizacao => ({
 
 export const db = {
   // USUÁRIOS
-  getUsuarios: async (): Promise<Usuários[]> => {
+  getUsuarios: async (): Promise<Usuario[]> => {
     const { data, error } = await supabase
-      .from('usuários')
+      .from('usuarios')
       .select('*');
     if (error) throw error;
     return data.map(toUsuario);
   },
 
   getUsuarioByLogin: async (login: string): Promise<Usuario | null> => {
-  console.log('🔎 getUsuarioByLogin chamado com:', login);
-  try {
-    const { data, error } = await supabase
-      .from('usuários')
-      .select('*')
-      .eq('login', login); // 👈 removi o .single() para testar
+    console.log('🔎 getUsuarioByLogin chamado com:', login);
+    try {
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('login', login);
+        
+      console.log('📦 Dados retornados:', data);
+      console.log('❌ Erro:', error);
       
-    console.log('📦 Dados retornados:', data);
-    console.log('❌ Erro:', error);
-    
-    if (error) {
-      console.error('Erro no Supabase:', error);
+      if (error) {
+        console.error('Erro no Supabase:', error);
+        return null;
+      }
+      
+      if (!data || data.length === 0) {
+        console.log('❌ Nenhum usuário encontrado com login:', login);
+        return null;
+      }
+      
+      const userData = data[0];
+      console.log('✅ Usuário encontrado:', userData);
+      
+      return toUsuario(userData);
+    } catch (err) {
+      console.error('❌ Exceção em getUsuarioByLogin:', err);
       return null;
     }
-    
-    if (!data || data.length === 0) {
-      console.log('❌ Nenhum usuário encontrado com login:', login);
-      return null;
-    }
-    
-    // Pega o primeiro resultado
-    const userData = data[0];
-    console.log('✅ Usuário encontrado:', userData);
-    
-    return toUsuario(userData);
-  } catch (err) {
-    console.error('❌ Exceção em getUsuarioByLogin:', err);
-    return null;
-  }
-},
+  },
 
   getUsuarioById: async (id: number): Promise<Usuario | null> => {
     const { data, error } = await supabase
-      .from('usuários')
+      .from('usuarios')
       .select('*')
       .eq('id', id)
       .single();
@@ -124,7 +123,7 @@ export const db = {
 
   addUsuario: async (data: Omit<Usuario, 'id'>): Promise<Usuario> => {
     const { data: result, error } = await supabase
-      .from('usuários')
+      .from('usuarios')
       .insert([{
         nome: data.nome,
         login: data.login,
@@ -142,7 +141,7 @@ export const db = {
 
   updateUsuario: async (id: number, data: Partial<Usuario>): Promise<Usuario | null> => {
     const { data: result, error } = await supabase
-      .from('usuários')
+      .from('usuarios')
       .update(data)
       .eq('id', id)
       .select()
@@ -153,7 +152,7 @@ export const db = {
 
   deleteUsuario: async (id: number): Promise<void> => {
     await supabase
-      .from('usuários')
+      .from('usuarios')
       .delete()
       .eq('id', id);
   },
