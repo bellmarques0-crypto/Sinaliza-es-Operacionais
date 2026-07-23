@@ -103,16 +103,19 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
   }
 
   try {
-    // TESTE: Verificar se o Supabase está acessível
-    console.log('🧪 Testando conexão com Supabase...');
-    const { data: testData, error: testError, count } = await supabase
-      .from('usuarios')
-      .select('*', { count: 'exact', head: true });
-    console.log('🧪 Teste de conexão:', testError ? '❌ Falha' : '✅ Sucesso');
-    if (testError) {
-      console.error('🧪 Erro no teste:', testError);
-    } else {
-      console.log('🧪 Quantidade de usuários:', count || 0);
+    // TESTE SIMPLIFICADO
+    console.log('🧪 Teste de conexão SIMPLES...');
+    try {
+      const { data, error } = await supabase.from('usuarios').select('*').limit(1);
+      console.log('🧪 Dados recebidos:', data);
+      console.log('🧪 Erro:', error);
+      if (error) {
+        console.error('❌ Erro no Supabase:', error);
+      } else {
+        console.log('✅ Conexão OK! Usuários encontrados:', data?.length || 0);
+      }
+    } catch (err) {
+      console.error('❌ Exceção no teste:', err);
     }
 
     console.log('📡 Buscando usuário no Supabase...');
