@@ -252,7 +252,7 @@ export const DashboardView: React.FC = () => {
               <option value="Todos">Todos os Supervisores</option>
               {supervisoresList.map((s) => (
                 <option key={s.id} value={s.nome}>
-                  {s.nome} ({s.produto})
+                  {s.nome}
                 </option>
               ))}
             </select>

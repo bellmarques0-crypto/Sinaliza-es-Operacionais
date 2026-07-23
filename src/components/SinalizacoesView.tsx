@@ -482,7 +482,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   <option value="">Selecione o supervisor...</option>
                   {supervisoresList.map((s) => (
                     <option key={s.id} value={s.nome}>
-                      {s.nome} ({s.produto})
+                      {s.nome}
                     </option>
                   ))}
                 </select>
