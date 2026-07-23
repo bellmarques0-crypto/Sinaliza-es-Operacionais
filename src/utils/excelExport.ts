@@ -3,7 +3,7 @@ import { DashboardMetrics, Sinalizacao } from '../types';
 
 export function exportDashboardToExcel(
   metrics: DashboardMetrics,
-  filters: { dataInicial: string; dataFinal: string; produto: string; supervisor: string }
+  filters: { dataInicial: string; dataFinal: string; produto: string; supervisor: string; operador?: string }
 ) {
   const wb = XLSX.utils.book_new();
 
@@ -15,6 +15,7 @@ export function exportDashboardToExcel(
     ['FILTROS APLICADOS'],
     ['Data Inicial:', filters.dataInicial || 'Todas'],
     ['Data Final:', filters.dataFinal || 'Todas'],
+    ['Operador:', filters.operador || 'Todos'],
     ['Produto:', filters.produto || 'Todos'],
     ['Supervisor:', filters.supervisor || 'Todos'],
     [''],

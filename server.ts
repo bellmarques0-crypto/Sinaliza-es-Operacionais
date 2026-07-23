@@ -366,7 +366,7 @@ app.delete(
 
 // --- DASHBOARD ROUTE ---
 app.get('/api/dashboard', authenticateToken, async (req: Request, res: Response) => {
-  const { dataInicial, dataFinal, produto, supervisor } = req.query;
+  const { dataInicial, dataFinal, produto, supervisor, operador } = req.query;
 
   let list = await db.getSinalizacoes();
 
@@ -381,6 +381,9 @@ app.get('/api/dashboard', authenticateToken, async (req: Request, res: Response)
   }
   if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
     list = list.filter((s) => s.supervisor.toLowerCase() === supervisor.toLowerCase());
+  }
+  if (operador && typeof operador === 'string' && operador !== 'Todos' && operador.trim()) {
+    list = list.filter((s) => s.operador.toLowerCase().includes(operador.toLowerCase().trim()));
   }
 
   // Cards metrics

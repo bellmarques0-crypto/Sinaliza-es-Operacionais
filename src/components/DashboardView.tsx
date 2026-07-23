@@ -28,7 +28,7 @@ import {
   Legend
 } from 'recharts';
 import { api } from '../services/api';
-import { DashboardMetrics, Supervisor, Produto } from '../types';
+import { DashboardMetrics, Supervisor, Produto, Operador } from '../types';
 import { exportDashboardToExcel } from '../utils/excelExport';
 
 const PIE_COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -38,9 +38,11 @@ export const DashboardView: React.FC = () => {
   const [dataFinal, setDataFinal] = useState('');
   const [produto, setProduto] = useState('Todos');
   const [supervisor, setSupervisor] = useState('Todos');
+  const [operador, setOperador] = useState('Todos');
 
   const [supervisoresList, setSupervisoresList] = useState<Supervisor[]>([]);
   const [produtosList, setProdutosList] = useState<Produto[]>([]);
+  const [operadoresList, setOperadoresList] = useState<Operador[]>([]);
 
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,10 +55,11 @@ export const DashboardView: React.FC = () => {
 
   useEffect(() => {
     // Load dropdown options
-    Promise.all([api.getSupervisores(), api.getProdutos()])
-      .then(([sups, prods]) => {
+    Promise.all([api.getSupervisores(), api.getProdutos(), api.getOperadores()])
+      .then(([sups, prods, ops]) => {
         setSupervisoresList(sups);
         setProdutosList(prods);
+        setOperadoresList(ops);
       })
       .catch((err) => console.error('Erro ao carregar opções dos filtros:', err));
   }, []);
@@ -64,7 +67,7 @@ export const DashboardView: React.FC = () => {
   // Fetch metrics automatically whenever filters change
   useEffect(() => {
     fetchMetrics();
-  }, [dataInicial, dataFinal, produto, supervisor]);
+  }, [dataInicial, dataFinal, produto, supervisor, operador]);
 
   const fetchMetrics = async () => {
     setIsLoading(true);
@@ -74,7 +77,8 @@ export const DashboardView: React.FC = () => {
         dataInicial,
         dataFinal,
         produto,
-        supervisor
+        supervisor,
+        operador
       });
       setMetrics(data);
       setCurrentPage(1);
@@ -90,6 +94,7 @@ export const DashboardView: React.FC = () => {
     setDataFinal('');
     setProduto('Todos');
     setSupervisor('Todos');
+    setOperador('Todos');
     setTableSearch('');
   };
 
@@ -99,7 +104,8 @@ export const DashboardView: React.FC = () => {
         dataInicial,
         dataFinal,
         produto,
-        supervisor
+        supervisor,
+        operador
       });
     }
   };
@@ -164,7 +170,7 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
           {/* Data Inicial */}
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">
@@ -193,6 +199,25 @@ export const DashboardView: React.FC = () => {
                 className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
               />
             </div>
+          </div>
+
+          {/* Operador */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Operador
+            </label>
+            <select
+              value={operador}
+              onChange={(e) => setOperador(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+            >
+              <option value="Todos">Todos os Operadores</option>
+              {operadoresList.map((op) => (
+                <option key={op.id} value={op.nome}>
+                  {op.nome}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Produto */}
