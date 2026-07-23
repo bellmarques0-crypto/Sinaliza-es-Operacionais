@@ -602,7 +602,7 @@ app.post(
         nome,
         login: loginToUse,
         senha: hashedPassword,
-        perfil: 'Supervisor',
+        perfil: 'Operação',
         status: status || 'Ativo',
         produto: produto || 'Todos',
         supervisor: nome
