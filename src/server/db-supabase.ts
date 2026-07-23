@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import {
-  Usuario,
+  usuários,
   Supervisor,
   Operador,
   Produto,
@@ -72,9 +72,9 @@ const toSinalizacao = (data: any): Sinalizacao => ({
 
 export const db = {
   // USUÁRIOS
-  getUsuarios: async (): Promise<Usuario[]> => {
+  getUsuarios: async (): Promise<Usuários[]> => {
     const { data, error } = await supabase
-      .from('usuarios')
+      .from('usuários')
       .select('*');
     if (error) throw error;
     return data.map(toUsuario);
@@ -84,7 +84,7 @@ export const db = {
   console.log('🔎 getUsuarioByLogin chamado com:', login);
   try {
     const { data, error } = await supabase
-      .from('usuarios')
+      .from('usuários')
       .select('*')
       .eq('login', login); // 👈 removi o .single() para testar
       
@@ -114,7 +114,7 @@ export const db = {
 
   getUsuarioById: async (id: number): Promise<Usuario | null> => {
     const { data, error } = await supabase
-      .from('usuarios')
+      .from('usuários')
       .select('*')
       .eq('id', id)
       .single();
@@ -124,7 +124,7 @@ export const db = {
 
   addUsuario: async (data: Omit<Usuario, 'id'>): Promise<Usuario> => {
     const { data: result, error } = await supabase
-      .from('usuarios')
+      .from('usuários')
       .insert([{
         nome: data.nome,
         login: data.login,
@@ -142,7 +142,7 @@ export const db = {
 
   updateUsuario: async (id: number, data: Partial<Usuario>): Promise<Usuario | null> => {
     const { data: result, error } = await supabase
-      .from('usuarios')
+      .from('usuários')
       .update(data)
       .eq('id', id)
       .select()
@@ -153,7 +153,7 @@ export const db = {
 
   deleteUsuario: async (id: number): Promise<void> => {
     await supabase
-      .from('usuarios')
+      .from('usuários')
       .delete()
       .eq('id', id);
   },
