@@ -129,7 +129,17 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
     }
 
-    const validPassword = bcrypt.compareSync(String(senha), user.senha || '');
+    let validPassword = false;
+    try {
+      if (user.senha && user.senha.startsWith('$2')) {
+        validPassword = bcrypt.compareSync(String(senha), user.senha);
+      } else {
+        validPassword = String(senha) === String(user.senha);
+      }
+    } catch (e) {
+      validPassword = String(senha) === String(user.senha);
+    }
+
     if (!validPassword) {
       return res.status(401).json({ error: 'Login ou senha incorretos.' });
     }
@@ -800,6 +810,14 @@ app.post(
     }
   }
 );
+
+// Global Express Error Handler Middleware
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Express global error handler:', err);
+  if (!res.headersSent) {
+    res.status(500).json({ error: err?.message || 'Erro interno do servidor.' });
+  }
+});
 
 // Vite middleware / Express static setup
 async function startServer() {

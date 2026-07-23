@@ -108,22 +108,28 @@ export async function ensureNeonInitialized(): Promise<boolean> {
           );
         `;
 
-        // Check if initial users exist
-        const rows = (await sql`SELECT id FROM usuarios LIMIT 1`) as any[];
-        if (rows.length === 0) {
-          console.log('[Neon] Initializing system administrator account...');
-          const salt = bcrypt.genSaltSync(10);
-          const defaultPasswordHash = bcrypt.hashSync('123', salt);
+        // Check if admin user exists
+        const adminRows = (await sql`SELECT id, senha FROM usuarios WHERE LOWER(login) = 'admin' LIMIT 1`) as any[];
+        const salt = bcrypt.genSaltSync(10);
+        const defaultPasswordHash = bcrypt.hashSync('123', salt);
 
-          // Create default Administrator user
+        if (adminRows.length === 0) {
+          console.log('[Neon] Initializing system administrator account...');
           await sql`
             INSERT INTO usuarios (id, nome, login, senha, perfil, status, produto, supervisor) VALUES
             (1, 'Administrador Geral', 'admin', ${defaultPasswordHash}, 'Administrador', 'Ativo', 'Todos', 'Todos')
             ON CONFLICT (id) DO NOTHING;
           `;
           await sql`SELECT setval('usuarios_id_seq', (SELECT MAX(id) FROM usuarios));`;
+        } else if (adminRows[0] && (!adminRows[0].senha || !adminRows[0].senha.startsWith('$2'))) {
+          // Fix unhashed password for admin if needed
+          console.log('[Neon] Updating administrator password hash...');
+          await sql`UPDATE usuarios SET senha = ${defaultPasswordHash} WHERE id = ${adminRows[0].id};`;
+        }
 
-          // Initialize blank API configuration
+        // Initialize API config if empty
+        const configRows = (await sql`SELECT id FROM configuracao_api LIMIT 1`) as any[];
+        if (configRows.length === 0) {
           await sql`
             INSERT INTO configuracao_api (id, url_api, token, usuario, senha, ultima_sincronizacao) VALUES
             (1, '', '', '', '', '')
@@ -176,26 +182,45 @@ export async function initNeonTables() {
 export const neonDb = {
   getUsuarios: async (): Promise<Usuario[]> => {
     if (!sqlQuery) return [];
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`SELECT * FROM usuarios ORDER BY id ASC`) as any[];
-    return rows;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return [];
+      const rows = (await sqlQuery`SELECT * FROM usuarios ORDER BY id ASC`) as any[];
+      return rows;
+    } catch (err) {
+      console.warn('[Neon] Error in getUsuarios:', err);
+      return [];
+    }
   },
   getUsuarioByLogin: async (login: string): Promise<Usuario | undefined> => {
     if (!sqlQuery) return undefined;
-    await ensureNeonInitialized();
-    const lowerLogin = login.toLowerCase();
-    const rows = (await sqlQuery`SELECT * FROM usuarios WHERE LOWER(login) = ${lowerLogin} LIMIT 1`) as any[];
-    return rows[0];
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return undefined;
+      const lowerLogin = login.toLowerCase();
+      const rows = (await sqlQuery`SELECT * FROM usuarios WHERE LOWER(login) = ${lowerLogin} LIMIT 1`) as any[];
+      return rows[0];
+    } catch (err) {
+      console.warn('[Neon] Error in getUsuarioByLogin:', err);
+      return undefined;
+    }
   },
   getUsuarioById: async (id: number): Promise<Usuario | undefined> => {
     if (!sqlQuery) return undefined;
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`SELECT * FROM usuarios WHERE id = ${id}`) as any[];
-    return rows[0];
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return undefined;
+      const rows = (await sqlQuery`SELECT * FROM usuarios WHERE id = ${id}`) as any[];
+      return rows[0];
+    } catch (err) {
+      console.warn('[Neon] Error in getUsuarioById:', err);
+      return undefined;
+    }
   },
   addUsuario: async (data: Omit<Usuario, 'id'>): Promise<Usuario> => {
     if (!sqlQuery) throw new Error('Database not connected');
-    await ensureNeonInitialized();
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
     const prod = data.produto || 'Todos';
     const sup = data.supervisor || 'Todos';
     const rows = (await sqlQuery`
@@ -207,41 +232,59 @@ export const neonDb = {
   },
   updateUsuario: async (id: number, data: Partial<Usuario>): Promise<Usuario | null> => {
     if (!sqlQuery) return null;
-    await ensureNeonInitialized();
-    const current = await neonDb.getUsuarioById(id);
-    if (!current) return null;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return null;
+      const current = await neonDb.getUsuarioById(id);
+      if (!current) return null;
 
-    const nome = data.nome ?? current.nome;
-    const login = data.login ?? current.login;
-    const senha = data.senha ?? current.senha;
-    const perfil = data.perfil ?? current.perfil;
-    const status = data.status ?? current.status;
-    const produto = data.produto ?? current.produto;
-    const supervisor = data.supervisor ?? current.supervisor;
+      const nome = data.nome ?? current.nome;
+      const login = data.login ?? current.login;
+      const senha = data.senha ?? current.senha;
+      const perfil = data.perfil ?? current.perfil;
+      const status = data.status ?? current.status;
+      const produto = data.produto ?? current.produto;
+      const supervisor = data.supervisor ?? current.supervisor;
 
-    const rows = (await sqlQuery`
-      UPDATE usuarios 
-      SET nome = ${nome}, login = ${login}, senha = ${senha}, perfil = ${perfil}, status = ${status}, produto = ${produto}, supervisor = ${supervisor}
-      WHERE id = ${id}
-      RETURNING *
-    `) as any[];
-    return rows[0] || null;
+      const rows = (await sqlQuery`
+        UPDATE usuarios 
+        SET nome = ${nome}, login = ${login}, senha = ${senha}, perfil = ${perfil}, status = ${status}, produto = ${produto}, supervisor = ${supervisor}
+        WHERE id = ${id}
+        RETURNING *
+      `) as any[];
+      return rows[0] || null;
+    } catch (err) {
+      console.warn('[Neon] Error in updateUsuario:', err);
+      return null;
+    }
   },
   deleteUsuario: async (id: number): Promise<void> => {
     if (!sqlQuery) return;
-    await ensureNeonInitialized();
-    await sqlQuery`DELETE FROM usuarios WHERE id = ${id}`;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return;
+      await sqlQuery`DELETE FROM usuarios WHERE id = ${id}`;
+    } catch (err) {
+      console.warn('[Neon] Error in deleteUsuario:', err);
+    }
   },
 
   getSupervisores: async (): Promise<Supervisor[]> => {
     if (!sqlQuery) return [];
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`SELECT * FROM supervisores ORDER BY id ASC`) as any[];
-    return rows;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return [];
+      const rows = (await sqlQuery`SELECT * FROM supervisores ORDER BY id ASC`) as any[];
+      return rows;
+    } catch (err) {
+      console.warn('[Neon] Error in getSupervisores:', err);
+      return [];
+    }
   },
   addSupervisor: async (data: Omit<Supervisor, 'id'>): Promise<Supervisor> => {
     if (!sqlQuery) throw new Error('Database not connected');
-    await ensureNeonInitialized();
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
     const rows = (await sqlQuery`
       INSERT INTO supervisores (nome, produto, status) VALUES (${data.nome}, ${data.produto}, ${data.status}) RETURNING *
     `) as any[];
@@ -249,35 +292,53 @@ export const neonDb = {
   },
   updateSupervisor: async (id: number, data: Partial<Supervisor>): Promise<Supervisor | null> => {
     if (!sqlQuery) return null;
-    await ensureNeonInitialized();
-    const currentList = (await sqlQuery`SELECT * FROM supervisores WHERE id = ${id}`) as any[];
-    if (!currentList[0]) return null;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return null;
+      const currentList = (await sqlQuery`SELECT * FROM supervisores WHERE id = ${id}`) as any[];
+      if (!currentList[0]) return null;
 
-    const nome = data.nome ?? currentList[0].nome;
-    const produto = data.produto ?? currentList[0].produto;
-    const status = data.status ?? currentList[0].status;
+      const nome = data.nome ?? currentList[0].nome;
+      const produto = data.produto ?? currentList[0].produto;
+      const status = data.status ?? currentList[0].status;
 
-    const rows = (await sqlQuery`
-      UPDATE supervisores SET nome = ${nome}, produto = ${produto}, status = ${status}
-      WHERE id = ${id} RETURNING *
-    `) as any[];
-    return rows[0] || null;
+      const rows = (await sqlQuery`
+        UPDATE supervisores SET nome = ${nome}, produto = ${produto}, status = ${status}
+        WHERE id = ${id} RETURNING *
+      `) as any[];
+      return rows[0] || null;
+    } catch (err) {
+      console.warn('[Neon] Error in updateSupervisor:', err);
+      return null;
+    }
   },
   deleteSupervisor: async (id: number): Promise<void> => {
     if (!sqlQuery) return;
-    await ensureNeonInitialized();
-    await sqlQuery`DELETE FROM supervisores WHERE id = ${id}`;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return;
+      await sqlQuery`DELETE FROM supervisores WHERE id = ${id}`;
+    } catch (err) {
+      console.warn('[Neon] Error in deleteSupervisor:', err);
+    }
   },
 
   getOperadores: async (): Promise<Operador[]> => {
     if (!sqlQuery) return [];
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`SELECT * FROM operadores ORDER BY id ASC`) as any[];
-    return rows;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return [];
+      const rows = (await sqlQuery`SELECT * FROM operadores ORDER BY id ASC`) as any[];
+      return rows;
+    } catch (err) {
+      console.warn('[Neon] Error in getOperadores:', err);
+      return [];
+    }
   },
   addOperador: async (data: Omit<Operador, 'id'>): Promise<Operador> => {
     if (!sqlQuery) throw new Error('Database not connected');
-    await ensureNeonInitialized();
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
     const rows = (await sqlQuery`
       INSERT INTO operadores (nome, produto, supervisor, situacao) VALUES (${data.nome}, ${data.produto}, ${data.supervisor}, ${data.situacao}) RETURNING *
     `) as any[];
@@ -286,13 +347,20 @@ export const neonDb = {
 
   getProdutos: async (): Promise<Produto[]> => {
     if (!sqlQuery) return [];
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`SELECT * FROM produtos ORDER BY id ASC`) as any[];
-    return rows;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return [];
+      const rows = (await sqlQuery`SELECT * FROM produtos ORDER BY id ASC`) as any[];
+      return rows;
+    } catch (err) {
+      console.warn('[Neon] Error in getProdutos:', err);
+      return [];
+    }
   },
   addProduto: async (nome: string): Promise<Produto> => {
     if (!sqlQuery) throw new Error('Database not connected');
-    await ensureNeonInitialized();
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
     const lowerName = nome.toLowerCase();
     const existing = (await sqlQuery`SELECT * FROM produtos WHERE LOWER(nome) = ${lowerName} LIMIT 1`) as any[];
     if (existing.length > 0) return existing[0];
@@ -302,49 +370,85 @@ export const neonDb = {
   },
   updateProduto: async (id: number, nome: string): Promise<Produto | null> => {
     if (!sqlQuery) return null;
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`UPDATE produtos SET nome = ${nome} WHERE id = ${id} RETURNING *`) as any[];
-    return rows[0] || null;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return null;
+      const rows = (await sqlQuery`UPDATE produtos SET nome = ${nome} WHERE id = ${id} RETURNING *`) as any[];
+      return rows[0] || null;
+    } catch (err) {
+      console.warn('[Neon] Error in updateProduto:', err);
+      return null;
+    }
   },
   deleteProduto: async (id: number): Promise<void> => {
     if (!sqlQuery) return;
-    await ensureNeonInitialized();
-    await sqlQuery`DELETE FROM produtos WHERE id = ${id}`;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return;
+      await sqlQuery`DELETE FROM produtos WHERE id = ${id}`;
+    } catch (err) {
+      console.warn('[Neon] Error in deleteProduto:', err);
+    }
   },
 
   getMotivos: async (): Promise<Motivo[]> => {
     if (!sqlQuery) return [];
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`SELECT * FROM motivos ORDER BY id ASC`) as any[];
-    return rows;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return [];
+      const rows = (await sqlQuery`SELECT * FROM motivos ORDER BY id ASC`) as any[];
+      return rows;
+    } catch (err) {
+      console.warn('[Neon] Error in getMotivos:', err);
+      return [];
+    }
   },
   addMotivo: async (descricao: string): Promise<Motivo> => {
     if (!sqlQuery) throw new Error('Database not connected');
-    await ensureNeonInitialized();
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
     const rows = (await sqlQuery`INSERT INTO motivos (descricao) VALUES (${descricao}) RETURNING *`) as any[];
     return rows[0];
   },
   updateMotivo: async (id: number, descricao: string): Promise<Motivo | null> => {
     if (!sqlQuery) return null;
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`UPDATE motivos SET descricao = ${descricao} WHERE id = ${id} RETURNING *`) as any[];
-    return rows[0] || null;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return null;
+      const rows = (await sqlQuery`UPDATE motivos SET descricao = ${descricao} WHERE id = ${id} RETURNING *`) as any[];
+      return rows[0] || null;
+    } catch (err) {
+      console.warn('[Neon] Error in updateMotivo:', err);
+      return null;
+    }
   },
   deleteMotivo: async (id: number): Promise<void> => {
     if (!sqlQuery) return;
-    await ensureNeonInitialized();
-    await sqlQuery`DELETE FROM motivos WHERE id = ${id}`;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return;
+      await sqlQuery`DELETE FROM motivos WHERE id = ${id}`;
+    } catch (err) {
+      console.warn('[Neon] Error in deleteMotivo:', err);
+    }
   },
 
   getSinalizacoes: async (): Promise<Sinalizacao[]> => {
     if (!sqlQuery) return [];
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`SELECT * FROM sinalizacoes ORDER BY id DESC`) as any[];
-    return rows;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return [];
+      const rows = (await sqlQuery`SELECT * FROM sinalizacoes ORDER BY id DESC`) as any[];
+      return rows;
+    } catch (err) {
+      console.warn('[Neon] Error in getSinalizacoes:', err);
+      return [];
+    }
   },
   addSinalizacao: async (data: Omit<Sinalizacao, 'id'>): Promise<Sinalizacao> => {
     if (!sqlQuery) throw new Error('Database not connected');
-    await ensureNeonInitialized();
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
     const obs = data.observacao || '';
     const nomeEv = data.nome_evidencia || '';
     const camEv = data.caminho_evidencia || '';
@@ -357,35 +461,46 @@ export const neonDb = {
   },
   deleteSinalizacao: async (id: number): Promise<void> => {
     if (!sqlQuery) return;
-    await ensureNeonInitialized();
-    await sqlQuery`DELETE FROM sinalizacoes WHERE id = ${id}`;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return;
+      await sqlQuery`DELETE FROM sinalizacoes WHERE id = ${id}`;
+    } catch (err) {
+      console.warn('[Neon] Error in deleteSinalizacao:', err);
+    }
   },
 
   getConfigApi: async (): Promise<ConfiguracaoApi> => {
-    if (!sqlQuery) {
-      return {
-        id: 1,
-        url_api: '',
-        token: '',
-        usuario: '',
-        senha: '',
-        ultima_sincronizacao: ''
-      };
+    const defaultConfig: ConfiguracaoApi = {
+      id: 1,
+      url_api: '',
+      token: '',
+      usuario: '',
+      senha: '',
+      ultima_sincronizacao: ''
+    };
+    if (!sqlQuery) return defaultConfig;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return defaultConfig;
+      const rows = (await sqlQuery`SELECT * FROM configuracao_api ORDER BY id ASC LIMIT 1`) as any[];
+      if (rows.length === 0) {
+        const inserted = (await sqlQuery`
+          INSERT INTO configuracao_api (id, url_api, token, usuario, senha, ultima_sincronizacao)
+          VALUES (1, '', '', '', '', '') RETURNING *
+        `) as any[];
+        return inserted[0] || defaultConfig;
+      }
+      return rows[0] || defaultConfig;
+    } catch (err) {
+      console.warn('[Neon] Error in getConfigApi:', err);
+      return defaultConfig;
     }
-    await ensureNeonInitialized();
-    const rows = (await sqlQuery`SELECT * FROM configuracao_api ORDER BY id ASC LIMIT 1`) as any[];
-    if (rows.length === 0) {
-      const inserted = (await sqlQuery`
-        INSERT INTO configuracao_api (id, url_api, token, usuario, senha, ultima_sincronizacao)
-        VALUES (1, '', '', '', '', '') RETURNING *
-      `) as any[];
-      return inserted[0];
-    }
-    return rows[0];
   },
   updateConfigApi: async (data: Partial<ConfiguracaoApi>): Promise<ConfiguracaoApi> => {
     if (!sqlQuery) throw new Error('Database not connected');
-    await ensureNeonInitialized();
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
     const current = await neonDb.getConfigApi();
     const url_api = data.url_api ?? current.url_api;
     const token = data.token ?? current.token;
