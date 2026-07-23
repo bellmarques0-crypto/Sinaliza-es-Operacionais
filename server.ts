@@ -106,6 +106,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     console.log('📡 Buscando usuário no Supabase...');
     const user = await db.getUsuarioByLogin(login);
     console.log('👤 Usuário encontrado?', user ? 'Sim' : 'Não');
+    console.log('📦 Dados do usuário:', JSON.stringify(user, null, 2)); // 👈 LINHA ADICIONADA
 
     if (!user) {
       return res.status(401).json({ error: 'Login ou senha incorretos.' });
