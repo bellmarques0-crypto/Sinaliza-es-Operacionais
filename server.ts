@@ -5,7 +5,7 @@ import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createServer as createViteServer } from 'vite';
-import { db } from './src/server/db-supabase';
+import { db, supabase } from './src/server/db-supabase';
 import { PerfilAcesso } from './src/types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sinalizacoes_secret_key_2026_super_secure';
@@ -103,10 +103,21 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
   }
 
   try {
+    // TESTE: Verificar se o Supabase está acessível
+    console.log('🧪 Testando conexão com Supabase...');
+    const { data: testData, error: testError, count } = await supabase
+      .from('usuarios')
+      .select('*', { count: 'exact', head: true });
+    console.log('🧪 Teste de conexão:', testError ? '❌ Falha' : '✅ Sucesso');
+    if (testError) {
+      console.error('🧪 Erro no teste:', testError);
+    } else {
+      console.log('🧪 Quantidade de usuários:', count || 0);
+    }
+
     console.log('📡 Buscando usuário no Supabase...');
     const user = await db.getUsuarioByLogin(login);
     console.log('👤 Usuário encontrado?', user ? 'Sim' : 'Não');
-    console.log('📦 Dados do usuário:', JSON.stringify(user, null, 2)); // 👈 LINHA ADICIONADA
 
     if (!user) {
       return res.status(401).json({ error: 'Login ou senha incorretos.' });
