@@ -96,13 +96,26 @@ function requireRole(roles: PerfilAcesso[]) {
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { login, senha } = req.body;
 
+  console.log('🔍 Tentativa de login:', { login, senha: '***' });
+
   if (!login || !senha) {
     return res.status(400).json({ error: 'Informe login e senha.' });
   }
 
   try {
+    console.log('📡 Buscando usuário no Supabase...');
     const user = await db.getUsuarioByLogin(login);
+    console.log('👤 Usuário encontrado?', user ? 'Sim' : 'Não');
+
     if (!user) {
+      return res.status(401).json({ error: 'Login ou senha incorretos.' });
+    }
+
+    console.log('🔐 Verificando senha...');
+    const validPassword = bcrypt.compareSync(senha, user.senha || '');
+    console.log('✅ Senha válida?', validPassword);
+
+    if (!validPassword) {
       return res.status(401).json({ error: 'Login ou senha incorretos.' });
     }
 
