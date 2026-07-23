@@ -1,4 +1,5 @@
-import { Pool, neon } from '@neondatabase/serverless';
+import { Pool, neon, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
 import bcrypt from 'bcryptjs';
 import {
   Usuario,
@@ -9,6 +10,9 @@ import {
   Sinalizacao,
   ConfiguracaoApi
 } from '../types';
+
+// Configure WebSocket for Node environment / Vercel Serverless
+neonConfig.webSocketConstructor = ws;
 
 const connectionString =
   process.env.DATABASE_URL ||

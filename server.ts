@@ -106,13 +106,21 @@ function requireRole(roles: PerfilAcesso[]) {
 // --- AUTH ROUTES ---
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   try {
-    const { login, senha } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    }
+    const { login, senha } = body || {};
 
     if (!login || !senha) {
       return res.status(400).json({ error: 'Informe login e senha.' });
     }
 
-    const user = await db.getUsuarioByLogin(login);
+    const user = await db.getUsuarioByLogin(String(login).trim());
     if (!user) {
       return res.status(401).json({ error: 'Login ou senha incorretos.' });
     }
@@ -121,7 +129,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
       return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
     }
 
-    const validPassword = bcrypt.compareSync(senha, user.senha || '');
+    const validPassword = bcrypt.compareSync(String(senha), user.senha || '');
     if (!validPassword) {
       return res.status(401).json({ error: 'Login ou senha incorretos.' });
     }
@@ -142,7 +150,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error('Login route error:', err);
-    return res.status(500).json({ error: 'Erro ao autenticar. Tente novamente.' });
+    return res.status(500).json({ error: `Erro ao autenticar: ${err.message || err}` });
   }
 });
 

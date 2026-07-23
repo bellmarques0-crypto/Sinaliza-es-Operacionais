@@ -172,6 +172,7 @@ export const db = {
     return loadDatabase().usuarios;
   },
   getUsuarioByLogin: async (login: string): Promise<Usuario | undefined> => {
+    if (!login) return undefined;
     if (isNeonEnabled) {
       try {
         const u = await neonDb.getUsuarioByLogin(login);
@@ -180,7 +181,10 @@ export const db = {
         console.warn('[Neon] getUsuarioByLogin failed, falling back to local database:', err);
       }
     }
-    return loadDatabase().usuarios.find((u) => u.login.toLowerCase() === login.toLowerCase());
+    const store = loadDatabase();
+    return (store.usuarios || []).find(
+      (u) => u && u.login && u.login.toLowerCase() === String(login).toLowerCase()
+    );
   },
   getUsuarioById: async (id: number): Promise<Usuario | undefined> => {
     if (isNeonEnabled) {
