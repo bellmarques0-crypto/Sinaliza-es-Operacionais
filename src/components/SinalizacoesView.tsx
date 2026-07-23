@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   FilePlus,
   Upload,
@@ -182,11 +182,8 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
     filterMotivo
   ]);
 
-  // Image upload handling & validation
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  // Image upload handling & validation (File input or Paste Ctrl+V)
+  const processImageFile = useCallback((file: File) => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
       setFormErrorMessage('Formato de imagem inválido. Aceito apenas JPG, JPEG e PNG.');
@@ -200,8 +197,52 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
 
     setFormErrorMessage(null);
     setImageFile(file);
-    setImagePreviewUrl(URL.createObjectURL(file));
+    setImagePreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+  }, []);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processImageFile(file);
   };
+
+  const handlePasteImage = useCallback(
+    (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.indexOf('image') !== -1) {
+          const blob = item.getAsFile();
+          if (blob) {
+            const ext = blob.type.split('/')[1] || 'png';
+            const file = new File([blob], `evidencia_colada_${Date.now()}.${ext}`, { type: blob.type });
+            processImageFile(file);
+            e.preventDefault();
+            break;
+          }
+        }
+      }
+    },
+    [processImageFile]
+  );
+
+  useEffect(() => {
+    if (!canRegister) return;
+
+    const onPaste = (e: ClipboardEvent) => {
+      handlePasteImage(e);
+    };
+
+    window.addEventListener('paste', onPaste);
+    return () => {
+      window.removeEventListener('paste', onPaste);
+    };
+  }, [canRegister, handlePasteImage]);
 
   const handleClearImage = () => {
     setImageFile(null);
@@ -511,14 +552,14 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 {/* File Dropzone */}
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-blue-50/20 transition"
+                  className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 hover:bg-blue-50/20 transition group"
                 >
-                  <Upload className="h-6 w-6 text-slate-400 mb-1" />
-                  <span className="text-xs font-semibold text-slate-700">
-                    Clique para selecionar a imagem
+                  <Upload className="h-6 w-6 text-slate-400 mb-1 group-hover:text-blue-500 transition-colors" />
+                  <span className="text-xs font-semibold text-slate-700 text-center">
+                    Clique para selecionar ou cole (Ctrl+V) a imagem
                   </span>
-                  <span className="text-[10px] text-slate-400">
-                    Aceita apenas .jpg, .jpeg, .png (máx. 5MB)
+                  <span className="text-[10px] text-slate-400 text-center mt-0.5">
+                    Aceita .jpg, .jpeg, .png (máx. 5MB)
                   </span>
                   <input
                     ref={fileInputRef}
