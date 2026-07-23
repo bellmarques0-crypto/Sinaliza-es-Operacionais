@@ -4,7 +4,6 @@ import fs from 'fs';
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { createServer as createViteServer } from 'vite';
 import { db } from './src/server/db.js';
 import { PerfilAcesso } from './src/types.js';
 
@@ -861,6 +860,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Vite middleware / Express static setup
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'
