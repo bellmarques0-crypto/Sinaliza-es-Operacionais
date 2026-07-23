@@ -81,14 +81,36 @@ export const db = {
   },
 
   getUsuarioByLogin: async (login: string): Promise<Usuario | null> => {
+  console.log('🔎 getUsuarioByLogin chamado com:', login);
+  try {
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
-      .ilike('login', login)
-      .single();
-    if (error || !data) return null;
-    return toUsuario(data);
-  },
+      .eq('login', login); // 👈 removi o .single() para testar
+      
+    console.log('📦 Dados retornados:', data);
+    console.log('❌ Erro:', error);
+    
+    if (error) {
+      console.error('Erro no Supabase:', error);
+      return null;
+    }
+    
+    if (!data || data.length === 0) {
+      console.log('❌ Nenhum usuário encontrado com login:', login);
+      return null;
+    }
+    
+    // Pega o primeiro resultado
+    const userData = data[0];
+    console.log('✅ Usuário encontrado:', userData);
+    
+    return toUsuario(userData);
+  } catch (err) {
+    console.error('❌ Exceção em getUsuarioByLogin:', err);
+    return null;
+  }
+},
 
   getUsuarioById: async (id: number): Promise<Usuario | null> => {
     const { data, error } = await supabase
