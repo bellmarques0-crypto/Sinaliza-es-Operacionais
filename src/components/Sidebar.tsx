@@ -40,8 +40,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo & Name */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 border border-orange-500/40 text-orange-500 font-black text-xl shadow-md shadow-orange-500/20">
-              P
+            <div className="flex h-10 px-2.5 items-center justify-center rounded-xl bg-slate-800 border border-slate-700/80 shadow-md">
+              <img
+                src="/logo.png"
+                alt="Proativa Logo"
+                className="h-7 w-auto object-contain"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold text-white text-base tracking-wider leading-none">
