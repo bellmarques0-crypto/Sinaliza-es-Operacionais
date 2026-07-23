@@ -473,6 +473,30 @@ export const db = {
     dataStore.sinalizacoes = dataStore.sinalizacoes.filter((s) => s.id !== id);
     saveDatabase();
   },
+  confirmarSinalizacao: async (id: number, usuario_confirmacao: string): Promise<Sinalizacao | null> => {
+    if (isNeonEnabled) {
+      try {
+        return await neonDb.confirmarSinalizacao(id, usuario_confirmacao);
+      } catch (err) {
+        console.warn('[Neon] confirmarSinalizacao failed, falling back to local database:', err);
+      }
+    }
+    const dataStore = loadDatabase();
+    const idx = dataStore.sinalizacoes.findIndex((s) => s.id === id);
+    if (idx !== -1) {
+      const now = new Date();
+      const data_confirmacao = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+      dataStore.sinalizacoes[idx] = {
+        ...dataStore.sinalizacoes[idx],
+        confirmado: true,
+        data_confirmacao,
+        usuario_confirmacao
+      };
+      saveDatabase();
+      return dataStore.sinalizacoes[idx];
+    }
+    return null;
+  },
 
   getConfigApi: async (): Promise<ConfiguracaoApi> => {
     if (isNeonEnabled) {

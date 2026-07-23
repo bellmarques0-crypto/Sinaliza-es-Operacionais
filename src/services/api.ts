@@ -102,6 +102,12 @@ export const api = {
     });
   },
 
+  confirmarSinalizacao: async (id: number): Promise<{ message: string; data: Sinalizacao }> => {
+    return request<{ message: string; data: Sinalizacao }>(`/api/sinalizacoes/${id}/confirmar`, {
+      method: 'PUT'
+    });
+  },
+
   // Usuários
   getUsuarios: async (): Promise<Usuario[]> => {
     return request<Usuario[]>('/api/usuarios');

@@ -116,6 +116,22 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
     }
   };
 
+  // Confirmation state
+  const [confirmingId, setConfirmingId] = useState<number | null>(null);
+
+  const handleConfirmSinalizacao = async (id: number) => {
+    setConfirmingId(id);
+    try {
+      await api.confirmarSinalizacao(id);
+      setFormSuccessMessage('Sinalização confirmada com sucesso pelo supervisor.');
+      fetchHistory();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao confirmar sinalização.');
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+
   // Delete Sinalização Confirmation Modal State
   const [sinalizacaoToDelete, setSinalizacaoToDelete] = useState<{ id: number; operador: string } | null>(null);
   const [isDeletingSinalizacao, setIsDeletingSinalizacao] = useState(false);
@@ -739,6 +755,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 <th className="px-3.5 py-3">Observação</th>
                 <th className="px-3.5 py-3 text-center">Imagem</th>
                 <th className="px-3.5 py-3">Usuário Responsável</th>
+                <th className="px-3.5 py-3 text-center">Check / Status</th>
                 {user.perfil === 'Administrador' && (
                   <th className="px-3.5 py-3 text-center">Ações</th>
                 )}
@@ -747,7 +764,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
             <tbody className="divide-y divide-slate-100 bg-white">
               {isLoadingHistory ? (
                 <tr>
-                  <td colSpan={user.perfil === 'Administrador' ? 10 : 9} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={user.perfil === 'Administrador' ? 11 : 10} className="px-4 py-8 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                       Carregando sinalizações...
@@ -791,7 +808,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                               }
                             })
                           }
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-200 px-2.5 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition shadow-2xs"
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 border border-blue-200 px-2.5 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition shadow-2xs cursor-pointer"
                         >
                           <Eye className="h-3.5 w-3.5" />
                           Visualizar
@@ -802,6 +819,45 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     </td>
                     <td className="px-3.5 py-3 text-slate-500 whitespace-nowrap">
                       {item.usuario_responsavel}
+                    </td>
+                    <td className="px-3.5 py-3 text-center whitespace-nowrap">
+                      {item.confirmado ? (
+                        <div className="inline-flex flex-col items-center">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                            Confirmado
+                          </span>
+                          {item.usuario_confirmacao && (
+                            <span className="text-[10px] text-slate-400 mt-0.5" title={`Confirmado em ${item.data_confirmacao || ''}`}>
+                              Por: {item.usuario_confirmacao}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="inline-flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">
+                            Pendente
+                          </span>
+                          {(user.perfil === 'Administrador' ||
+                            user.perfil === 'Planejamento' ||
+                            user.nome.toLowerCase().trim() === item.supervisor.toLowerCase().trim() ||
+                            user.login.toLowerCase().trim() === item.supervisor.toLowerCase().trim()) && (
+                            <button
+                              onClick={() => handleConfirmSinalizacao(item.id)}
+                              disabled={confirmingId === item.id}
+                              className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-emerald-700 transition cursor-pointer disabled:opacity-50"
+                              title="Supervisor confirma sinalização"
+                            >
+                              {confirmingId === item.id ? (
+                                <span className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              )}
+                              Check
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                     {user.perfil === 'Administrador' && (
                       <td className="px-3.5 py-3 text-center whitespace-nowrap">
@@ -819,7 +875,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={user.perfil === 'Administrador' ? 10 : 9} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={user.perfil === 'Administrador' ? 11 : 10} className="px-4 py-8 text-center text-slate-500">
                     Nenhuma sinalização encontrada com os filtros aplicados.
                   </td>
                 </tr>

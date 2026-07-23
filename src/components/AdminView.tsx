@@ -316,7 +316,7 @@ export const AdminView: React.FC = () => {
           produto: produtoStr,
           status: supStatus
         });
-        showSuccess('Supervisor cadastrado com sucesso.');
+        showSuccess('Supervisor cadastrado com sucesso! Usuário também foi criado com o login de nome.sobrenome e senha "123456".');
       }
       setIsSupModalOpen(false);
       loadAllData();

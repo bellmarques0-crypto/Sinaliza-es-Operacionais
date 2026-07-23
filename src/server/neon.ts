@@ -94,9 +94,15 @@ export async function ensureNeonInitialized(): Promise<boolean> {
             nome_evidencia VARCHAR(255),
             caminho_evidencia TEXT,
             usuario_responsavel VARCHAR(255) NOT NULL,
-            data_cadastro VARCHAR(100) NOT NULL
+            data_cadastro VARCHAR(100) NOT NULL,
+            confirmado BOOLEAN DEFAULT FALSE,
+            data_confirmacao VARCHAR(100),
+            usuario_confirmacao VARCHAR(255)
           );
         `;
+        await sql`ALTER TABLE sinalizacoes ADD COLUMN IF NOT EXISTS confirmado BOOLEAN DEFAULT FALSE;`;
+        await sql`ALTER TABLE sinalizacoes ADD COLUMN IF NOT EXISTS data_confirmacao VARCHAR(100);`;
+        await sql`ALTER TABLE sinalizacoes ADD COLUMN IF NOT EXISTS usuario_confirmacao VARCHAR(255);`;
         await sql`
           CREATE TABLE IF NOT EXISTS configuracao_api (
             id SERIAL PRIMARY KEY,
@@ -467,6 +473,25 @@ export const neonDb = {
       await sqlQuery`DELETE FROM sinalizacoes WHERE id = ${id}`;
     } catch (err) {
       console.warn('[Neon] Error in deleteSinalizacao:', err);
+    }
+  },
+  confirmarSinalizacao: async (id: number, usuario_confirmacao: string): Promise<Sinalizacao | null> => {
+    if (!sqlQuery) return null;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return null;
+      const now = new Date();
+      const data_confirmacao = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+      const rows = (await sqlQuery`
+        UPDATE sinalizacoes
+        SET confirmado = TRUE, data_confirmacao = ${data_confirmacao}, usuario_confirmacao = ${usuario_confirmacao}
+        WHERE id = ${id}
+        RETURNING *
+      `) as any[];
+      return rows[0] || null;
+    } catch (err) {
+      console.warn('[Neon] Error in confirmarSinalizacao:', err);
+      return null;
     }
   },
 

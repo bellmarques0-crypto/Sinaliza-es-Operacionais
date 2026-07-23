@@ -1,4 +1,4 @@
-export type PerfilAcesso = 'Administrador' | 'Planejamento' | 'Operação';
+export type PerfilAcesso = 'Administrador' | 'Planejamento' | 'Operação' | 'Supervisor';
 
 export interface Usuario {
   id: number;
@@ -49,6 +49,9 @@ export interface Sinalizacao {
   caminho_evidencia?: string;
   usuario_responsavel: string;
   data_cadastro: string;
+  confirmado?: boolean;
+  data_confirmacao?: string;
+  usuario_confirmacao?: string;
 }
 
 export interface ConfiguracaoApi {

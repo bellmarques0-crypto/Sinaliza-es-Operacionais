@@ -307,6 +307,49 @@ app.post(
   }
 );
 
+app.put(
+  '/api/sinalizacoes/:id/confirmar',
+  authenticateToken,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'ID de sinalização inválido.' });
+      }
+
+      const list = await db.getSinalizacoes();
+      const sinalizacao = list.find((s) => s.id === id);
+      if (!sinalizacao) {
+        return res.status(404).json({ error: 'Sinalização não encontrada.' });
+      }
+
+      const currentUser = req.user!;
+      const isMentionedSupervisor =
+        sinalizacao.supervisor.toLowerCase().trim() === currentUser.nome.toLowerCase().trim() ||
+        sinalizacao.supervisor.toLowerCase().trim() === currentUser.login.toLowerCase().trim();
+      const isAdminOrPlan = currentUser.perfil === 'Administrador' || currentUser.perfil === 'Planejamento';
+
+      if (!isAdminOrPlan && !isMentionedSupervisor) {
+        return res.status(403).json({
+          error: `Apenas o supervisor responsável (${sinalizacao.supervisor}) ou Administrador/Planejamento podem confirmar esta sinalização.`
+        });
+      }
+
+      const updated = await db.confirmarSinalizacao(id, currentUser.nome);
+      if (!updated) {
+        return res.status(500).json({ error: 'Erro ao confirmar sinalização.' });
+      }
+
+      return res.json({
+        message: 'Sinalização confirmada com sucesso.',
+        data: updated
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Erro ao confirmar sinalização.' });
+    }
+  }
+);
+
 app.delete(
   '/api/sinalizacoes/:id',
   authenticateToken,
@@ -513,6 +556,19 @@ app.get('/api/supervisores', authenticateToken, async (req: Request, res: Respon
   return res.json(await db.getSupervisores());
 });
 
+function generateSupervisorLogin(nome: string): string {
+  const clean = nome
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim();
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'supervisor';
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]}.${parts[parts.length - 1]}`;
+}
+
 app.post(
   '/api/supervisores',
   authenticateToken,
@@ -528,6 +584,32 @@ app.post(
       produto,
       status: status || 'Ativo'
     });
+
+    // Auto-create user for supervisor with login "nome.sobrenome" and password "123456"
+    try {
+      const baseLogin = generateSupervisorLogin(nome);
+      let loginToUse = baseLogin;
+      let counter = 1;
+      while (await db.getUsuarioByLogin(loginToUse)) {
+        loginToUse = `${baseLogin}${counter}`;
+        counter++;
+      }
+
+      const salt = bcrypt.genSaltSync(10);
+      const hashedPassword = bcrypt.hashSync('123456', salt);
+
+      await db.addUsuario({
+        nome,
+        login: loginToUse,
+        senha: hashedPassword,
+        perfil: 'Supervisor',
+        status: status || 'Ativo',
+        produto: produto || 'Todos',
+        supervisor: nome
+      });
+    } catch (err) {
+      console.warn('Erro ao criar usuário automático para o supervisor:', err);
+    }
 
     return res.status(201).json(newSup);
   }
