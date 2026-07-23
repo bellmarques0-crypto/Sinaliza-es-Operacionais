@@ -8,7 +8,7 @@ import {
   Motivo,
   Sinalizacao,
   ConfiguracaoApi
-} from '../types';
+} from '../types.js';
 
 const connectionString =
   process.env.DATABASE_URL ||

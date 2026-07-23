@@ -5,8 +5,8 @@ import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createServer as createViteServer } from 'vite';
-import { db } from './src/server/db';
-import { PerfilAcesso } from './src/types';
+import { db } from './src/server/db.js';
+import { PerfilAcesso } from './src/types.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sinalizacoes_secret_key_2026_super_secure';
 const PORT = 3000;

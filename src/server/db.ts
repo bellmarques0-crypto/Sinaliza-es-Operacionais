@@ -9,8 +9,8 @@ import {
   Motivo,
   Sinalizacao,
   ConfiguracaoApi
-} from '../types';
-import { isNeonEnabled, initNeonTables, neonDb } from './neon';
+} from '../types.js';
+import { isNeonEnabled, initNeonTables, neonDb } from './neon.js';
 
 // Initialize Neon PostgreSQL tables if Neon DATABASE_URL is present
 if (isNeonEnabled) {
