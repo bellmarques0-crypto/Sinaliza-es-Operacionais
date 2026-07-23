@@ -93,41 +93,46 @@ function requireRole(roles: PerfilAcesso[]) {
 }
 
 // --- AUTH ROUTES ---
-app.post('/api/auth/login', (req: Request, res: Response) => {
+app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { login, senha } = req.body;
 
   if (!login || !senha) {
     return res.status(400).json({ error: 'Informe login e senha.' });
   }
 
-  const user = db.getUsuarioByLogin(login);
-  if (!user) {
-    return res.status(401).json({ error: 'Login ou senha incorretos.' });
+  try {
+    const user = await db.getUsuarioByLogin(login);
+    if (!user) {
+      return res.status(401).json({ error: 'Login ou senha incorretos.' });
+    }
+
+    if (user.status === 'Inativo') {
+      return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
+    }
+
+    const validPassword = bcrypt.compareSync(senha, user.senha || '');
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Login ou senha incorretos.' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, nome: user.nome, login: user.login, perfil: user.perfil },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    return res.json({
+      id: user.id,
+      nome: user.nome,
+      login: user.login,
+      perfil: user.perfil,
+      status: user.status,
+      token
+    });
+  } catch (error) {
+    console.error('Erro no login:', error);
+    return res.status(500).json({ error: 'Erro interno ao fazer login.' });
   }
-
-  if (user.status === 'Inativo') {
-    return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
-  }
-
-  const validPassword = bcrypt.compareSync(senha, user.senha || '');
-  if (!validPassword) {
-    return res.status(401).json({ error: 'Login ou senha incorretos.' });
-  }
-
-  const token = jwt.sign(
-    { id: user.id, nome: user.nome, login: user.login, perfil: user.perfil },
-    JWT_SECRET,
-    { expiresIn: '8h' }
-  );
-
-  return res.json({
-    id: user.id,
-    nome: user.nome,
-    login: user.login,
-    perfil: user.perfil,
-    status: user.status,
-    token
-  });
 });
 
 app.get('/api/auth/me', authenticateToken, (req: AuthRequest, res: Response) => {
