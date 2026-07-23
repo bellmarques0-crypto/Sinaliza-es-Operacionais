@@ -1,0 +1,35 @@
+{
+  "usuarios": [
+    {
+      "id": 1,
+      "nome": "Administrador Geral",
+      "login": "admin",
+      "senha": "$2b$10$.IWP6Mwy/ow5vTJ.xxaqf.TS6auP/rqUPoWNxBpgrQAFghqFAXYMi",
+      "perfil": "Administrador",
+      "status": "Ativo",
+      "produto": "Todos",
+      "supervisor": "Todos"
+    }
+  ],
+  "supervisores": [],
+  "produtos": [],
+  "operadores": [],
+  "motivos": [],
+  "sinalizacoes": [],
+  "configuracao_api": {
+    "id": 1,
+    "url_api": "",
+    "token": "",
+    "usuario": "",
+    "senha": "",
+    "ultima_sincronizacao": ""
+  },
+  "nextIds": {
+    "usuarios": 2,
+    "supervisores": 1,
+    "operadores": 1,
+    "produtos": 1,
+    "motivos": 1,
+    "sinalizacoes": 1
+  }
+}

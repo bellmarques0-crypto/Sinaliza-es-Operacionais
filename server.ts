@@ -5,7 +5,7 @@ import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createServer as createViteServer } from 'vite';
-import { db, supabase } from './src/server/db-supabase';
+import { db } from './src/server/db';
 import { PerfilAcesso } from './src/types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sinalizacoes_secret_key_2026_super_secure';
@@ -44,7 +44,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     const ext = path.extname(file.originalname).toLowerCase();
@@ -96,116 +96,80 @@ function requireRole(roles: PerfilAcesso[]) {
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   const { login, senha } = req.body;
 
-  console.log('🔍 Tentativa de login:', { login, senha: '***' });
-
   if (!login || !senha) {
     return res.status(400).json({ error: 'Informe login e senha.' });
   }
 
-  try {
-    // TESTE SIMPLIFICADO
-    console.log('🧪 Teste de conexão SIMPLES...');
-    try {
-      const { data, error } = await supabase.from('usuarios').select('*').limit(1);
-      console.log('🧪 Dados recebidos:', data);
-      console.log('🧪 Erro:', error);
-      if (error) {
-        console.error('❌ Erro no Supabase:', error);
-      } else {
-        console.log('✅ Conexão OK! Usuários encontrados:', data?.length || 0);
-      }
-    } catch (err) {
-      console.error('❌ Exceção no teste:', err);
-    }
-
-    console.log('📡 Buscando usuário no Supabase...');
-    const user = await db.getUsuarioByLogin(login);
-    console.log('👤 Usuário encontrado?', user ? 'Sim' : 'Não');
-
-    if (!user) {
-      return res.status(401).json({ error: 'Login ou senha incorretos.' });
-    }
-
-    if (user.status === 'Inativo') {
-      return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
-    }
-
-    console.log('🔐 Verificando senha...');
-    const senhaValida = bcrypt.compareSync(senha, user.senha || '');
-    console.log('✅ Senha válida?', senhaValida);
-
-    if (!senhaValida) {
-      return res.status(401).json({ error: 'Login ou senha incorretos.' });
-    }
-
-    const token = jwt.sign(
-      { id: user.id, nome: user.nome, login: user.login, perfil: user.perfil },
-      JWT_SECRET,
-      { expiresIn: '8h' }
-    );
-
-    return res.json({
-      id: user.id,
-      nome: user.nome,
-      login: user.login,
-      perfil: user.perfil,
-      status: user.status,
-      token
-    });
-  } catch (error) {
-    console.error('Erro no login:', error);
-    return res.status(500).json({ error: 'Erro interno ao fazer login.' });
+  const user = await db.getUsuarioByLogin(login);
+  if (!user) {
+    return res.status(401).json({ error: 'Login ou senha incorretos.' });
   }
+
+  if (user.status === 'Inativo') {
+    return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
+  }
+
+  const validPassword = bcrypt.compareSync(senha, user.senha || '');
+  if (!validPassword) {
+    return res.status(401).json({ error: 'Login ou senha incorretos.' });
+  }
+
+  const token = jwt.sign(
+    { id: user.id, nome: user.nome, login: user.login, perfil: user.perfil },
+    JWT_SECRET,
+    { expiresIn: '8h' }
+  );
+
+  return res.json({
+    id: user.id,
+    nome: user.nome,
+    login: user.login,
+    perfil: user.perfil,
+    status: user.status,
+    token
+  });
 });
 
 app.get('/api/auth/me', authenticateToken, async (req: AuthRequest, res: Response) => {
-  try {
-    const user = await db.getUsuarioById(req.user!.id);
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
-    }
-    return res.json({
-      id: user.id,
-      nome: user.nome,
-      login: user.login,
-      perfil: user.perfil,
-      status: user.status
-    });
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro ao buscar usuário.' });
+  const user = await db.getUsuarioById(req.user!.id);
+  if (!user) {
+    return res.status(404).json({ error: 'Usuário não encontrado.' });
   }
+  return res.json({
+    id: user.id,
+    nome: user.nome,
+    login: user.login,
+    perfil: user.perfil,
+    status: user.status
+  });
 });
 
 // --- SINALIZAÇÕES ROUTES ---
 app.get('/api/sinalizacoes', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const { dataInicial, dataFinal, supervisor, operador, produto, motivo } = req.query;
+  const { dataInicial, dataFinal, supervisor, operador, produto, motivo } = req.query;
 
-    let list = await db.getSinalizacoes();
+  let list = await db.getSinalizacoes();
 
-    if (dataInicial && typeof dataInicial === 'string') {
-      list = list.filter((s) => s.data >= dataInicial);
-    }
-    if (dataFinal && typeof dataFinal === 'string') {
-      list = list.filter((s) => s.data <= dataFinal);
-    }
-    if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
-      list = list.filter((s) => s.supervisor.toLowerCase() === supervisor.toLowerCase());
-    }
-    if (operador && typeof operador === 'string' && operador !== 'Todos') {
-      list = list.filter((s) => s.operador.toLowerCase().includes(operador.toLowerCase()));
-    }
-    if (produto && typeof produto === 'string' && produto !== 'Todos') {
-      list = list.filter((s) => s.produto.toLowerCase() === produto.toLowerCase());
-    }
-    if (motivo && typeof motivo === 'string' && motivo !== 'Todos') {
-      list = list.filter((s) => s.motivo.toLowerCase() === motivo.toLowerCase());
-    }
-
-    return res.json(list);
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro ao buscar sinalizações.' });
+  if (dataInicial && typeof dataInicial === 'string') {
+    list = list.filter((s) => s.data >= dataInicial);
   }
+  if (dataFinal && typeof dataFinal === 'string') {
+    list = list.filter((s) => s.data <= dataFinal);
+  }
+  if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
+    list = list.filter((s) => s.supervisor.toLowerCase() === supervisor.toLowerCase());
+  }
+  if (operador && typeof operador === 'string' && operador !== 'Todos') {
+    list = list.filter((s) => s.operador.toLowerCase().includes(operador.toLowerCase()));
+  }
+  if (produto && typeof produto === 'string' && produto !== 'Todos') {
+    list = list.filter((s) => s.produto.toLowerCase() === produto.toLowerCase());
+  }
+  if (motivo && typeof motivo === 'string' && motivo !== 'Todos') {
+    list = list.filter((s) => s.motivo.toLowerCase() === motivo.toLowerCase());
+  }
+
+  return res.json(list);
 });
 
 app.post(
@@ -269,97 +233,95 @@ app.delete(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      if (isNaN(id)) {
-        return res.status(400).json({ error: 'ID de sinalização inválido.' });
-      }
-      await db.deleteSinalizacao(id);
-      return res.json({ success: true, message: 'Sinalização excluída com sucesso.' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao excluir sinalização.' });
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'ID de sinalização inválido.' });
     }
+    await db.deleteSinalizacao(id);
+    return res.json({ success: true, message: 'Sinalização excluída com sucesso.' });
   }
 );
 
 // --- DASHBOARD ROUTE ---
 app.get('/api/dashboard', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const { dataInicial, dataFinal, produto, supervisor } = req.query;
+  const { dataInicial, dataFinal, produto, supervisor } = req.query;
 
-    let list = await db.getSinalizacoes();
+  let list = await db.getSinalizacoes();
 
-    if (dataInicial && typeof dataInicial === 'string' && dataInicial) {
-      list = list.filter((s) => s.data >= dataInicial);
-    }
-    if (dataFinal && typeof dataFinal === 'string' && dataFinal) {
-      list = list.filter((s) => s.data <= dataFinal);
-    }
-    if (produto && typeof produto === 'string' && produto !== 'Todos') {
-      list = list.filter((s) => s.produto.toLowerCase() === produto.toLowerCase());
-    }
-    if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
-      list = list.filter((s) => s.supervisor.toLowerCase() === supervisor.toLowerCase());
-    }
-
-    const totalSinalizacoes = list.length;
-    const operadoresSet = new Set(list.map((s) => s.operador));
-    const totalOperadoresSinalizados = operadoresSet.size;
-    const supervisoresSet = new Set(list.map((s) => s.supervisor));
-    const totalSupervisoresComSinalizacoes = supervisoresSet.size;
-    const motivos = await db.getMotivos();
-    const totalMotivosCadastrados = motivos.length;
-
-    const supCounts: Record<string, number> = {};
-    list.forEach((s) => {
-      supCounts[s.supervisor] = (supCounts[s.supervisor] || 0) + 1;
-    });
-    const sinalizacoesPorSupervisor = Object.entries(supCounts).map(([sup, count]) => ({
-      supervisor: sup,
-      quantidade: count
-    })).sort((a, b) => b.quantidade - a.quantidade);
-
-    const motivoCounts: Record<string, number> = {};
-    list.forEach((s) => {
-      motivoCounts[s.motivo] = (motivoCounts[s.motivo] || 0) + 1;
-    });
-    const maioresMotivos = Object.entries(motivoCounts).map(([motivo, count]) => ({
-      motivo,
-      quantidade: count
-    })).sort((a, b) => b.quantidade - a.quantidade);
-
-    const opCounts: Record<string, number> = {};
-    list.forEach((s) => {
-      opCounts[s.operador] = (opCounts[s.operador] || 0) + 1;
-    });
-    const topOperadores = Object.entries(opCounts)
-      .map(([operador, count]) => ({ operador, quantidade: count }))
-      .sort((a, b) => b.quantidade - a.quantidade)
-      .slice(0, 5);
-
-    const prodCounts: Record<string, number> = {};
-    list.forEach((s) => {
-      prodCounts[s.produto] = (prodCounts[s.produto] || 0) + 1;
-    });
-    const sinalizacoesPorProduto = Object.entries(prodCounts).map(([prod, count]) => ({
-      produto: prod,
-      quantidade: count
-    })).sort((a, b) => b.quantidade - a.quantidade);
-
-    return res.json({
-      totalSinalizacoes,
-      totalOperadoresSinalizados,
-      totalSupervisoresComSinalizacoes,
-      totalMotivosCadastrados,
-      sinalizacoesPorSupervisor,
-      maioresMotivos,
-      topOperadores,
-      sinalizacoesPorProduto,
-      resumoTabela: list
-    });
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro ao carregar dashboard.' });
+  if (dataInicial && typeof dataInicial === 'string' && dataInicial) {
+    list = list.filter((s) => s.data >= dataInicial);
   }
+  if (dataFinal && typeof dataFinal === 'string' && dataFinal) {
+    list = list.filter((s) => s.data <= dataFinal);
+  }
+  if (produto && typeof produto === 'string' && produto !== 'Todos') {
+    list = list.filter((s) => s.produto.toLowerCase() === produto.toLowerCase());
+  }
+  if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
+    list = list.filter((s) => s.supervisor.toLowerCase() === supervisor.toLowerCase());
+  }
+
+  // Cards metrics
+  const totalSinalizacoes = list.length;
+  const operadoresSet = new Set(list.map((s) => s.operador));
+  const totalOperadoresSinalizados = operadoresSet.size;
+
+  const supervisoresSet = new Set(list.map((s) => s.supervisor));
+  const totalSupervisoresComSinalizacoes = supervisoresSet.size;
+
+  const totalMotivosCadastrados = (await db.getMotivos()).length;
+
+  // Chart 1: Quantidade de sinalizações por Supervisor
+  const supCounts: Record<string, number> = {};
+  list.forEach((s) => {
+    supCounts[s.supervisor] = (supCounts[s.supervisor] || 0) + 1;
+  });
+  const sinalizacoesPorSupervisor = Object.entries(supCounts).map(([sup, count]) => ({
+    supervisor: sup,
+    quantidade: count
+  })).sort((a, b) => b.quantidade - a.quantidade);
+
+  // Chart 2: Maiores motivos de sinalização
+  const motivoCounts: Record<string, number> = {};
+  list.forEach((s) => {
+    motivoCounts[s.motivo] = (motivoCounts[s.motivo] || 0) + 1;
+  });
+  const maioresMotivos = Object.entries(motivoCounts).map(([motivo, count]) => ({
+    motivo,
+    quantidade: count
+  })).sort((a, b) => b.quantidade - a.quantidade);
+
+  // Chart 3: Top 5 operadores mais sinalizados
+  const opCounts: Record<string, number> = {};
+  list.forEach((s) => {
+    opCounts[s.operador] = (opCounts[s.operador] || 0) + 1;
+  });
+  const topOperadores = Object.entries(opCounts)
+    .map(([operador, count]) => ({ operador, quantidade: count }))
+    .sort((a, b) => b.quantidade - a.quantidade)
+    .slice(0, 5);
+
+  // Chart 4: Quantidade de sinalizações por Produto
+  const prodCounts: Record<string, number> = {};
+  list.forEach((s) => {
+    prodCounts[s.produto] = (prodCounts[s.produto] || 0) + 1;
+  });
+  const sinalizacoesPorProduto = Object.entries(prodCounts).map(([prod, count]) => ({
+    produto: prod,
+    quantidade: count
+  })).sort((a, b) => b.quantidade - a.quantidade);
+
+  return res.json({
+    totalSinalizacoes,
+    totalOperadoresSinalizados,
+    totalSupervisoresComSinalizacoes,
+    totalMotivosCadastrados,
+    sinalizacoesPorSupervisor,
+    maioresMotivos,
+    topOperadores,
+    sinalizacoesPorProduto,
+    resumoTabela: list
+  });
 });
 
 // --- USUÁRIOS ROUTES (Admin) ---
@@ -368,13 +330,8 @@ app.get(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const list = await db.getUsuarios();
-      const usersWithoutPassword = list.map(({ senha, ...u }) => u);
-      return res.json(usersWithoutPassword);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao buscar usuários.' });
-    }
+    const list = (await db.getUsuarios()).map(({ senha, ...u }) => u);
+    return res.json(list);
   }
 );
 
@@ -383,36 +340,31 @@ app.post(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const { nome, login, senha, perfil, status, produto, supervisor } = req.body;
+    const { nome, login, senha, perfil, status, produto, supervisor } = req.body;
 
-      if (!nome || !login || !senha || !perfil) {
-        return res.status(400).json({ error: 'Nome, login, senha e perfil são obrigatórios.' });
-      }
-
-      const existing = await db.getUsuarioByLogin(login);
-      if (existing) {
-        return res.status(400).json({ error: 'Já existe um usuário com este login.' });
-      }
-
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(senha, salt);
-
-      const newUser = await db.addUsuario({
-        nome,
-        login,
-        senha: hashedPassword,
-        perfil,
-        status: status || 'Ativo',
-        produto: produto || 'Todos',
-        supervisor: supervisor || 'Todos'
-      });
-
-      const { senha: _, ...userWithoutPassword } = newUser;
-      return res.status(201).json(userWithoutPassword);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao criar usuário.' });
+    if (!nome || !login || !senha || !perfil) {
+      return res.status(400).json({ error: 'Nome, login, senha e perfil são obrigatórios.' });
     }
+
+    if (await db.getUsuarioByLogin(login)) {
+      return res.status(400).json({ error: 'Já existe um usuário com este login.' });
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(senha, salt);
+
+    const newUser = await db.addUsuario({
+      nome,
+      login,
+      senha: hashedPassword,
+      perfil,
+      status: status || 'Ativo',
+      produto: produto || 'Todos',
+      supervisor: supervisor || 'Todos'
+    });
+
+    const { senha: _, ...userWithoutPassword } = newUser;
+    return res.status(201).json(userWithoutPassword);
   }
 );
 
@@ -421,30 +373,26 @@ app.put(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      const { nome, perfil, status, produto, supervisor } = req.body;
+    const id = parseInt(req.params.id, 10);
+    const { nome, perfil, status, produto, supervisor } = req.body;
 
-      const existing = await db.getUsuarioById(id);
-      if (!existing) {
-        return res.status(404).json({ error: 'Usuário não encontrado.' });
-      }
-
-      const updated = await db.updateUsuario(id, {
-        ...(nome && { nome }),
-        ...(perfil && { perfil }),
-        ...(status && { status }),
-        ...(produto && { produto }),
-        ...(supervisor && { supervisor })
-      });
-
-      if (!updated) return res.status(404).json({ error: 'Erro ao atualizar.' });
-
-      const { senha: _, ...userWithoutPassword } = updated;
-      return res.json(userWithoutPassword);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao atualizar usuário.' });
+    const existing = await db.getUsuarioById(id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
+
+    const updated = await db.updateUsuario(id, {
+      ...(nome && { nome }),
+      ...(perfil && { perfil }),
+      ...(status && { status }),
+      ...(produto && { produto }),
+      ...(supervisor && { supervisor })
+    });
+
+    if (!updated) return res.status(404).json({ error: 'Erro ao atualizar.' });
+
+    const { senha: _, ...userWithoutPassword } = updated;
+    return res.json(userWithoutPassword);
   }
 );
 
@@ -453,24 +401,20 @@ app.put(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      const { novaSenha } = req.body;
+    const id = parseInt(req.params.id, 10);
+    const { novaSenha } = req.body;
 
-      if (!novaSenha || novaSenha.length < 3) {
-        return res.status(400).json({ error: 'Informe uma nova senha válida (mínimo 3 caracteres).' });
-      }
-
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(novaSenha, salt);
-
-      const updated = await db.updateUsuario(id, { senha: hashedPassword });
-      if (!updated) return res.status(404).json({ error: 'Usuário não encontrado.' });
-
-      return res.json({ message: 'Senha resetada com sucesso.' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao resetar senha.' });
+    if (!novaSenha || novaSenha.length < 3) {
+      return res.status(400).json({ error: 'Informe uma nova senha válida (mínimo 3 caracteres).' });
     }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(novaSenha, salt);
+
+    const updated = await db.updateUsuario(id, { senha: hashedPassword });
+    if (!updated) return res.status(404).json({ error: 'Usuário não encontrado.' });
+
+    return res.json({ message: 'Senha resetada com sucesso.' });
   }
 );
 
@@ -479,24 +423,15 @@ app.delete(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      await db.deleteUsuario(id);
-      return res.json({ message: 'Usuário excluído com sucesso.' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao excluir usuário.' });
-    }
+    const id = parseInt(req.params.id, 10);
+    await db.deleteUsuario(id);
+    return res.json({ message: 'Usuário excluído com sucesso.' });
   }
 );
 
 // --- SUPERVISORES ROUTES ---
 app.get('/api/supervisores', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const list = await db.getSupervisores();
-    return res.json(list);
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro ao buscar supervisores.' });
-  }
+  return res.json(await db.getSupervisores());
 });
 
 app.post(
@@ -504,22 +439,18 @@ app.post(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const { nome, produto, status } = req.body;
-      if (!nome || !produto) {
-        return res.status(400).json({ error: 'Nome e Produto são obrigatórios.' });
-      }
-
-      const newSup = await db.addSupervisor({
-        nome,
-        produto,
-        status: status || 'Ativo'
-      });
-
-      return res.status(201).json(newSup);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao criar supervisor.' });
+    const { nome, produto, status } = req.body;
+    if (!nome || !produto) {
+      return res.status(400).json({ error: 'Nome e Produto são obrigatórios.' });
     }
+
+    const newSup = await db.addSupervisor({
+      nome,
+      produto,
+      status: status || 'Ativo'
+    });
+
+    return res.status(201).json(newSup);
   }
 );
 
@@ -528,21 +459,17 @@ app.put(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      const { nome, produto, status } = req.body;
+    const id = parseInt(req.params.id, 10);
+    const { nome, produto, status } = req.body;
 
-      const updated = await db.updateSupervisor(id, {
-        ...(nome && { nome }),
-        ...(produto && { produto }),
-        ...(status && { status })
-      });
+    const updated = await db.updateSupervisor(id, {
+      ...(nome && { nome }),
+      ...(produto && { produto }),
+      ...(status && { status })
+    });
 
-      if (!updated) return res.status(404).json({ error: 'Supervisor não encontrado.' });
-      return res.json(updated);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao atualizar supervisor.' });
-    }
+    if (!updated) return res.status(404).json({ error: 'Supervisor não encontrado.' });
+    return res.json(updated);
   }
 );
 
@@ -551,34 +478,20 @@ app.delete(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      await db.deleteSupervisor(id);
-      return res.json({ message: 'Supervisor excluído com sucesso.' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao excluir supervisor.' });
-    }
+    const id = parseInt(req.params.id, 10);
+    await db.deleteSupervisor(id);
+    return res.json({ message: 'Supervisor excluído com sucesso.' });
   }
 );
 
 // --- OPERADORES ROUTES ---
 app.get('/api/operadores', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const list = await db.getOperadores();
-    return res.json(list);
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro ao buscar operadores.' });
-  }
+  return res.json(await db.getOperadores());
 });
 
 // --- PRODUTOS ROUTES ---
 app.get('/api/produtos', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const list = await db.getProdutos();
-    return res.json(list);
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro ao buscar produtos.' });
-  }
+  return res.json(await db.getProdutos());
 });
 
 app.post(
@@ -586,14 +499,10 @@ app.post(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const { nome } = req.body;
-      if (!nome) return res.status(400).json({ error: 'Nome do produto é obrigatório.' });
-      const prod = await db.addProduto(nome);
-      return res.status(201).json(prod);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao criar produto.' });
-    }
+    const { nome } = req.body;
+    if (!nome) return res.status(400).json({ error: 'Nome do produto é obrigatório.' });
+    const prod = await db.addProduto(nome);
+    return res.status(201).json(prod);
   }
 );
 
@@ -602,16 +511,12 @@ app.put(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      const { nome } = req.body;
-      if (!nome) return res.status(400).json({ error: 'Nome do produto é obrigatório.' });
-      const updated = await db.updateProduto(id, nome);
-      if (!updated) return res.status(404).json({ error: 'Produto não encontrado.' });
-      return res.json(updated);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao atualizar produto.' });
-    }
+    const id = parseInt(req.params.id, 10);
+    const { nome } = req.body;
+    if (!nome) return res.status(400).json({ error: 'Nome do produto é obrigatório.' });
+    const updated = await db.updateProduto(id, nome);
+    if (!updated) return res.status(404).json({ error: 'Produto não encontrado.' });
+    return res.json(updated);
   }
 );
 
@@ -620,24 +525,15 @@ app.delete(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      await db.deleteProduto(id);
-      return res.json({ message: 'Produto excluído com sucesso.' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao excluir produto.' });
-    }
+    const id = parseInt(req.params.id, 10);
+    await db.deleteProduto(id);
+    return res.json({ message: 'Produto excluído com sucesso.' });
   }
 );
 
 // --- MOTIVOS ROUTES ---
 app.get('/api/motivos', authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const list = await db.getMotivos();
-    return res.json(list);
-  } catch (error) {
-    return res.status(500).json({ error: 'Erro ao buscar motivos.' });
-  }
+  return res.json(await db.getMotivos());
 });
 
 app.post(
@@ -645,14 +541,10 @@ app.post(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const { descricao } = req.body;
-      if (!descricao) return res.status(400).json({ error: 'Descrição é obrigatória.' });
-      const newMotivo = await db.addMotivo(descricao);
-      return res.status(201).json(newMotivo);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao criar motivo.' });
-    }
+    const { descricao } = req.body;
+    if (!descricao) return res.status(400).json({ error: 'Descrição é obrigatória.' });
+    const newMotivo = await db.addMotivo(descricao);
+    return res.status(201).json(newMotivo);
   }
 );
 
@@ -661,16 +553,12 @@ app.put(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      const { descricao } = req.body;
-      if (!descricao) return res.status(400).json({ error: 'Descrição é obrigatória.' });
-      const updated = await db.updateMotivo(id, descricao);
-      if (!updated) return res.status(404).json({ error: 'Motivo não encontrado.' });
-      return res.json(updated);
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao atualizar motivo.' });
-    }
+    const id = parseInt(req.params.id, 10);
+    const { descricao } = req.body;
+    if (!descricao) return res.status(400).json({ error: 'Descrição é obrigatória.' });
+    const updated = await db.updateMotivo(id, descricao);
+    if (!updated) return res.status(404).json({ error: 'Motivo não encontrado.' });
+    return res.json(updated);
   }
 );
 
@@ -679,13 +567,9 @@ app.delete(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      await db.deleteMotivo(id);
-      return res.json({ message: 'Motivo excluído com sucesso.' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao excluir motivo.' });
-    }
+    const id = parseInt(req.params.id, 10);
+    await db.deleteMotivo(id);
+    return res.json({ message: 'Motivo excluído com sucesso.' });
   }
 );
 
@@ -695,12 +579,8 @@ app.get(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const config = await db.getConfigApi();
-      return res.json({ ...config, senha: '••••••••••••' });
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao buscar configuração.' });
-    }
+    const config = await db.getConfigApi();
+    return res.json({ ...config, senha: '••••••••••••' });
   }
 );
 
@@ -709,18 +589,14 @@ app.post(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const { url_api, token, usuario, senha } = req.body;
-      const updated = await db.updateConfigApi({
-        url_api,
-        token,
-        usuario,
-        ...(senha && senha !== '••••••••••••' && { senha })
-      });
-      return res.json({ message: 'Configuração de API salva com sucesso.', data: updated });
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao salvar configuração.' });
-    }
+    const { url_api, token, usuario, senha } = req.body;
+    const updated = await db.updateConfigApi({
+      url_api,
+      token,
+      usuario,
+      ...(senha && senha !== '••••••••••••' && { senha })
+    });
+    return res.json({ message: 'Configuração de API salva com sucesso.', data: updated });
   }
 );
 
@@ -777,15 +653,15 @@ app.post(
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    try {
-      const config = await db.getConfigApi();
-      if (!config.url_api) {
-        return res.status(400).json({
-          success: false,
-          message: 'Nenhuma URL de API configurada. Por favor, salve uma URL válida em Configuração da API.'
-        });
-      }
+    const config = await db.getConfigApi();
+    if (!config.url_api) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nenhuma URL de API configurada. Por favor, salve uma URL válida em Configuração da API.'
+      });
+    }
 
+    try {
       const headers: Record<string, string> = {
         'Accept': 'application/json'
       };
@@ -888,7 +764,7 @@ app.post(
     } catch (err: any) {
       return res.status(500).json({
         success: false,
-        message: `Erro ao conectar à API: ${err.message || 'Falha de conexão'}`
+        message: `Erro ao conectar à API (${config.url_api}): ${err.message || 'Falha de conexão'}`
       });
     }
   }
