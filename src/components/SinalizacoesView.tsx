@@ -41,6 +41,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   const [selectedOperador, setSelectedOperador] = useState('');
   const [operadorQuery, setOperadorQuery] = useState('');
   const [showOperadorDropdown, setShowOperadorDropdown] = useState(false);
+  const [showFilterOperadorDropdown, setShowFilterOperadorDropdown] = useState(false);
 
   const [selectedSupervisor, setSelectedSupervisor] = useState('');
   const [selectedProduto, setSelectedProduto] = useState('');
@@ -718,15 +719,66 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
             </div>
 
             {/* Operador */}
-            <div>
+            <div className="relative">
               <label className="block text-[11px] font-semibold text-slate-600 mb-1">Operador</label>
-              <input
-                type="text"
-                placeholder="Nome..."
-                value={filterOperador}
-                onChange={(e) => setFilterOperador(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Nome..."
+                  value={filterOperador}
+                  onChange={(e) => {
+                    setFilterOperador(e.target.value);
+                    setShowFilterOperadorDropdown(true);
+                  }}
+                  onFocus={() => setShowFilterOperadorDropdown(true)}
+                  className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none pr-6"
+                />
+                {filterOperador && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFilterOperador('');
+                      setShowFilterOperadorDropdown(false);
+                    }}
+                    className="absolute right-2 top-1.5 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {showFilterOperadorDropdown && filterOperador.trim().length > 0 && (
+                <div className="absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-xl bg-white border border-slate-200 shadow-lg divide-y divide-slate-100">
+                  {operadoresList.filter((op) =>
+                    op.nome.toLowerCase().includes(filterOperador.toLowerCase().trim())
+                  ).length > 0 ? (
+                    operadoresList
+                      .filter((op) =>
+                        op.nome.toLowerCase().includes(filterOperador.toLowerCase().trim())
+                      )
+                      .map((op) => (
+                        <button
+                          key={op.id}
+                          type="button"
+                          onClick={() => {
+                            setFilterOperador(op.nome);
+                            setShowFilterOperadorDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-blue-50 text-xs transition flex flex-col"
+                        >
+                          <span className="font-semibold text-slate-800">{op.nome}</span>
+                          <span className="text-[10px] text-slate-500">
+                            Sup: {op.supervisor} • Prod: {op.produto}
+                          </span>
+                        </button>
+                      ))
+                  ) : (
+                    <div className="px-3 py-2 text-xs text-slate-400 italic">
+                      Nenhum operador encontrado.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Produto */}

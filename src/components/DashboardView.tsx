@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Filter,
   FileSpreadsheet,
@@ -38,7 +38,9 @@ export const DashboardView: React.FC = () => {
   const [dataFinal, setDataFinal] = useState('');
   const [produto, setProduto] = useState('Todos');
   const [supervisor, setSupervisor] = useState('Todos');
-  const [operador, setOperador] = useState('Todos');
+  const [operador, setOperador] = useState('');
+  const [showOperadorDropdown, setShowOperadorDropdown] = useState(false);
+  const operadorRef = useRef<HTMLDivElement>(null);
 
   const [supervisoresList, setSupervisoresList] = useState<Supervisor[]>([]);
   const [produtosList, setProdutosList] = useState<Produto[]>([]);
@@ -47,6 +49,19 @@ export const DashboardView: React.FC = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Close operador dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (operadorRef.current && !operadorRef.current.contains(event.target as Node)) {
+        setShowOperadorDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Table local search & pagination
   const [tableSearch, setTableSearch] = useState('');
@@ -94,7 +109,7 @@ export const DashboardView: React.FC = () => {
     setDataFinal('');
     setProduto('Todos');
     setSupervisor('Todos');
-    setOperador('Todos');
+    setOperador('');
     setTableSearch('');
   };
 
@@ -202,22 +217,70 @@ export const DashboardView: React.FC = () => {
           </div>
 
           {/* Operador */}
-          <div>
+          <div className="relative" ref={operadorRef}>
             <label className="block text-xs font-semibold text-slate-600 mb-1">
               Operador
             </label>
-            <select
-              value={operador}
-              onChange={(e) => setOperador(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
-            >
-              <option value="Todos">Todos os Operadores</option>
-              {operadoresList.map((op) => (
-                <option key={op.id} value={op.nome}>
-                  {op.nome}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Nome..."
+                value={operador}
+                onChange={(e) => {
+                  setOperador(e.target.value);
+                  setShowOperadorDropdown(true);
+                }}
+                onFocus={() => setShowOperadorDropdown(true)}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition pr-7"
+              />
+              {operador && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOperador('');
+                    setShowOperadorDropdown(false);
+                  }}
+                  className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                  title="Limpar operador"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Dropdown Suggestions */}
+            {showOperadorDropdown && operador.trim().length > 0 && (
+              <div className="absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-xl bg-white border border-slate-200 shadow-lg divide-y divide-slate-100">
+                {operadoresList.filter((op) =>
+                  op.nome.toLowerCase().includes(operador.toLowerCase().trim())
+                ).length > 0 ? (
+                  operadoresList
+                    .filter((op) =>
+                      op.nome.toLowerCase().includes(operador.toLowerCase().trim())
+                    )
+                    .map((op) => (
+                      <button
+                        key={op.id}
+                        type="button"
+                        onClick={() => {
+                          setOperador(op.nome);
+                          setShowOperadorDropdown(false);
+                        }}
+                        className="w-full text-left px-3.5 py-2 hover:bg-blue-50 text-xs transition flex flex-col"
+                      >
+                        <span className="font-semibold text-slate-800">{op.nome}</span>
+                        <span className="text-[10px] text-slate-500">
+                          Sup: {op.supervisor} • Prod: {op.produto}
+                        </span>
+                      </button>
+                    ))
+                ) : (
+                  <div className="px-3.5 py-2 text-xs text-slate-400 italic">
+                    Nenhum operador encontrado.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Produto */}
