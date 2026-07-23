@@ -16,6 +16,17 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// CORS middleware to support Vercel and Google Cloud Run cross-origin calls
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Ensure uploads folder exists
 const isVercelEnv = !!process.env.VERCEL || !!process.env.VERCEL_ENV;
 const uploadsDir = isVercelEnv ? '/tmp/uploads' : path.join(process.cwd(), 'uploads');
@@ -94,54 +105,66 @@ function requireRole(roles: PerfilAcesso[]) {
 
 // --- AUTH ROUTES ---
 app.post('/api/auth/login', async (req: Request, res: Response) => {
-  const { login, senha } = req.body;
+  try {
+    const { login, senha } = req.body;
 
-  if (!login || !senha) {
-    return res.status(400).json({ error: 'Informe login e senha.' });
+    if (!login || !senha) {
+      return res.status(400).json({ error: 'Informe login e senha.' });
+    }
+
+    const user = await db.getUsuarioByLogin(login);
+    if (!user) {
+      return res.status(401).json({ error: 'Login ou senha incorretos.' });
+    }
+
+    if (user.status === 'Inativo') {
+      return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
+    }
+
+    const validPassword = bcrypt.compareSync(senha, user.senha || '');
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Login ou senha incorretos.' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, nome: user.nome, login: user.login, perfil: user.perfil },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    return res.json({
+      id: user.id,
+      nome: user.nome,
+      login: user.login,
+      perfil: user.perfil,
+      status: user.status,
+      token
+    });
+  } catch (err: any) {
+    console.error('Login route error:', err);
+    return res.status(500).json({ error: 'Erro ao autenticar. Tente novamente.' });
   }
-
-  const user = await db.getUsuarioByLogin(login);
-  if (!user) {
-    return res.status(401).json({ error: 'Login ou senha incorretos.' });
-  }
-
-  if (user.status === 'Inativo') {
-    return res.status(403).json({ error: 'Usuário bloqueado/inativo no sistema. Procure o Administrador.' });
-  }
-
-  const validPassword = bcrypt.compareSync(senha, user.senha || '');
-  if (!validPassword) {
-    return res.status(401).json({ error: 'Login ou senha incorretos.' });
-  }
-
-  const token = jwt.sign(
-    { id: user.id, nome: user.nome, login: user.login, perfil: user.perfil },
-    JWT_SECRET,
-    { expiresIn: '8h' }
-  );
-
-  return res.json({
-    id: user.id,
-    nome: user.nome,
-    login: user.login,
-    perfil: user.perfil,
-    status: user.status,
-    token
-  });
 });
 
 app.get('/api/auth/me', authenticateToken, async (req: AuthRequest, res: Response) => {
-  const user = await db.getUsuarioById(req.user!.id);
-  if (!user) {
-    return res.status(404).json({ error: 'Usuário não encontrado.' });
+  try {
+    const user = await db.getUsuarioById(req.user!.id);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+    return res.json({
+      id: user.id,
+      nome: user.nome,
+      login: user.login,
+      perfil: user.perfil,
+      status: user.status,
+      produto: user.produto,
+      supervisor: user.supervisor
+    });
+  } catch (err: any) {
+    console.error('Auth/me route error:', err);
+    return res.status(500).json({ error: 'Erro ao carregar dados do usuário.' });
   }
-  return res.json({
-    id: user.id,
-    nome: user.nome,
-    login: user.login,
-    perfil: user.perfil,
-    status: user.status
-  });
 });
 
 // --- SINALIZAÇÕES ROUTES ---
