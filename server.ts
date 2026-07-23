@@ -27,6 +27,45 @@ app.use((req, res, next) => {
   next();
 });
 
+// Vercel Serverless Function path normalization middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Normalize /api/index prefix if rewrites added it
+  if (req.url.startsWith('/api/index')) {
+    req.url = req.url.replace('/api/index', '/api');
+    if (req.url === '/api' || req.url === '/api/') {
+      req.url = '/api/health';
+    }
+  }
+  // If request path is stripped of /api by serverless router, re-attach /api
+  if (!req.url.startsWith('/api') && !req.url.startsWith('/uploads') && !req.url.startsWith('/assets')) {
+    const isApiRoute =
+      req.url.startsWith('/auth') ||
+      req.url.startsWith('/sinalizacoes') ||
+      req.url.startsWith('/dashboard') ||
+      req.url.startsWith('/usuarios') ||
+      req.url.startsWith('/supervisores') ||
+      req.url.startsWith('/operadores') ||
+      req.url.startsWith('/produtos') ||
+      req.url.startsWith('/motivos') ||
+      req.url.startsWith('/configuracao-api') ||
+      req.url.startsWith('/health');
+    if (isApiRoute) {
+      req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
+    }
+  }
+  next();
+});
+
+// Health check endpoint
+app.get(['/api/health', '/health'], (req: Request, res: Response) => {
+  res.json({
+    status: 'ok',
+    environment: process.env.NODE_ENV || 'development',
+    isVercel: !!process.env.VERCEL || !!process.env.VERCEL_ENV,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Ensure uploads folder exists
 const isVercelEnv = !!process.env.VERCEL || !!process.env.VERCEL_ENV;
 const uploadsDir = isVercelEnv ? '/tmp/uploads' : path.join(process.cwd(), 'uploads');
