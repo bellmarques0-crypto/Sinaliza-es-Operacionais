@@ -231,6 +231,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span>Sinalizações</span>
             </button>
 
+            <button
+              onClick={() => {
+                setActiveTab('diario_bordo');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
+                activeTab === 'diario_bordo' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <BookOpen className="h-4 w-4" />
+              <span>Diário de Bordo</span>
+            </button>
+
             {isAdmin && (
               <button
                 onClick={() => {

@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { DashboardMetrics, Sinalizacao } from '../types';
+import { getBrasiliaDateString, getBrasiliaFullString } from './dateUtils';
 
 export function exportDashboardToExcel(
   metrics: DashboardMetrics,
@@ -10,7 +11,7 @@ export function exportDashboardToExcel(
   // Tab 1: Resumo Executivo
   const resumoData = [
     ['SISTEMA DE SINALIZAÇÕES DE COLABORADORES - RELATÓRIO EXECUTIVO'],
-    ['Data do Relatório:', new Date().toLocaleString('pt-BR')],
+    ['Data do Relatório:', getBrasiliaFullString()],
     [''],
     ['FILTROS APLICADOS'],
     ['Data Inicial:', filters.dataInicial || 'Todas'],
@@ -82,7 +83,7 @@ export function exportDashboardToExcel(
   XLSX.utils.book_append_sheet(wb, wsTabela, 'Tabela Detalhada');
 
   // Trigger download
-  const dateStr = new Date().toISOString().slice(0, 10);
+  const dateStr = getBrasiliaDateString();
   XLSX.writeFile(wb, `Relatorio_Dashboard_Sinalizacoes_${dateStr}.xlsx`);
 }
 
@@ -135,13 +136,13 @@ export function exportHistoryToExcel(
     ['HISTÓRICO DE SINALIZAÇÕES REGISTRADAS'],
     ['Filtros aplicados:', JSON.stringify(filters)],
     ['Total de Registros:', sinalizacoes.length],
-    ['Data de Exportação:', new Date().toLocaleString('pt-BR')],
+    ['Data de Exportação:', getBrasiliaFullString()],
     ['']
   ];
 
   const ws = XLSX.utils.aoa_to_sheet([...filterSummary, ...head, ...rows]);
   XLSX.utils.book_append_sheet(wb, ws, 'Historico_Sinalizacoes');
 
-  const dateStr = new Date().toISOString().slice(0, 10);
+  const dateStr = getBrasiliaDateString();
   XLSX.writeFile(wb, `Historico_Sinalizacoes_${dateStr}.xlsx`);
 }

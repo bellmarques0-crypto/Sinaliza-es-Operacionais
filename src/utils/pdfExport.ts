@@ -1,5 +1,6 @@
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
+import { getBrasiliaFormattedDateTime } from './dateUtils';
 
 export interface FilterInfo {
   dataInicial?: string;
@@ -25,7 +26,7 @@ export async function exportDashboardToPDF(
 
   // Format current date and time
   const now = new Date();
-  const formattedDate = `${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  const formattedDate = getBrasiliaFormattedDateTime(now);
 
   // Format active filters text
   const filterList: string[] = [];

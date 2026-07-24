@@ -373,11 +373,11 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
             <div className="hidden sm:flex items-center gap-4 bg-slate-50 px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs">
               <div className="flex items-center gap-1.5 text-slate-600 font-medium">
                 <Calendar className="h-3.5 w-3.5 text-blue-600" />
-                {nowClock.toLocaleDateString('pt-BR')}
+                {nowClock.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
               </div>
               <div className="flex items-center gap-1.5 text-slate-600 font-medium border-l border-slate-200 pl-3">
                 <Clock className="h-3.5 w-3.5 text-blue-600" />
-                {nowClock.toLocaleTimeString('pt-BR')}
+                {nowClock.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
               </div>
             </div>
           </div>

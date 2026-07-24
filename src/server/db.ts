@@ -13,6 +13,7 @@ import {
   DiarioBordoHistorico
 } from '../types.js';
 import { isNeonEnabled, initNeonTables, neonDb } from './neon.js';
+import { getBrasiliaFullString } from '../utils/dateUtils.js';
 
 // Initialize Neon PostgreSQL tables if Neon DATABASE_URL is present
 if (isNeonEnabled) {
@@ -515,7 +516,7 @@ export const db = {
     const idx = dataStore.sinalizacoes.findIndex((s) => s.id === id);
     if (idx !== -1) {
       const now = new Date();
-      const data_confirmacao = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+      const data_confirmacao = getBrasiliaFullString(now);
       dataStore.sinalizacoes[idx] = {
         ...dataStore.sinalizacoes[idx],
         confirmado: true,
@@ -627,7 +628,7 @@ export const db = {
     if (idx === -1) return null;
 
     const current = dataStore.diario_bordo[idx];
-    const nowStr = new Date().toLocaleString('pt-BR');
+    const nowStr = getBrasiliaFullString(new Date());
 
     const updated: DiarioBordoOcorrencia = {
       ...current,

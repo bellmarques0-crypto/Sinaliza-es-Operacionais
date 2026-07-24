@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from './src/server/db.js';
 import { PerfilAcesso } from './src/types.js';
+import { getBrasiliaDateParts, getBrasiliaFullString } from './src/utils/dateUtils.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sinalizacoes_secret_key_2026_super_secure';
 const PORT = 3000;
@@ -312,15 +313,7 @@ app.post(
       }
 
       const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const currentDate = `${year}-${month}-${day}`;
-
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      const currentTime = `${hours}:${minutes}:${seconds}`;
+      const { currentDate, currentTime } = getBrasiliaDateParts(now);
 
       let nome_evidencia = '';
       let caminho_evidencia = '';
@@ -625,7 +618,7 @@ app.post(
       }
 
       const now = new Date();
-      const nowStr = now.toLocaleString('pt-BR');
+      const nowStr = getBrasiliaFullString(now);
 
       const created = await db.addDiarioBordo({
         data_ocorrencia,
@@ -1297,7 +1290,7 @@ app.post(
       }
 
       const now = new Date();
-      const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      const formattedDate = getBrasiliaFullString(now);
 
       await db.updateConfigApi({ ultima_sincronizacao: formattedDate });
 

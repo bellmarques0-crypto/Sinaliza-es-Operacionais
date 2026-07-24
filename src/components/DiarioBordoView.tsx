@@ -32,6 +32,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { exportDashboardToPDF } from '../utils/pdfExport';
+import { getBrasiliaDateString, getBrasiliaTimeString } from '../utils/dateUtils';
 import {
   ResponsiveContainer,
   BarChart,
@@ -153,8 +154,8 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
   // Form Fields State
   const [formData, setFormData] = useState({
-    data_ocorrencia: new Date().toISOString().split('T')[0],
-    hora_ocorrencia: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    data_ocorrencia: getBrasiliaDateString(),
+    hora_ocorrencia: getBrasiliaTimeString(new Date(), false),
     produto: '',
     ocorrencia: '',
     impacto: 'Médio',
@@ -250,8 +251,8 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
     if (item) {
       setEditingItem(item);
       setFormData({
-        data_ocorrencia: item.data_ocorrencia || new Date().toISOString().split('T')[0],
-        hora_ocorrencia: item.hora_ocorrencia || new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        data_ocorrencia: item.data_ocorrencia || getBrasiliaDateString(),
+        hora_ocorrencia: item.hora_ocorrencia || getBrasiliaTimeString(new Date(), false),
         produto: item.produto || (produtos[0] || ''),
         ocorrencia: item.ocorrencia || '',
         impacto: item.impacto || 'Médio',
@@ -260,8 +261,8 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
         responsavel: item.responsavel || user.nome,
         caminho_evidencia: item.caminho_evidencia || '',
         nome_evidencia: item.nome_evidencia || '',
-        data_solucao: item.data_solucao || (item.status === 'Resolvido' ? new Date().toISOString().split('T')[0] : ''),
-        hora_solucao: item.hora_solucao || (item.status === 'Resolvido' ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''),
+        data_solucao: item.data_solucao || (item.status === 'Resolvido' ? getBrasiliaDateString() : ''),
+        hora_solucao: item.hora_solucao || (item.status === 'Resolvido' ? getBrasiliaTimeString(new Date(), false) : ''),
         solucao: item.solucao || '',
         responsavel_solucao: item.responsavel_solucao || user.nome
       });
@@ -270,8 +271,8 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
     } else {
       setEditingItem(null);
       setFormData({
-        data_ocorrencia: new Date().toISOString().split('T')[0],
-        hora_ocorrencia: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        data_ocorrencia: getBrasiliaDateString(),
+        hora_ocorrencia: getBrasiliaTimeString(new Date(), false),
         produto: produtos[0] || 'Cartões de Crédito',
         ocorrencia: '',
         impacto: 'Médio',
@@ -443,7 +444,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Diario_de_Bordo');
-    XLSX.writeFile(workbook, `Diario_de_Bordo_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(workbook, `Diario_de_Bordo_${getBrasiliaDateString()}.xlsx`);
   };
 
   // Clear filters
@@ -478,7 +479,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
         await exportDashboardToPDF(
           chartsContainerRef.current,
           'Diário de Bordo Operacional - Relatório de Gráficos',
-          `Graficos_Diario_de_Bordo_${new Date().toISOString().split('T')[0]}.pdf`,
+          `Graficos_Diario_de_Bordo_${getBrasiliaDateString()}.pdf`,
           filtros
         );
       } else {
@@ -1080,18 +1081,29 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
             <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-blue-600 text-white rounded-xl">
-                  <BookOpen className="h-5 w-5" />
+                  {modalActiveTab === 'historico' ? (
+                    <History className="h-5 w-5" />
+                  ) : (
+                    <BookOpen className="h-5 w-5" />
+                  )}
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
-                    {editingItem ? `Editar Ocorrência #${editingItem.id}` : 'Novo Registro no Diário de Bordo'}
+                    {modalActiveTab === 'historico'
+                      ? `Linha do Tempo - Ocorrência #${editingItem?.id}`
+                      : editingItem
+                      ? `Editar Ocorrência #${editingItem.id}`
+                      : 'Novo Registro no Diário de Bordo'}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Preencha as informações detalhadas da ocorrência operacional
+                    {modalActiveTab === 'historico'
+                      ? 'Histórico de alterações e eventos da ocorrência'
+                      : 'Preencha as informações detalhadas da ocorrência operacional'}
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
               >
@@ -1101,40 +1113,38 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
             {/* Modal Tabs Navigation */}
             <div className="flex items-center border-b border-slate-200 px-6 bg-slate-50/50">
-              <button
-                type="button"
-                onClick={() => setModalActiveTab('dados')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
-                  modalActiveTab === 'dados'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                1. Dados da Ocorrência
-              </button>
-              <button
-                type="button"
-                onClick={() => setModalActiveTab('solucao')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
-                  modalActiveTab === 'solucao'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                2. Solução e Resolução
-              </button>
-              {editingItem && (
+              {modalActiveTab === 'historico' ? (
                 <button
                   type="button"
-                  onClick={() => setModalActiveTab('historico')}
-                  className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
-                    modalActiveTab === 'historico'
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-slate-500 hover:text-slate-800'
-                  }`}
+                  className="px-4 py-2.5 text-xs font-bold border-b-2 border-blue-600 text-blue-600 cursor-default"
                 >
-                  3. Linha do Tempo ({itemHistorico.length})
+                  Linha do Tempo ({itemHistorico.length})
                 </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setModalActiveTab('dados')}
+                    className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+                      modalActiveTab === 'dados'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    1. Dados da Ocorrência
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalActiveTab('solucao')}
+                    className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+                      modalActiveTab === 'solucao'
+                        ? 'border-blue-600 text-blue-600'
+                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    2. Solução e Resolução
+                  </button>
+                </>
               )}
             </div>
 
@@ -1392,7 +1402,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
               {/* Tab Histórico e Timeline */}
               {modalActiveTab === 'historico' && (
-                <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
+                <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-2">
                     <History className="h-4 w-4 text-blue-600" />
                     <span>Linha do Tempo e Histórico de Alterações</span>
@@ -1422,27 +1432,39 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
               {/* Modal Actions */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/20 disabled:opacity-50 cursor-pointer"
-                >
-                  {submitting ? (
-                    <span>Salvando...</span>
-                  ) : (
-                    <>
-                      <Check className="h-4 w-4" />
-                      <span>{editingItem ? 'Salvar Alterações' : 'Cadastrar Ocorrência'}</span>
-                    </>
-                  )}
-                </button>
+                {modalActiveTab === 'historico' ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
+                  >
+                    Fechar
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-600/20 disabled:opacity-50 cursor-pointer"
+                    >
+                      {submitting ? (
+                        <span>Salvando...</span>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4" />
+                          <span>{editingItem ? 'Salvar Alterações' : 'Cadastrar Ocorrência'}</span>
+                        </>
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
             </form>
           </div>

@@ -33,6 +33,7 @@ import { api } from '../services/api';
 import { DashboardMetrics, Supervisor, Produto, Operador } from '../types';
 import { exportDashboardToExcel } from '../utils/excelExport';
 import { exportDashboardToPDF } from '../utils/pdfExport';
+import { getBrasiliaDateString } from '../utils/dateUtils';
 
 const PIE_COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
@@ -139,7 +140,7 @@ export const DashboardView: React.FC = () => {
         await exportDashboardToPDF(
           dashboardChartsRef.current,
           'Dashboard Executivo de Sinalizações - Gráficos',
-          `Graficos_Dashboard_Sinalizacoes_${new Date().toISOString().split('T')[0]}.pdf`,
+          `Graficos_Dashboard_Sinalizacoes_${getBrasiliaDateString()}.pdf`,
           {
             dataInicial,
             dataFinal,

@@ -11,6 +11,7 @@ import {
   DiarioBordoOcorrencia,
   DiarioBordoHistorico
 } from '../types.js';
+import { getBrasiliaFullString } from '../utils/dateUtils.js';
 
 const connectionString =
   process.env.DATABASE_URL ||
@@ -517,7 +518,7 @@ export const neonDb = {
       const ok = await ensureNeonInitialized();
       if (!ok) return null;
       const now = new Date();
-      const data_confirmacao = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+      const data_confirmacao = getBrasiliaFullString(now);
       const rows = (await sqlQuery`
         UPDATE sinalizacoes
         SET confirmado = TRUE, data_confirmacao = ${data_confirmacao}, usuario_confirmacao = ${usuario_confirmacao}
@@ -661,7 +662,7 @@ export const neonDb = {
     const current = await neonDb.getDiarioBordoById(id);
     if (!current) return null;
 
-    const nowStr = new Date().toLocaleString('pt-BR');
+    const nowStr = getBrasiliaFullString(new Date());
 
     const data_ocorrencia = data.data_ocorrencia ?? current.data_ocorrencia;
     const hora_ocorrencia = data.hora_ocorrencia ?? current.hora_ocorrencia;
