@@ -354,6 +354,50 @@ app.post(
 );
 
 app.put(
+  '/api/sinalizacoes/:id',
+  authenticateToken,
+  requireRole(['Administrador', 'Planejamento']),
+  upload.single('evidencia'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'ID de sinalização inválido.' });
+      }
+
+      const { operador, supervisor, produto, motivo, observacao } = req.body;
+
+      const updateData: Partial<any> = {};
+      if (operador) updateData.operador = operador;
+      if (supervisor) updateData.supervisor = supervisor;
+      if (produto) updateData.produto = produto;
+      if (motivo) updateData.motivo = motivo;
+      if (observacao !== undefined) updateData.observacao = observacao;
+
+      if (req.file) {
+        updateData.nome_evidencia = req.file.originalname || 'evidencia.png';
+        try {
+          const fileBuffer = fs.readFileSync(req.file.path);
+          const mimeType = req.file.mimetype || 'image/png';
+          updateData.caminho_evidencia = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+        } catch (e) {
+          updateData.caminho_evidencia = `/uploads/${req.file.filename}`;
+        }
+      }
+
+      const updated = await db.updateSinalizacao(id, updateData);
+      if (!updated) {
+        return res.status(404).json({ error: 'Sinalização não encontrada.' });
+      }
+
+      return res.json({ message: 'Sinalização atualizada com sucesso.', data: updated });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Erro ao atualizar sinalização.' });
+    }
+  }
+);
+
+app.put(
   '/api/sinalizacoes/:id/confirmar',
   authenticateToken,
   async (req: AuthRequest, res: Response) => {

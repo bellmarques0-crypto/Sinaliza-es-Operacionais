@@ -103,6 +103,13 @@ export const api = {
     });
   },
 
+  updateSinalizacao: async (id: number, formData: FormData): Promise<{ message: string; data: Sinalizacao }> => {
+    return request<{ message: string; data: Sinalizacao }>(`/api/sinalizacoes/${id}`, {
+      method: 'PUT',
+      body: formData
+    });
+  },
+
   deleteSinalizacao: async (id: number): Promise<{ success: boolean; message: string }> => {
     return request<{ success: boolean; message: string }>(`/api/sinalizacoes/${id}`, {
       method: 'DELETE'

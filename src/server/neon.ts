@@ -512,6 +512,35 @@ export const neonDb = {
       console.warn('[Neon] Error in deleteSinalizacao:', err);
     }
   },
+  updateSinalizacao: async (id: number, data: Partial<Sinalizacao>): Promise<Sinalizacao | null> => {
+    if (!sqlQuery) return null;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return null;
+      const currentRows = (await sqlQuery`SELECT * FROM sinalizacoes WHERE id = ${id}`) as any[];
+      if (currentRows.length === 0) return null;
+      const current = currentRows[0];
+
+      const operador = data.operador ?? current.operador;
+      const supervisor = data.supervisor ?? current.supervisor;
+      const produto = data.produto ?? current.produto;
+      const motivo = data.motivo ?? current.motivo;
+      const observacao = data.observacao ?? current.observacao;
+      const nome_evidencia = data.nome_evidencia ?? current.nome_evidencia;
+      const caminho_evidencia = data.caminho_evidencia ?? current.caminho_evidencia;
+
+      const rows = (await sqlQuery`
+        UPDATE sinalizacoes
+        SET operador = ${operador}, supervisor = ${supervisor}, produto = ${produto}, motivo = ${motivo}, observacao = ${observacao}, nome_evidencia = ${nome_evidencia}, caminho_evidencia = ${caminho_evidencia}
+        WHERE id = ${id}
+        RETURNING *
+      `) as any[];
+      return rows[0] || null;
+    } catch (err) {
+      console.warn('[Neon] Error in updateSinalizacao:', err);
+      return null;
+    }
+  },
   confirmarSinalizacao: async (id: number, usuario_confirmacao: string): Promise<Sinalizacao | null> => {
     if (!sqlQuery) return null;
     try {

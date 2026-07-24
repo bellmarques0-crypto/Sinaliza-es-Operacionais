@@ -16,7 +16,8 @@ import {
   User,
   Clock,
   Calendar,
-  Trash2
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { api } from '../services/api';
 import {
@@ -136,6 +137,108 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   // Delete Sinalização Confirmation Modal State
   const [sinalizacaoToDelete, setSinalizacaoToDelete] = useState<{ id: number; operador: string } | null>(null);
   const [isDeletingSinalizacao, setIsDeletingSinalizacao] = useState(false);
+
+  // Edit Sinalização Modal State
+  const [editingSinalizacao, setEditingSinalizacao] = useState<Sinalizacao | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editOperador, setEditOperador] = useState('');
+  const [editOperadorQuery, setEditOperadorQuery] = useState('');
+  const [showEditOperadorDropdown, setShowEditOperadorDropdown] = useState(false);
+  const [editSupervisor, setEditSupervisor] = useState('');
+  const [editProduto, setEditProduto] = useState('');
+  const [editMotivo, setEditMotivo] = useState('');
+  const [editObservacao, setEditObservacao] = useState('');
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreviewUrl, setEditImagePreviewUrl] = useState<string | null>(null);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
+  const [isUpdatingSinalizacao, setIsUpdatingSinalizacao] = useState(false);
+  const [editErrorMessage, setEditErrorMessage] = useState<string | null>(null);
+
+  const handleOpenEditModal = (item: Sinalizacao) => {
+    setEditingSinalizacao(item);
+    setEditOperador(item.operador);
+    setEditOperadorQuery(item.operador);
+    setEditSupervisor(item.supervisor);
+    setEditProduto(item.produto);
+    setEditMotivo(item.motivo);
+    setEditObservacao(item.observacao || '');
+    setEditImageFile(null);
+    setEditImagePreviewUrl(item.caminho_evidencia || null);
+    setEditErrorMessage(null);
+    setIsEditModalOpen(true);
+  };
+
+  const handleClearEditImage = () => {
+    setEditImageFile(null);
+    setEditImagePreviewUrl(null);
+    if (editFileInputRef.current) editFileInputRef.current.value = '';
+  };
+
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      setEditErrorMessage('Formato de imagem inválido. Aceito apenas JPG, JPEG e PNG.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setEditErrorMessage('Tamanho da imagem excede o limite máximo de 5MB.');
+      return;
+    }
+    setEditErrorMessage(null);
+    setEditImageFile(file);
+    setEditImagePreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleEditSupervisorSelect = (supName: string) => {
+    setEditSupervisor(supName);
+    const foundSup = supervisoresList.find((s) => s.nome === supName);
+    if (foundSup && foundSup.produto) {
+      const supProds = foundSup.produto.split(',').map((p) => p.trim()).filter(Boolean);
+      if (supProds.length > 0) {
+        if (!editProduto || !supProds.includes(editProduto)) {
+          setEditProduto(supProds[0]);
+        }
+      }
+    }
+  };
+
+  const handleUpdateSinalizacao = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSinalizacao) return;
+    setEditErrorMessage(null);
+
+    const opName = editOperador || editOperadorQuery;
+    if (!opName || !editSupervisor || !editProduto || !editMotivo) {
+      setEditErrorMessage('Por favor, preencha todos os campos obrigatórios (*).');
+      return;
+    }
+
+    setIsUpdatingSinalizacao(true);
+    try {
+      const formData = new FormData();
+      formData.append('operador', opName);
+      formData.append('supervisor', editSupervisor);
+      formData.append('produto', editProduto);
+      formData.append('motivo', editMotivo);
+      formData.append('observacao', editObservacao);
+
+      if (editImageFile) {
+        formData.append('evidencia', editImageFile);
+      }
+
+      await api.updateSinalizacao(editingSinalizacao.id, formData);
+      setIsEditModalOpen(false);
+      setEditingSinalizacao(null);
+      setFormSuccessMessage('Sinalização atualizada com sucesso.');
+      fetchHistory();
+    } catch (err: any) {
+      setEditErrorMessage(err.message || 'Erro ao atualizar sinalização.');
+    } finally {
+      setIsUpdatingSinalizacao(false);
+    }
+  };
 
   const confirmDeleteSinalizacao = async () => {
     if (!sinalizacaoToDelete) return;
@@ -849,7 +952,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 <th className="px-3.5 py-3">Observação</th>
                 <th className="px-3.5 py-3 text-center">Imagem</th>
                 <th className="px-3.5 py-3">Usuário Responsável</th>
-                {user.perfil === 'Administrador' && (
+                {(user.perfil === 'Administrador' || user.perfil === 'Planejamento') && (
                   <th className="px-3.5 py-3 text-center">Ações</th>
                 )}
               </tr>
@@ -857,7 +960,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
             <tbody className="divide-y divide-slate-100 bg-white">
               {isLoadingHistory ? (
                 <tr>
-                  <td colSpan={user.perfil === 'Administrador' ? 11 : 10} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 11 : 10} className="px-4 py-8 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                       Carregando sinalizações...
@@ -952,23 +1055,35 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     <td className="px-3.5 py-3 text-slate-500 whitespace-nowrap">
                       {item.usuario_responsavel}
                     </td>
-                    {user.perfil === 'Administrador' && (
+                    {(user.perfil === 'Administrador' || user.perfil === 'Planejamento') && (
                       <td className="px-3.5 py-3 text-center whitespace-nowrap">
-                        <button
-                          onClick={() => setSinalizacaoToDelete({ id: item.id, operador: item.operador })}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100 hover:border-red-300 transition shadow-2xs cursor-pointer"
-                          title="Excluir Sinalização"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Excluir
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditModal(item)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-[11px] font-semibold text-amber-700 hover:bg-amber-100 hover:border-amber-300 transition shadow-2xs cursor-pointer"
+                            title="Editar Sinalização"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            Editar
+                          </button>
+                          {user.perfil === 'Administrador' && (
+                            <button
+                              onClick={() => setSinalizacaoToDelete({ id: item.id, operador: item.operador })}
+                              className="inline-flex items-center gap-1 rounded-lg bg-red-50 border border-red-200 px-2.5 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100 hover:border-red-300 transition shadow-2xs cursor-pointer"
+                              title="Excluir Sinalização"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Excluir
+                            </button>
+                          )}
+                        </div>
                       </td>
                     )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={user.perfil === 'Administrador' ? 11 : 10} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 11 : 10} className="px-4 py-8 text-center text-slate-500">
                     Nenhuma sinalização encontrada com os filtros aplicados.
                   </td>
                 </tr>
@@ -1058,6 +1173,248 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Sinalização Modal */}
+      {isEditModalOpen && editingSinalizacao && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-2xl w-full p-6 my-8 animate-in fade-in zoom-in-95 duration-150 relative">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-200">
+                  <Pencil className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Editar Sinalização #{editingSinalizacao.id}</h3>
+                  <p className="text-xs text-slate-500">
+                    Altere os dados da sinalização e salve as alterações
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setEditingSinalizacao(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {editErrorMessage && (
+              <div className="mb-4 rounded-xl bg-red-50 border border-red-200 p-3 text-xs text-red-800 flex items-center justify-between">
+                <div className="flex items-center gap-2 font-medium">
+                  <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+                  <span>{editErrorMessage}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditErrorMessage(null)}
+                  className="text-red-500 hover:text-red-800"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateSinalizacao} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Operador */}
+                <div className="relative">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Operador <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Buscar operador na base..."
+                      value={editOperadorQuery}
+                      onChange={(e) => {
+                        setEditOperadorQuery(e.target.value);
+                        setEditOperador('');
+                        setShowEditOperadorDropdown(true);
+                      }}
+                      onFocus={() => setShowEditOperadorDropdown(true)}
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+                    />
+                    <Search className="absolute right-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                  </div>
+                  {showEditOperadorDropdown && editOperadorQuery.length > 0 && (
+                    <div className="absolute z-20 left-0 right-0 mt-1 max-h-40 overflow-y-auto rounded-xl bg-white border border-slate-200 shadow-lg divide-y divide-slate-100">
+                      {operadoresList
+                        .filter((op) => op.nome.toLowerCase().includes(editOperadorQuery.toLowerCase()))
+                        .map((op) => (
+                          <button
+                            key={op.id}
+                            type="button"
+                            onClick={() => {
+                              setEditOperador(op.nome);
+                              setEditOperadorQuery(op.nome);
+                              if (op.supervisor) {
+                                handleEditSupervisorSelect(op.supervisor);
+                              }
+                              setShowEditOperadorDropdown(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 hover:text-blue-700 flex flex-col cursor-pointer"
+                          >
+                            <span className="font-semibold text-slate-800">{op.nome}</span>
+                            <span className="text-[10px] text-slate-500">
+                              Sup: {op.supervisor} | Prod: {op.produto}
+                            </span>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Supervisor */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Supervisor <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={editSupervisor}
+                    onChange={(e) => handleEditSupervisorSelect(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+                  >
+                    <option value="">Selecione o Supervisor</option>
+                    {supervisoresList.map((sup) => (
+                      <option key={sup.id} value={sup.nome}>
+                        {sup.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Produto */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Produto <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={editProduto}
+                    onChange={(e) => setEditProduto(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+                  >
+                    <option value="">Selecione o Produto</option>
+                    {produtosList.map((prod) => (
+                      <option key={prod.id} value={prod.nome}>
+                        {prod.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Motivo */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Motivo da Sinalização <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={editMotivo}
+                    onChange={(e) => setEditMotivo(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+                  >
+                    <option value="">Selecione o Motivo</option>
+                    {motivosList.map((mot) => (
+                      <option key={mot.id} value={mot.descricao}>
+                        {mot.descricao}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Observação */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Observações</label>
+                <textarea
+                  rows={2}
+                  placeholder="Escreva detalhes adicionais..."
+                  value={editObservacao}
+                  onChange={(e) => setEditObservacao(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+                />
+              </div>
+
+              {/* Imagem / Evidência */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Atualizar Foto / Evidência (Opcional)
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="file"
+                    ref={editFileInputRef}
+                    accept="image/png, image/jpeg, image/jpg"
+                    onChange={handleEditImageChange}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => editFileInputRef.current?.click()}
+                    className="px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Upload className="h-3.5 w-3.5 text-slate-500" />
+                    <span>Selecionar Nova Imagem</span>
+                  </button>
+
+                  {editImagePreviewUrl && (
+                    <div className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-xl text-xs">
+                      <span className="text-slate-600 truncate max-w-[150px]">
+                        {editImageFile ? editImageFile.name : 'Evidência Atual'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleClearEditImage}
+                        className="text-red-500 hover:text-red-700 ml-1 cursor-pointer"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 mt-5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditModalOpen(false);
+                    setEditingSinalizacao(null);
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingSinalizacao}
+                  className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-600/20 disabled:opacity-50 cursor-pointer"
+                >
+                  {isUpdatingSinalizacao ? (
+                    <>
+                      <span className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Salvando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Pencil className="h-3.5 w-3.5" />
+                      <span>Salvar Alterações</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

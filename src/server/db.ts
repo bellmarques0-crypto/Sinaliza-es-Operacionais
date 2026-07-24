@@ -504,6 +504,26 @@ export const db = {
     dataStore.sinalizacoes = dataStore.sinalizacoes.filter((s) => s.id !== id);
     saveDatabase();
   },
+  updateSinalizacao: async (id: number, data: Partial<Sinalizacao>): Promise<Sinalizacao | null> => {
+    if (isNeonEnabled) {
+      try {
+        return await neonDb.updateSinalizacao(id, data);
+      } catch (err) {
+        console.warn('[Neon] updateSinalizacao failed, falling back to local database:', err);
+      }
+    }
+    const dataStore = loadDatabase();
+    const idx = dataStore.sinalizacoes.findIndex((s) => s.id === id);
+    if (idx !== -1) {
+      dataStore.sinalizacoes[idx] = {
+        ...dataStore.sinalizacoes[idx],
+        ...data
+      };
+      saveDatabase();
+      return dataStore.sinalizacoes[idx];
+    }
+    return null;
+  },
   confirmarSinalizacao: async (id: number, usuario_confirmacao: string): Promise<Sinalizacao | null> => {
     if (isNeonEnabled) {
       try {
