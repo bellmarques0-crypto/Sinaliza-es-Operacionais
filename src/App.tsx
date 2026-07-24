@@ -4,6 +4,7 @@ import { Sidebar, ActiveTab } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
 import { SinalizacoesView } from './components/SinalizacoesView';
+import { DiarioBordoView } from './components/DiarioBordoView';
 import { AdminView } from './components/AdminView';
 import { UserSession } from './types';
 import { api, getStoredToken } from './services/api';
@@ -87,6 +88,8 @@ export default function App() {
         return user.perfil === 'Operação'
           ? 'Histórico de Sinalizações'
           : 'Registro & Histórico de Sinalizações';
+      case 'diario_bordo':
+        return 'Diário de Bordo Operacional';
       case 'administracao':
         return 'Painel de Administração do Sistema';
       default:
@@ -119,6 +122,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto">
           {activeTab === 'dashboard' && <DashboardView />}
           {activeTab === 'sinalizacoes' && <SinalizacoesView user={user} />}
+          {activeTab === 'diario_bordo' && <DiarioBordoView user={user} token={getStoredToken() || ''} />}
           {activeTab === 'administracao' && user.perfil === 'Administrador' && <AdminView />}
         </div>
       </main>

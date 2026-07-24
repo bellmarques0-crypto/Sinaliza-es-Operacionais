@@ -11,12 +11,13 @@ import {
   KeyRound,
   Sun,
   Moon,
-  ChevronDown
+  ChevronDown,
+  BookOpen
 } from 'lucide-react';
 import { UserSession, PerfilAcesso } from '../types';
 import { ChangePasswordModal } from './ChangePasswordModal';
 
-export type ActiveTab = 'dashboard' | 'sinalizacoes' | 'administracao';
+export type ActiveTab = 'dashboard' | 'sinalizacoes' | 'diario_bordo' | 'administracao';
 
 interface SidebarProps {
   activeTab: ActiveTab;

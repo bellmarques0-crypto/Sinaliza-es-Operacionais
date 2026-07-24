@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Filter,
   FileSpreadsheet,
+  FileDown,
+  Loader2,
   Users,
   UserX,
   UserCheck,
@@ -30,6 +32,7 @@ import {
 import { api } from '../services/api';
 import { DashboardMetrics, Supervisor, Produto, Operador } from '../types';
 import { exportDashboardToExcel } from '../utils/excelExport';
+import { exportDashboardToPDF } from '../utils/pdfExport';
 
 const PIE_COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
@@ -125,6 +128,35 @@ export const DashboardView: React.FC = () => {
     }
   };
 
+  const dashboardChartsRef = useRef<HTMLDivElement>(null);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!metrics) return;
+    setIsExportingPDF(true);
+    try {
+      if (dashboardChartsRef.current) {
+        await exportDashboardToPDF(
+          dashboardChartsRef.current,
+          'Dashboard Executivo de Sinalizações - Gráficos',
+          `Graficos_Dashboard_Sinalizacoes_${new Date().toISOString().split('T')[0]}.pdf`,
+          {
+            dataInicial,
+            dataFinal,
+            produto,
+            supervisor,
+            operador
+          }
+        );
+      }
+    } catch (err) {
+      console.error('Erro ao exportar PDF do dashboard:', err);
+      alert('Não foi possível gerar o arquivo PDF.');
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
   if (isLoading && !metrics) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -170,17 +202,32 @@ export const DashboardView: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleResetFilters}
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               Limpar Filtros
             </button>
             <button
               onClick={handleExportExcel}
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 transition"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 transition cursor-pointer"
             >
               <FileSpreadsheet className="h-4 w-4" />
-              Exportar Dashboard para Excel
+              <span className="hidden sm:inline">Exportar Excel</span>
+            </button>
+            <button
+              onClick={handleExportPDF}
+              disabled={isExportingPDF}
+              className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-rose-600/20 hover:bg-rose-700 disabled:opacity-50 transition cursor-pointer"
+              title="Exportar gráficos e métricas do dashboard em PDF"
+            >
+              {isExportingPDF ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">
+                {isExportingPDF ? 'Gerando PDF...' : 'Exportar PDF'}
+              </span>
             </button>
           </div>
         </div>
@@ -323,256 +370,259 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Card 1 */}
-        <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 border border-blue-100">
-            <AlertTriangle className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Total de Sinalizações
-            </p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">
-              {metrics?.totalSinalizacoes ?? 0}
-            </h3>
-          </div>
-        </div>
-
-        {/* Card 2 */}
-        <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-100">
-            <UserX className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Operadores Sinalizados
-            </p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">
-              {metrics?.totalOperadoresSinalizados ?? 0}
-            </h3>
-          </div>
-        </div>
-
-        {/* Card 3 */}
-        <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100">
-            <UserCheck className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Supervisores Impactados
-            </p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">
-              {metrics?.totalSupervisoresComSinalizacoes ?? 0}
-            </h3>
-          </div>
-        </div>
-
-        {/* Card 4 */}
-        <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
-            <Users className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Motivos Cadastrados
-            </p>
-            <h3 className="text-2xl font-bold text-slate-900 mt-0.5">
-              {metrics?.totalMotivosCadastrados ?? 0}
-            </h3>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Gráfico 1: Sinalizações por Supervisor (Barra Horizontal) */}
-        <div className="rounded-2xl bg-white p-6 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Sinalizações por Supervisor</h3>
-              <p className="text-xs text-slate-500">Distribuição total por liderança direta</p>
+      {/* Printable Dashboard Container for PDF Export */}
+      <div ref={dashboardChartsRef} className="space-y-6">
+        {/* Metrics Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* Card 1 */}
+          <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 border border-blue-100">
+              <AlertTriangle className="h-6 w-6" />
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
-              Barra Horizontal
-            </span>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Total de Sinalizações
+              </p>
+              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">
+                {metrics?.totalSinalizacoes ?? 0}
+              </h3>
+            </div>
           </div>
-          <div className="h-64 w-full">
-            {metrics?.sinalizacoesPorSupervisor && metrics.sinalizacoesPorSupervisor.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={metrics.sinalizacoesPorSupervisor}
-                  margin={{ top: 10, right: 30, left: 40, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                  <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-                  <YAxis
-                    dataKey="supervisor"
-                    type="category"
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fontSize: 11 }}
-                    width={110}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1e293b',
-                      borderRadius: '8px',
-                      color: '#fff',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Bar dataKey="quantidade" fill="#2563eb" radius={[0, 6, 6, 0]} name="Sinalizações" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                Nenhum dado encontrado com os filtros selecionados.
+
+          {/* Card 2 */}
+          <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-100">
+              <UserX className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Operadores Sinalizados
+              </p>
+              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">
+                {metrics?.totalOperadoresSinalizados ?? 0}
+              </h3>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+              <UserCheck className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Supervisores Impactados
+              </p>
+              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">
+                {metrics?.totalSupervisoresComSinalizacoes ?? 0}
+              </h3>
+            </div>
+          </div>
+
+          {/* Card 4 */}
+          <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+              <Users className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Motivos Cadastrados
+              </p>
+              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">
+                {metrics?.totalMotivosCadastrados ?? 0}
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Gráfico 1: Sinalizações por Supervisor (Barra Horizontal) */}
+          <div className="rounded-2xl bg-white p-6 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Sinalizações por Supervisor</h3>
+                <p className="text-xs text-slate-500">Distribuição total por liderança direta</p>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Gráfico 2: Maiores Motivos de Sinalização (Donut / Pie) */}
-        <div className="rounded-2xl bg-white p-6 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Maiores Motivos de Sinalização</h3>
-              <p className="text-xs text-slate-500">Proporção por categoria de ocorrência</p>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
+                Barra Horizontal
+              </span>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">
-              Gráfico Donut
-            </span>
-          </div>
-          <div className="h-64 w-full">
-            {metrics?.maioresMotivos && metrics.maioresMotivos.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={metrics.maioresMotivos}
-                    dataKey="quantidade"
-                    nameKey="motivo"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
+            <div className="h-64 w-full">
+              {metrics?.sinalizacoesPorSupervisor && metrics.sinalizacoesPorSupervisor.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={metrics.sinalizacoesPorSupervisor}
+                    margin={{ top: 10, right: 30, left: 40, bottom: 5 }}
                   >
-                    {metrics.maioresMotivos.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1e293b',
-                      borderRadius: '8px',
-                      color: '#fff',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Legend
-                    layout="horizontal"
-                    verticalAlign="bottom"
-                    align="center"
-                    iconType="circle"
-                    wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                Nenhum dado encontrado com os filtros selecionados.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Gráfico 3: Top 5 Operadores Mais Sinalizados (Barra Vertical) */}
-        <div className="rounded-2xl bg-white p-6 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Top 5 Operadores mais Sinalizados</h3>
-              <p className="text-xs text-slate-500">Operadores com maior reincidência de ocorrências</p>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                    <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                    <YAxis
+                      dataKey="supervisor"
+                      type="category"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 11 }}
+                      width={110}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1e293b',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Bar dataKey="quantidade" fill="#2563eb" radius={[0, 6, 6, 0]} name="Sinalizações" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                  Nenhum dado encontrado com os filtros selecionados.
+                </div>
+              )}
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">
-              Barra Vertical
-            </span>
           </div>
-          <div className="h-64 w-full">
-            {metrics?.topOperadores && metrics.topOperadores.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={metrics.topOperadores} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis
-                    dataKey="operador"
-                    tick={{ fontSize: 11 }}
-                    interval={0}
-                    angle={-15}
-                    textAnchor="end"
-                  />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1e293b',
-                      borderRadius: '8px',
-                      color: '#fff',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Bar dataKey="quantidade" fill="#f59e0b" radius={[6, 6, 0, 0]} name="Sinalizações" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                Nenhum dado encontrado com os filtros selecionados.
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Gráfico 4: Quantidade por Produto (Colunas) */}
-        <div className="rounded-2xl bg-white p-6 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800">Sinalizações por Produto</h3>
-              <p className="text-xs text-slate-500">Volume de ocorrências registradas por produto/operação</p>
-            </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
-              Colunas
-            </span>
-          </div>
-          <div className="h-64 w-full">
-            {metrics?.sinalizacoesPorProduto && metrics.sinalizacoesPorProduto.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={metrics.sinalizacoesPorProduto} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis
-                    dataKey="produto"
-                    tick={{ fontSize: 11 }}
-                    interval={0}
-                    angle={-15}
-                    textAnchor="end"
-                  />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1e293b',
-                      borderRadius: '8px',
-                      color: '#fff',
-                      fontSize: '12px'
-                    }}
-                  />
-                  <Bar dataKey="quantidade" fill="#10b981" radius={[6, 6, 0, 0]} name="Sinalizações" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-xs text-slate-400">
-                Nenhum dado encontrado com os filtros selecionados.
+          {/* Gráfico 2: Maiores Motivos de Sinalização (Donut / Pie) */}
+          <div className="rounded-2xl bg-white p-6 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Maiores Motivos de Sinalização</h3>
+                <p className="text-xs text-slate-500">Proporção por categoria de ocorrência</p>
               </div>
-            )}
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700">
+                Gráfico Donut
+              </span>
+            </div>
+            <div className="h-64 w-full">
+              {metrics?.maioresMotivos && metrics.maioresMotivos.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={metrics.maioresMotivos}
+                      dataKey="quantidade"
+                      nameKey="motivo"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={3}
+                    >
+                      {metrics.maioresMotivos.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1e293b',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Legend
+                      layout="horizontal"
+                      verticalAlign="bottom"
+                      align="center"
+                      iconType="circle"
+                      wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                  Nenhum dado encontrado com os filtros selecionados.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Gráfico 3: Top 5 Operadores Mais Sinalizados (Barra Vertical) */}
+          <div className="rounded-2xl bg-white p-6 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Top 5 Operadores mais Sinalizados</h3>
+                <p className="text-xs text-slate-500">Operadores com maior reincidência de ocorrências</p>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">
+                Barra Vertical
+              </span>
+            </div>
+            <div className="h-64 w-full">
+              {metrics?.topOperadores && metrics.topOperadores.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={metrics.topOperadores} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis
+                      dataKey="operador"
+                      tick={{ fontSize: 11 }}
+                      interval={0}
+                      angle={-15}
+                      textAnchor="end"
+                    />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1e293b',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Bar dataKey="quantidade" fill="#f59e0b" radius={[6, 6, 0, 0]} name="Sinalizações" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                  Nenhum dado encontrado com os filtros selecionados.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Gráfico 4: Quantidade por Produto (Colunas) */}
+          <div className="rounded-2xl bg-white p-6 border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Sinalizações por Produto</h3>
+                <p className="text-xs text-slate-500">Volume de ocorrências registradas por produto/operação</p>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+                Colunas
+              </span>
+            </div>
+            <div className="h-64 w-full">
+              {metrics?.sinalizacoesPorProduto && metrics.sinalizacoesPorProduto.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={metrics.sinalizacoesPorProduto} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis
+                      dataKey="produto"
+                      tick={{ fontSize: 11 }}
+                      interval={0}
+                      angle={-15}
+                      textAnchor="end"
+                    />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1e293b',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '12px'
+                      }}
+                    />
+                    <Bar dataKey="quantidade" fill="#10b981" radius={[6, 6, 0, 0]} name="Sinalizações" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-xs text-slate-400">
+                  Nenhum dado encontrado com os filtros selecionados.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

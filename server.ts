@@ -47,6 +47,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       req.url.startsWith('/produtos') ||
       req.url.startsWith('/motivos') ||
       req.url.startsWith('/configuracao-api') ||
+      req.url.startsWith('/diario-bordo') ||
       req.url.startsWith('/health');
     if (isApiRoute) {
       req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
@@ -397,10 +398,343 @@ app.put(
         data: updated
       });
     } catch (err: any) {
-      return res.status(500).json({ error: err.message || 'Erro ao confirmar sinalização.' });
+      return res.status(500).json({ error: err.message || 'Erro ao processar confirmação.' });
     }
   }
 );
+
+// --- DIÁRIO DE BORDO ENDPOINTS ---
+
+// GET /api/diario-bordo/metrics - Metrics and chart data
+app.get('/api/diario-bordo/metrics', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const list = await db.getDiarioBordo();
+
+    const { dataInicial, dataFinal, produto, status, responsavel, impacto } = req.query;
+
+    const filtered = list.filter((item) => {
+      if (dataInicial && item.data_ocorrencia < (dataInicial as string)) return false;
+      if (dataFinal && item.data_ocorrencia > (dataFinal as string)) return false;
+      if (produto && produto !== 'Todos' && item.produto !== produto) return false;
+      if (status && status !== 'Todos' && item.status !== status) return false;
+      if (responsavel && responsavel !== 'Todos' && item.responsavel !== responsavel) return false;
+      if (impacto && impacto !== 'Todos' && item.impacto !== impacto) return false;
+      return true;
+    });
+
+    const totalOcorrencias = filtered.length;
+    const totalAbertas = filtered.filter((i) => i.status === 'Aberto').length;
+    const totalEmAndamento = filtered.filter((i) => i.status === 'Em Andamento').length;
+    const totalResolvidas = filtered.filter((i) => i.status === 'Resolvido').length;
+    const totalMonitorando = filtered.filter((i) => i.status === 'Monitorando').length;
+    const totalCanceladas = filtered.filter((i) => i.status === 'Cancelado').length;
+
+    // Calculate resolution times
+    let totalHorasResolucoes = 0;
+    let countResolvidasComTempo = 0;
+
+    const tempoPorProdutoMap: Record<string, { totalHoras: number; count: number }> = {};
+
+    filtered.forEach((item) => {
+      if (item.status === 'Resolvido' && item.data_solucao && item.hora_solucao) {
+        try {
+          const start = new Date(`${item.data_ocorrencia}T${item.hora_ocorrencia}:00`).getTime();
+          const end = new Date(`${item.data_solucao}T${item.hora_solucao}:00`).getTime();
+          if (!isNaN(start) && !isNaN(end) && end >= start) {
+            const diffHours = (end - start) / (1000 * 60 * 60);
+            totalHorasResolucoes += diffHours;
+            countResolvidasComTempo++;
+
+            if (!tempoPorProdutoMap[item.produto]) {
+              tempoPorProdutoMap[item.produto] = { totalHoras: 0, count: 0 };
+            }
+            tempoPorProdutoMap[item.produto].totalHoras += diffHours;
+            tempoPorProdutoMap[item.produto].count++;
+          }
+        } catch (e) {
+          // ignore date parse errors
+        }
+      }
+    });
+
+    const tempoMedioResolucoesHoras = countResolvidasComTempo > 0 ? parseFloat((totalHorasResolucoes / countResolvidasComTempo).toFixed(1)) : 0;
+
+    // Ocorrências por Produto
+    const produtoCountMap: Record<string, number> = {};
+    filtered.forEach((item) => {
+      produtoCountMap[item.produto] = (produtoCountMap[item.produto] || 0) + 1;
+    });
+    const ocorrenciasPorProduto = Object.entries(produtoCountMap)
+      .map(([produto, quantidade]) => ({ produto, quantidade }))
+      .sort((a, b) => b.quantidade - a.quantidade);
+
+    const produtosMaisImpactados = ocorrenciasPorProduto.slice(0, 5);
+
+    // Ocorrências por Status
+    const statusCountMap: Record<string, number> = {};
+    filtered.forEach((item) => {
+      statusCountMap[item.status] = (statusCountMap[item.status] || 0) + 1;
+    });
+    const ocorrenciasPorStatus = Object.entries(statusCountMap)
+      .map(([status, quantidade]) => ({ status, quantidade }));
+
+    // Ocorrências por Impacto
+    const impactoCountMap: Record<string, number> = {};
+    filtered.forEach((item) => {
+      impactoCountMap[item.impacto] = (impactoCountMap[item.impacto] || 0) + 1;
+    });
+    const ocorrenciasPorImpacto = Object.entries(impactoCountMap)
+      .map(([impacto, quantidade]) => ({ impacto, quantidade }));
+
+    // Ocorrências por Mês
+    const mesCountMap: Record<string, number> = {};
+    filtered.forEach((item) => {
+      if (item.data_ocorrencia) {
+        const [year, month] = item.data_ocorrencia.split('-');
+        if (year && month) {
+          const key = `${month}/${year}`;
+          mesCountMap[key] = (mesCountMap[key] || 0) + 1;
+        }
+      }
+    });
+    const ocorrenciasPorMes = Object.entries(mesCountMap)
+      .map(([mes, quantidade]) => ({ mes, quantidade }));
+
+    // Tempo médio por produto
+    const tempoMedioPorProduto = Object.entries(tempoPorProdutoMap)
+      .map(([produto, data]) => ({
+        produto,
+        tempoMedioHoras: parseFloat((data.totalHoras / data.count).toFixed(1))
+      }))
+      .sort((a, b) => b.tempoMedioHoras - a.tempoMedioHoras);
+
+    return res.json({
+      totalOcorrencias,
+      totalAbertas,
+      totalEmAndamento,
+      totalResolvidas,
+      totalMonitorando,
+      totalCanceladas,
+      tempoMedioResolucoesHoras,
+      produtosMaisImpactados,
+      ocorrenciasPorProduto,
+      ocorrenciasPorStatus,
+      ocorrenciasPorImpacto,
+      ocorrenciasPorMes,
+      tempoMedioPorProduto
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Erro ao carregar métricas do Diário de Bordo.' });
+  }
+});
+
+// GET /api/diario-bordo - List occurrences with filters
+app.get('/api/diario-bordo', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const list = await db.getDiarioBordo();
+    const { dataInicial, dataFinal, produto, status, responsavel, impacto, busca } = req.query;
+
+    let filtered = list;
+
+    if (dataInicial) {
+      filtered = filtered.filter((i) => i.data_ocorrencia >= (dataInicial as string));
+    }
+    if (dataFinal) {
+      filtered = filtered.filter((i) => i.data_ocorrencia <= (dataFinal as string));
+    }
+    if (produto && produto !== 'Todos') {
+      filtered = filtered.filter((i) => i.produto === produto);
+    }
+    if (status && status !== 'Todos') {
+      filtered = filtered.filter((i) => i.status === status);
+    }
+    if (responsavel && responsavel !== 'Todos') {
+      filtered = filtered.filter((i) => i.responsavel === responsavel);
+    }
+    if (impacto && impacto !== 'Todos') {
+      filtered = filtered.filter((i) => i.impacto === impacto);
+    }
+    if (busca) {
+      const term = (busca as string).toLowerCase().trim();
+      filtered = filtered.filter((i) =>
+        i.ocorrencia.toLowerCase().includes(term) ||
+        i.produto.toLowerCase().includes(term) ||
+        i.responsavel.toLowerCase().includes(term) ||
+        i.impacto.toLowerCase().includes(term) ||
+        (i.comentario && i.comentario.toLowerCase().includes(term)) ||
+        (i.solucao && i.solucao.toLowerCase().includes(term))
+      );
+    }
+
+    return res.json(filtered);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Erro ao buscar registros do Diário de Bordo.' });
+  }
+});
+
+// GET /api/diario-bordo/:id/historico - Get timeline history
+app.get('/api/diario-bordo/:id/historico', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.status(400).json({ error: 'ID inválido.' });
+
+    const historico = await db.getDiarioBordoHistorico(id);
+    return res.json(historico);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Erro ao buscar histórico da ocorrência.' });
+  }
+});
+
+// POST /api/diario-bordo - Create new occurrence
+app.post(
+  '/api/diario-bordo',
+  authenticateToken,
+  upload.single('evidencia'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const {
+        data_ocorrencia,
+        hora_ocorrencia,
+        produto,
+        ocorrencia,
+        impacto,
+        comentario,
+        status,
+        responsavel
+      } = req.body;
+
+      if (!data_ocorrencia || !hora_ocorrencia || !produto || !ocorrencia || !impacto || !responsavel) {
+        return res.status(400).json({ error: 'Preencha todos os campos obrigatórios.' });
+      }
+
+      let nome_evidencia = '';
+      let caminho_evidencia = '';
+
+      if (req.file) {
+        nome_evidencia = req.file.originalname || 'evidencia.png';
+        try {
+          const fileBuffer = fs.readFileSync(req.file.path);
+          const mimeType = req.file.mimetype || 'image/png';
+          caminho_evidencia = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+        } catch (e) {
+          caminho_evidencia = `/uploads/${req.file.filename}`;
+        }
+      } else if (req.body.caminho_evidencia) {
+        caminho_evidencia = req.body.caminho_evidencia;
+        nome_evidencia = req.body.nome_evidencia || 'evidencia_colada.png';
+      }
+
+      const now = new Date();
+      const nowStr = now.toLocaleString('pt-BR');
+
+      const created = await db.addDiarioBordo({
+        data_ocorrencia,
+        hora_ocorrencia,
+        produto,
+        ocorrencia,
+        impacto,
+        comentario: comentario || '',
+        status: status || 'Aberto',
+        responsavel,
+        nome_evidencia,
+        caminho_evidencia,
+        usuario_registro: req.user!.nome,
+        data_cadastro: nowStr,
+        data_atualizacao: nowStr
+      });
+
+      return res.status(201).json({
+        message: 'Ocorrência registrada com sucesso.',
+        data: created
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Erro ao criar ocorrência.' });
+    }
+  }
+);
+
+// PUT /api/diario-bordo/:id - Update occurrence and add solution
+app.put(
+  '/api/diario-bordo/:id',
+  authenticateToken,
+  upload.single('evidencia'),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) return res.status(400).json({ error: 'ID inválido.' });
+
+      const {
+        data_ocorrencia,
+        hora_ocorrencia,
+        produto,
+        ocorrencia,
+        impacto,
+        comentario,
+        status,
+        responsavel,
+        data_solucao,
+        hora_solucao,
+        solucao,
+        responsavel_solucao
+      } = req.body;
+
+      const updateData: Partial<any> = {};
+
+      if (data_ocorrencia) updateData.data_ocorrencia = data_ocorrencia;
+      if (hora_ocorrencia) updateData.hora_ocorrencia = hora_ocorrencia;
+      if (produto) updateData.produto = produto;
+      if (ocorrencia) updateData.ocorrencia = ocorrencia;
+      if (impacto) updateData.impacto = impacto;
+      if (comentario !== undefined) updateData.comentario = comentario;
+      if (status) updateData.status = status;
+      if (responsavel) updateData.responsavel = responsavel;
+
+      if (data_solucao !== undefined) updateData.data_solucao = data_solucao;
+      if (hora_solucao !== undefined) updateData.hora_solucao = hora_solucao;
+      if (solucao !== undefined) updateData.solucao = solucao;
+      if (responsavel_solucao !== undefined) updateData.responsavel_solucao = responsavel_solucao;
+
+      if (req.file) {
+        updateData.nome_evidencia = req.file.originalname || 'evidencia.png';
+        try {
+          const fileBuffer = fs.readFileSync(req.file.path);
+          const mimeType = req.file.mimetype || 'image/png';
+          updateData.caminho_evidencia = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+        } catch (e) {
+          updateData.caminho_evidencia = `/uploads/${req.file.filename}`;
+        }
+      } else if (req.body.caminho_evidencia) {
+        updateData.caminho_evidencia = req.body.caminho_evidencia;
+        if (req.body.nome_evidencia) updateData.nome_evidencia = req.body.nome_evidencia;
+      }
+
+      const updated = await db.updateDiarioBordo(id, updateData, req.user!.nome);
+      if (!updated) {
+        return res.status(404).json({ error: 'Ocorrência não encontrada.' });
+      }
+
+      return res.json({
+        message: 'Ocorrência atualizada com sucesso.',
+        data: updated
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Erro ao atualizar ocorrência.' });
+    }
+  }
+);
+
+// DELETE /api/diario-bordo/:id
+app.delete('/api/diario-bordo/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.status(400).json({ error: 'ID inválido.' });
+
+    await db.deleteDiarioBordo(id);
+    return res.json({ message: 'Ocorrência excluída com sucesso.' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Erro ao excluir ocorrência.' });
+  }
+});
 
 app.delete(
   '/api/sinalizacoes/:id',

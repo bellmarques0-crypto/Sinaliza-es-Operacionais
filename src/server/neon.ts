@@ -7,7 +7,9 @@ import {
   Produto,
   Motivo,
   Sinalizacao,
-  ConfiguracaoApi
+  ConfiguracaoApi,
+  DiarioBordoOcorrencia,
+  DiarioBordoHistorico
 } from '../types.js';
 
 const connectionString =
@@ -111,6 +113,40 @@ export async function ensureNeonInitialized(): Promise<boolean> {
             usuario VARCHAR(255),
             senha TEXT,
             ultima_sincronizacao VARCHAR(100)
+          );
+        `;
+        await sql`
+          CREATE TABLE IF NOT EXISTS diario_bordo (
+            id SERIAL PRIMARY KEY,
+            data_ocorrencia VARCHAR(50) NOT NULL,
+            hora_ocorrencia VARCHAR(50) NOT NULL,
+            produto VARCHAR(255) NOT NULL,
+            ocorrencia VARCHAR(255) NOT NULL,
+            impacto VARCHAR(255) NOT NULL,
+            comentario TEXT,
+            status VARCHAR(50) NOT NULL DEFAULT 'Aberto',
+            responsavel VARCHAR(255) NOT NULL,
+            nome_evidencia VARCHAR(255),
+            caminho_evidencia TEXT,
+            data_solucao VARCHAR(50),
+            hora_solucao VARCHAR(50),
+            solucao TEXT,
+            responsavel_solucao VARCHAR(255),
+            usuario_registro VARCHAR(255) NOT NULL,
+            data_cadastro VARCHAR(100) NOT NULL,
+            data_atualizacao VARCHAR(100) NOT NULL
+          );
+        `;
+        await sql`
+          CREATE TABLE IF NOT EXISTS diario_bordo_historico (
+            id SERIAL PRIMARY KEY,
+            diario_bordo_id INTEGER NOT NULL REFERENCES diario_bordo(id) ON DELETE CASCADE,
+            data_hora VARCHAR(100) NOT NULL,
+            usuario VARCHAR(255) NOT NULL,
+            tipo_alteracao VARCHAR(100) NOT NULL,
+            status_anterior VARCHAR(50),
+            status_novo VARCHAR(50),
+            descricao TEXT NOT NULL
           );
         `;
 
@@ -537,6 +573,202 @@ export const neonDb = {
       UPDATE configuracao_api
       SET url_api = ${url_api}, token = ${token}, usuario = ${usuario}, senha = ${senha}, ultima_sincronizacao = ${ultima_sincronizacao}
       WHERE id = ${current.id}
+      RETURNING *
+    `) as any[];
+    return rows[0];
+  },
+
+  // DIÁRIO DE BORDO METHODS
+  getDiarioBordo: async (): Promise<DiarioBordoOcorrencia[]> => {
+    if (!sqlQuery) return [];
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return [];
+      const rows = (await sqlQuery`SELECT * FROM diario_bordo ORDER BY id DESC`) as any[];
+      return rows;
+    } catch (err) {
+      console.warn('[Neon] Error in getDiarioBordo:', err);
+      return [];
+    }
+  },
+
+  getDiarioBordoById: async (id: number): Promise<DiarioBordoOcorrencia | null> => {
+    if (!sqlQuery) return null;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return null;
+      const rows = (await sqlQuery`SELECT * FROM diario_bordo WHERE id = ${id} LIMIT 1`) as any[];
+      return rows[0] || null;
+    } catch (err) {
+      console.warn('[Neon] Error in getDiarioBordoById:', err);
+      return null;
+    }
+  },
+
+  addDiarioBordo: async (data: Omit<DiarioBordoOcorrencia, 'id'>): Promise<DiarioBordoOcorrencia> => {
+    if (!sqlQuery) throw new Error('Database not connected');
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
+    const com = data.comentario || '';
+    const nomeEv = data.nome_evidencia || '';
+    const camEv = data.caminho_evidencia || '';
+    const dataSol = data.data_solucao || '';
+    const horaSol = data.hora_solucao || '';
+    const sol = data.solucao || '';
+    const respSol = data.responsavel_solucao || '';
+
+    const rows = (await sqlQuery`
+      INSERT INTO diario_bordo (
+        data_ocorrencia, hora_ocorrencia, produto, ocorrencia, impacto,
+        comentario, status, responsavel, nome_evidencia, caminho_evidencia,
+        data_solucao, hora_solucao, solucao, responsavel_solucao,
+        usuario_registro, data_cadastro, data_atualizacao
+      )
+      VALUES (
+        ${data.data_ocorrencia}, ${data.hora_ocorrencia}, ${data.produto}, ${data.ocorrencia}, ${data.impacto},
+        ${com}, ${data.status}, ${data.responsavel}, ${nomeEv}, ${camEv},
+        ${dataSol}, ${horaSol}, ${sol}, ${respSol},
+        ${data.usuario_registro}, ${data.data_cadastro}, ${data.data_atualizacao}
+      )
+      RETURNING *
+    `) as any[];
+
+    const newRecord = rows[0];
+
+    // Auto record initial history log
+    await neonDb.addDiarioBordoHistorico({
+      diario_bordo_id: newRecord.id,
+      data_hora: newRecord.data_cadastro,
+      usuario: newRecord.usuario_registro,
+      tipo_alteracao: 'Criação',
+      status_anterior: undefined,
+      status_novo: newRecord.status,
+      descricao: `Ocorrência iniciada por ${newRecord.usuario_registro} - Status: ${newRecord.status}`
+    });
+
+    return newRecord;
+  },
+
+  updateDiarioBordo: async (
+    id: number,
+    data: Partial<DiarioBordoOcorrencia>,
+    usuarioAtualizacao: string
+  ): Promise<DiarioBordoOcorrencia | null> => {
+    if (!sqlQuery) return null;
+    const ok = await ensureNeonInitialized();
+    if (!ok) return null;
+
+    const current = await neonDb.getDiarioBordoById(id);
+    if (!current) return null;
+
+    const nowStr = new Date().toLocaleString('pt-BR');
+
+    const data_ocorrencia = data.data_ocorrencia ?? current.data_ocorrencia;
+    const hora_ocorrencia = data.hora_ocorrencia ?? current.hora_ocorrencia;
+    const produto = data.produto ?? current.produto;
+    const ocorrencia = data.ocorrencia ?? current.ocorrencia;
+    const impacto = data.impacto ?? current.impacto;
+    const comentario = data.comentario ?? current.comentario;
+    const status = data.status ?? current.status;
+    const responsavel = data.responsavel ?? current.responsavel;
+    const nome_evidencia = data.nome_evidencia ?? current.nome_evidencia ?? '';
+    const caminho_evidencia = data.caminho_evidencia ?? current.caminho_evidencia ?? '';
+    const data_solucao = data.data_solucao ?? current.data_solucao ?? '';
+    const hora_solucao = data.hora_solucao ?? current.hora_solucao ?? '';
+    const solucao = data.solucao ?? current.solucao ?? '';
+    const responsavel_solucao = data.responsavel_solucao ?? current.responsavel_solucao ?? '';
+
+    const rows = (await sqlQuery`
+      UPDATE diario_bordo
+      SET
+        data_ocorrencia = ${data_ocorrencia},
+        hora_ocorrencia = ${hora_ocorrencia},
+        produto = ${produto},
+        ocorrencia = ${ocorrencia},
+        impacto = ${impacto},
+        comentario = ${comentario},
+        status = ${status},
+        responsavel = ${responsavel},
+        nome_evidencia = ${nome_evidencia},
+        caminho_evidencia = ${caminho_evidencia},
+        data_solucao = ${data_solucao},
+        hora_solucao = ${hora_solucao},
+        solucao = ${solucao},
+        responsavel_solucao = ${responsavel_solucao},
+        data_atualizacao = ${nowStr}
+      WHERE id = ${id}
+      RETURNING *
+    `) as any[];
+
+    const updated = rows[0];
+
+    // Detect changes for history log
+    let desc = `Atualização realizada por ${usuarioAtualizacao}.`;
+    let tipo = 'Atualização';
+
+    if (current.status !== status) {
+      desc = `Status alterado de "${current.status}" para "${status}" por ${usuarioAtualizacao}.`;
+      tipo = 'Mudança de Status';
+    }
+    if (!current.solucao && solucao) {
+      desc += ` Solução registrada: "${solucao.slice(0, 80)}${solucao.length > 80 ? '...' : ''}".`;
+      tipo = 'Solução Registrada';
+    }
+
+    await neonDb.addDiarioBordoHistorico({
+      diario_bordo_id: id,
+      data_hora: nowStr,
+      usuario: usuarioAtualizacao,
+      tipo_alteracao: tipo,
+      status_anterior: current.status,
+      status_novo: status,
+      descricao: desc
+    });
+
+    return updated;
+  },
+
+  deleteDiarioBordo: async (id: number): Promise<void> => {
+    if (!sqlQuery) return;
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return;
+      await sqlQuery`DELETE FROM diario_bordo WHERE id = ${id}`;
+    } catch (err) {
+      console.warn('[Neon] Error in deleteDiarioBordo:', err);
+    }
+  },
+
+  getDiarioBordoHistorico: async (diario_bordo_id: number): Promise<DiarioBordoHistorico[]> => {
+    if (!sqlQuery) return [];
+    try {
+      const ok = await ensureNeonInitialized();
+      if (!ok) return [];
+      const rows = (await sqlQuery`
+        SELECT * FROM diario_bordo_historico
+        WHERE diario_bordo_id = ${diario_bordo_id}
+        ORDER BY id ASC
+      `) as any[];
+      return rows;
+    } catch (err) {
+      console.warn('[Neon] Error in getDiarioBordoHistorico:', err);
+      return [];
+    }
+  },
+
+  addDiarioBordoHistorico: async (data: Omit<DiarioBordoHistorico, 'id'>): Promise<DiarioBordoHistorico> => {
+    if (!sqlQuery) throw new Error('Database not connected');
+    const ok = await ensureNeonInitialized();
+    if (!ok) throw new Error('Database initialization failed');
+    const statusAnt = data.status_anterior || '';
+    const statusNov = data.status_novo || '';
+    const rows = (await sqlQuery`
+      INSERT INTO diario_bordo_historico (
+        diario_bordo_id, data_hora, usuario, tipo_alteracao, status_anterior, status_novo, descricao
+      )
+      VALUES (
+        ${data.diario_bordo_id}, ${data.data_hora}, ${data.usuario}, ${data.tipo_alteracao}, ${statusAnt}, ${statusNov}, ${data.descricao}
+      )
       RETURNING *
     `) as any[];
     return rows[0];

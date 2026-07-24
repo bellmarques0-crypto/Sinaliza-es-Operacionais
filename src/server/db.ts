@@ -8,7 +8,9 @@ import {
   Produto,
   Motivo,
   Sinalizacao,
-  ConfiguracaoApi
+  ConfiguracaoApi,
+  DiarioBordoOcorrencia,
+  DiarioBordoHistorico
 } from '../types.js';
 import { isNeonEnabled, initNeonTables, neonDb } from './neon.js';
 
@@ -26,6 +28,8 @@ interface DBData {
   produtos: Produto[];
   motivos: Motivo[];
   sinalizacoes: Sinalizacao[];
+  diario_bordo: DiarioBordoOcorrencia[];
+  diario_bordo_historico: DiarioBordoHistorico[];
   configuracao_api: ConfiguracaoApi;
   nextIds: {
     usuarios: number;
@@ -34,6 +38,8 @@ interface DBData {
     produtos: number;
     motivos: number;
     sinalizacoes: number;
+    diario_bordo: number;
+    diario_bordo_historico: number;
   };
 }
 
@@ -74,6 +80,8 @@ function getInitialData(): DBData {
     operadores: [],
     motivos: [],
     sinalizacoes: [],
+    diario_bordo: [],
+    diario_bordo_historico: [],
     configuracao_api: {
       id: 1,
       url_api: '',
@@ -88,7 +96,9 @@ function getInitialData(): DBData {
       operadores: 1,
       produtos: 1,
       motivos: 1,
-      sinalizacoes: 1
+      sinalizacoes: 1,
+      diario_bordo: 1,
+      diario_bordo_historico: 1
     }
   };
 }
@@ -140,6 +150,26 @@ export function loadDatabase(): DBData {
       dbMemory.usuarios = (dbMemory.usuarios || []).filter(
         (u) => u.login !== 'plan' && u.login !== 'oper'
       );
+      if (!dbMemory.diario_bordo) dbMemory.diario_bordo = [];
+      if (!dbMemory.diario_bordo_historico) dbMemory.diario_bordo_historico = [];
+      if (!dbMemory.nextIds) {
+        dbMemory.nextIds = {
+          usuarios: 1,
+          supervisores: 1,
+          operadores: 1,
+          produtos: 1,
+          motivos: 1,
+          sinalizacoes: 1,
+          diario_bordo: 1,
+          diario_bordo_historico: 1
+        };
+      }
+      if (!dbMemory.nextIds.diario_bordo) {
+        dbMemory.nextIds.diario_bordo = dbMemory.diario_bordo.length ? Math.max(...dbMemory.diario_bordo.map(d => d.id)) + 1 : 1;
+      }
+      if (!dbMemory.nextIds.diario_bordo_historico) {
+        dbMemory.nextIds.diario_bordo_historico = dbMemory.diario_bordo_historico.length ? Math.max(...dbMemory.diario_bordo_historico.map(h => h.id)) + 1 : 1;
+      }
     }
 
     saveDatabase();
@@ -520,5 +550,146 @@ export const db = {
     dataStore.configuracao_api = { ...dataStore.configuracao_api, ...data };
     saveDatabase();
     return dataStore.configuracao_api;
+  },
+
+  // DIÁRIO DE BORDO METHODS
+  getDiarioBordo: async (): Promise<DiarioBordoOcorrencia[]> => {
+    if (isNeonEnabled) {
+      try {
+        return await neonDb.getDiarioBordo();
+      } catch (err) {
+        console.warn('[Neon] getDiarioBordo failed, falling back to local database:', err);
+      }
+    }
+    const dataStore = loadDatabase();
+    return [...(dataStore.diario_bordo || [])].sort((a, b) => b.id - a.id);
+  },
+
+  getDiarioBordoById: async (id: number): Promise<DiarioBordoOcorrencia | null> => {
+    if (isNeonEnabled) {
+      try {
+        return await neonDb.getDiarioBordoById(id);
+      } catch (err) {
+        console.warn('[Neon] getDiarioBordoById failed, falling back to local database:', err);
+      }
+    }
+    const dataStore = loadDatabase();
+    return (dataStore.diario_bordo || []).find((d) => d.id === id) || null;
+  },
+
+  addDiarioBordo: async (data: Omit<DiarioBordoOcorrencia, 'id'>): Promise<DiarioBordoOcorrencia> => {
+    if (isNeonEnabled) {
+      try {
+        return await neonDb.addDiarioBordo(data);
+      } catch (err) {
+        console.warn('[Neon] addDiarioBordo failed, falling back to local database:', err);
+      }
+    }
+    const dataStore = loadDatabase();
+    const id = dataStore.nextIds.diario_bordo++;
+    const newRecord: DiarioBordoOcorrencia = {
+      ...data,
+      id
+    };
+    dataStore.diario_bordo.push(newRecord);
+
+    // Initial history log
+    const histId = dataStore.nextIds.diario_bordo_historico++;
+    const histRecord: DiarioBordoHistorico = {
+      id: histId,
+      diario_bordo_id: id,
+      data_hora: data.data_cadastro,
+      usuario: data.usuario_registro,
+      tipo_alteracao: 'Criação',
+      status_novo: data.status,
+      descricao: `Ocorrência iniciada por ${data.usuario_registro} - Status: ${data.status}`
+    };
+    dataStore.diario_bordo_historico.push(histRecord);
+
+    saveDatabase();
+    return newRecord;
+  },
+
+  updateDiarioBordo: async (
+    id: number,
+    data: Partial<DiarioBordoOcorrencia>,
+    usuarioAtualizacao: string
+  ): Promise<DiarioBordoOcorrencia | null> => {
+    if (isNeonEnabled) {
+      try {
+        return await neonDb.updateDiarioBordo(id, data, usuarioAtualizacao);
+      } catch (err) {
+        console.warn('[Neon] updateDiarioBordo failed, falling back to local database:', err);
+      }
+    }
+    const dataStore = loadDatabase();
+    const idx = dataStore.diario_bordo.findIndex((d) => d.id === id);
+    if (idx === -1) return null;
+
+    const current = dataStore.diario_bordo[idx];
+    const nowStr = new Date().toLocaleString('pt-BR');
+
+    const updated: DiarioBordoOcorrencia = {
+      ...current,
+      ...data,
+      data_atualizacao: nowStr
+    };
+    dataStore.diario_bordo[idx] = updated;
+
+    let desc = `Atualização realizada por ${usuarioAtualizacao}.`;
+    let tipo = 'Atualização';
+
+    if (current.status !== updated.status) {
+      desc = `Status alterado de "${current.status}" para "${updated.status}" por ${usuarioAtualizacao}.`;
+      tipo = 'Mudança de Status';
+    }
+    if (!current.solucao && updated.solucao) {
+      desc += ` Solução registrada: "${updated.solucao.slice(0, 80)}${updated.solucao.length > 80 ? '...' : ''}".`;
+      tipo = 'Solução Registrada';
+    }
+
+    const histId = dataStore.nextIds.diario_bordo_historico++;
+    const histRecord: DiarioBordoHistorico = {
+      id: histId,
+      diario_bordo_id: id,
+      data_hora: nowStr,
+      usuario: usuarioAtualizacao,
+      tipo_alteracao: tipo,
+      status_anterior: current.status,
+      status_novo: updated.status,
+      descricao: desc
+    };
+    dataStore.diario_bordo_historico.push(histRecord);
+
+    saveDatabase();
+    return updated;
+  },
+
+  deleteDiarioBordo: async (id: number): Promise<void> => {
+    if (isNeonEnabled) {
+      try {
+        return await neonDb.deleteDiarioBordo(id);
+      } catch (err) {
+        console.warn('[Neon] deleteDiarioBordo failed, falling back to local database:', err);
+      }
+    }
+    const dataStore = loadDatabase();
+    dataStore.diario_bordo = dataStore.diario_bordo.filter((d) => d.id !== id);
+    dataStore.diario_bordo_historico = dataStore.diario_bordo_historico.filter((h) => h.diario_bordo_id !== id);
+    saveDatabase();
+  },
+
+  getDiarioBordoHistorico: async (diario_bordo_id: number): Promise<DiarioBordoHistorico[]> => {
+    if (isNeonEnabled) {
+      try {
+        return await neonDb.getDiarioBordoHistorico(diario_bordo_id);
+      } catch (err) {
+        console.warn('[Neon] getDiarioBordoHistorico failed, falling back to local database:', err);
+      }
+    }
+    const dataStore = loadDatabase();
+    return (dataStore.diario_bordo_historico || [])
+      .filter((h) => h.diario_bordo_id === diario_bordo_id)
+      .sort((a, b) => a.id - b.id);
   }
 };
