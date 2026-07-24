@@ -325,8 +325,14 @@ app.post(
       let caminho_evidencia = '';
 
       if (req.file) {
-        nome_evidencia = req.file.originalname;
-        caminho_evidencia = `/uploads/${req.file.filename}`;
+        nome_evidencia = req.file.originalname || 'evidencia.png';
+        try {
+          const fileBuffer = fs.readFileSync(req.file.path);
+          const mimeType = req.file.mimetype || 'image/png';
+          caminho_evidencia = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+        } catch (e) {
+          caminho_evidencia = `/uploads/${req.file.filename}`;
+        }
       }
 
       const newRecord = await db.addSinalizacao({
