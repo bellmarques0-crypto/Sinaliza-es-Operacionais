@@ -149,5 +149,6 @@ export interface DiarioBordoMetrics {
   ocorrenciasPorStatus: { status: string; quantidade: number }[];
   ocorrenciasPorImpacto: { impacto: string; quantidade: number }[];
   ocorrenciasPorMes: { mes: string; quantidade: number }[];
+  ocorrenciasPorTurno: { turno: string; quantidade: number }[];
   tempoMedioPorProduto: { produto: string; tempoMedioHoras: number }[];
 }

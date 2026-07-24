@@ -23,6 +23,7 @@ import {
   TrendingUp,
   BarChart2,
   PieChart as PieChartIcon,
+  Sun,
   Check,
   ChevronRight,
   AlertCircle,
@@ -869,31 +870,62 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                     <AreaChart data={metrics.ocorrenciasPorMes}>
                       <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                       <XAxis dataKey="mes" tick={{ fontSize: 11 }} />
-                      <YAxis />
+                      <YAxis allowDecimals={false} />
                       <Tooltip />
                       <Area type="monotone" dataKey="quantidade" stroke="#10b981" fill="#10b981" fillOpacity={0.2} name="Ocorrências" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
-            </div>
 
-            {/* Chart 5: Tempo Médio de Resolução por Produto */}
-            <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Clock className="h-4 w-4 text-purple-500" />
-                <span>Tempo Médio de Resolução por Produto (Horas)</span>
-              </h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={metrics.tempoMedioPorProduto}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis dataKey="produto" tick={{ fontSize: 11 }} />
-                    <YAxis unit="h" />
-                    <Tooltip formatter={(value) => [`${value} horas`, 'Tempo Médio']} />
-                    <Bar dataKey="tempoMedioHoras" fill="#8b5cf6" radius={[8, 8, 0, 0]} name="Horas até Solução" />
-                  </BarChart>
-                </ResponsiveContainer>
+              {/* Chart 5: Registros por Período (Manhã x Tarde) */}
+              <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-4">
+                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Sun className="h-4 w-4 text-amber-500" />
+                    <span>Registros por Turno (Manhã x Tarde)</span>
+                  </h3>
+                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full self-start sm:self-auto">
+                    Manhã ≤ 11:59 | Tarde ≥ 12:00
+                  </span>
+                </div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={metrics.ocorrenciasPorTurno || []}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis dataKey="turno" tick={{ fontSize: 11 }} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip formatter={(value) => [`${value} registros`, 'Quantidade']} />
+                      <Bar dataKey="quantidade" name="Registros" radius={[8, 8, 0, 0]}>
+                        {(metrics.ocorrenciasPorTurno || []).map((entry, index) => (
+                          <Cell
+                            key={`cell-turno-${index}`}
+                            fill={entry.turno.toLowerCase().includes('manhã') ? '#0284c7' : '#f97316'}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 6: Tempo Médio de Resolução por Produto */}
+              <div className="rounded-2xl bg-white p-5 border border-slate-200/80 shadow-2xs">
+                <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-purple-500" />
+                  <span>Tempo Médio de Resolução por Produto (Horas)</span>
+                </h3>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={metrics.tempoMedioPorProduto}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis dataKey="produto" tick={{ fontSize: 11 }} />
+                      <YAxis unit="h" />
+                      <Tooltip formatter={(value) => [`${value} horas`, 'Tempo Médio']} />
+                      <Bar dataKey="tempoMedioHoras" fill="#8b5cf6" radius={[8, 8, 0, 0]} name="Horas até Solução" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>

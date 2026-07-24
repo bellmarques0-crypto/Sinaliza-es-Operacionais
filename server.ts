@@ -493,6 +493,24 @@ app.get('/api/diario-bordo/metrics', authenticateToken, async (req: AuthRequest,
     const ocorrenciasPorMes = Object.entries(mesCountMap)
       .map(([mes, quantidade]) => ({ mes, quantidade }));
 
+    // Ocorrências por Turno (Manhã até 11:59 / Tarde 12:00 em diante)
+    let manhaCount = 0;
+    let tardeCount = 0;
+
+    filtered.forEach((item) => {
+      const hora = item.hora_ocorrencia ? item.hora_ocorrencia.trim() : '00:00';
+      if (hora < '12:00') {
+        manhaCount++;
+      } else {
+        tardeCount++;
+      }
+    });
+
+    const ocorrenciasPorTurno = [
+      { turno: 'Manhã (Até 11:59)', quantidade: manhaCount },
+      { turno: 'Tarde (12:00 em diante)', quantidade: tardeCount }
+    ];
+
     // Tempo médio por produto
     const tempoMedioPorProduto = Object.entries(tempoPorProdutoMap)
       .map(([produto, data]) => ({
@@ -514,6 +532,7 @@ app.get('/api/diario-bordo/metrics', authenticateToken, async (req: AuthRequest,
       ocorrenciasPorStatus,
       ocorrenciasPorImpacto,
       ocorrenciasPorMes,
+      ocorrenciasPorTurno,
       tempoMedioPorProduto
     });
   } catch (err: any) {
