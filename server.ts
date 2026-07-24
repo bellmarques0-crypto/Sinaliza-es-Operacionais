@@ -223,6 +223,52 @@ app.get('/api/auth/me', authenticateToken, async (req: AuthRequest, res: Respons
   }
 });
 
+app.put('/api/auth/change-password', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { senhaAtual, novaSenha } = req.body || {};
+
+    if (!novaSenha || String(novaSenha).trim().length < 3) {
+      return res.status(400).json({ error: 'Informe uma nova senha válida (mínimo 3 caracteres).' });
+    }
+
+    const userId = req.user!.id;
+    const user = await db.getUsuarioById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    if (senhaAtual) {
+      let validPassword = false;
+      try {
+        if (user.senha && user.senha.startsWith('$2')) {
+          validPassword = bcrypt.compareSync(String(senhaAtual), user.senha);
+        } else {
+          validPassword = String(senhaAtual) === String(user.senha);
+        }
+      } catch (e) {
+        validPassword = String(senhaAtual) === String(user.senha);
+      }
+
+      if (!validPassword) {
+        return res.status(400).json({ error: 'Senha atual incorreta.' });
+      }
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(String(novaSenha).trim(), salt);
+
+    const updated = await db.updateUsuario(userId, { senha: hashedPassword });
+    if (!updated) {
+      return res.status(500).json({ error: 'Erro ao atualizar senha no banco de dados.' });
+    }
+
+    return res.json({ message: 'Senha alterada com sucesso!' });
+  } catch (err: any) {
+    console.error('Change password error:', err);
+    return res.status(500).json({ error: `Erro ao alterar senha: ${err.message || err}` });
+  }
+});
+
 // --- SINALIZAÇÕES ROUTES ---
 app.get('/api/sinalizacoes', authenticateToken, async (req: Request, res: Response) => {
   const { dataInicial, dataFinal, supervisor, operador, produto, motivo } = req.query;

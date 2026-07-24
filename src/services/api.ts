@@ -73,6 +73,13 @@ export const api = {
     return request<UserSession>('/api/auth/me');
   },
 
+  changePassword: async (senhaAtual: string, novaSenha: string): Promise<{ message: string }> => {
+    return request<{ message: string }>('/api/auth/change-password', {
+      method: 'PUT',
+      body: JSON.stringify({ senhaAtual, novaSenha })
+    });
+  },
+
   logout: () => {
     removeStoredToken();
   },

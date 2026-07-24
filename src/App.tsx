@@ -12,8 +12,25 @@ export default function App() {
   const [user, setUser] = useState<UserSession | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
-  // Layout states
+  // Layout & Theme states
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const handleToggleDarkMode = () => {
+    setIsDarkMode((prev) => !prev);
+  };
 
   useEffect(() => {
     checkAuthentication();
@@ -78,13 +95,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans antialiased">
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-100/70 text-slate-900'} flex flex-col font-sans antialiased transition-colors duration-200`}>
       {/* Top Navigation Bar */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         user={user}
         onLogout={handleLogout}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={handleToggleDarkMode}
       />
 
       {/* Subheader Banner */}
