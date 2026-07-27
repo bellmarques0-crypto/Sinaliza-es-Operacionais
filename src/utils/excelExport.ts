@@ -92,6 +92,7 @@ export function exportHistoryToExcel(
   filters: {
     dataInicial?: string;
     dataFinal?: string;
+    status?: string;
     supervisor?: string;
     operador?: string;
     produto?: string;
@@ -113,6 +114,9 @@ export function exportHistoryToExcel(
       'Possui Evidência',
       'Nome da Evidência',
       'Usuário Responsável',
+      'Status Check',
+      'Confirmado Por',
+      'Data Confirmação',
       'Data Registro'
     ]
   ];
@@ -129,6 +133,9 @@ export function exportHistoryToExcel(
     s.nome_evidencia ? 'SIM' : 'NÃO',
     s.nome_evidencia || '-',
     s.usuario_responsavel,
+    s.confirmado ? 'CONFIRMADO' : 'PENDENTE',
+    s.usuario_confirmacao || '-',
+    s.data_confirmacao || '-',
     s.data_cadastro
   ]);
 

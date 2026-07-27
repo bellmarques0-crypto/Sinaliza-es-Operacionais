@@ -71,6 +71,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
 
   const [filterDataInicial, setFilterDataInicial] = useState('');
   const [filterDataFinal, setFilterDataFinal] = useState('');
+  const [filterStatus, setFilterStatus] = useState('Todos');
   const [filterSupervisor, setFilterSupervisor] = useState('Todos');
   const [filterOperador, setFilterOperador] = useState('');
   const [filterProduto, setFilterProduto] = useState('Todos');
@@ -260,6 +261,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
       const data = await api.getSinalizacoes({
         dataInicial: filterDataInicial,
         dataFinal: filterDataFinal,
+        status: filterStatus,
         supervisor: filterSupervisor,
         operador: filterOperador,
         produto: filterProduto,
@@ -280,6 +282,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   }, [
     filterDataInicial,
     filterDataFinal,
+    filterStatus,
     filterSupervisor,
     filterOperador,
     filterProduto,
@@ -422,6 +425,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
     exportHistoryToExcel(filteredHistory, {
       dataInicial: filterDataInicial,
       dataFinal: filterDataFinal,
+      status: filterStatus,
       supervisor: filterSupervisor,
       operador: filterOperador,
       produto: filterProduto,
@@ -431,6 +435,8 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
 
   // Filter local history table by search string
   const filteredHistory = historyList.filter((item) => {
+    if (filterStatus === 'Pendentes' && item.confirmado) return false;
+    if (filterStatus === 'Confirmados' && !item.confirmado) return false;
     if (!tableSearch) return true;
     const term = tableSearch.toLowerCase();
     return (
@@ -768,6 +774,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
               onClick={() => {
                 setFilterDataInicial('');
                 setFilterDataFinal('');
+                setFilterStatus('Todos');
                 setFilterSupervisor('Todos');
                 setFilterOperador('');
                 setFilterProduto('Todos');
@@ -781,7 +788,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
             {/* Data Inicial */}
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1">Data Inicial</label>
@@ -802,6 +809,20 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 onChange={(e) => setFilterDataFinal(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
               />
+            </div>
+
+            {/* Status Check */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Status Check</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
+              >
+                <option value="Todos">Todos</option>
+                <option value="Pendentes">Pendentes</option>
+                <option value="Confirmados">Confirmados</option>
+              </select>
             </div>
 
             {/* Supervisor */}

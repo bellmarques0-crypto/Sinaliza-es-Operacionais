@@ -273,7 +273,7 @@ app.put('/api/auth/change-password', authenticateToken, async (req: AuthRequest,
 
 // --- SINALIZAÇÕES ROUTES ---
 app.get('/api/sinalizacoes', authenticateToken, async (req: Request, res: Response) => {
-  const { dataInicial, dataFinal, supervisor, operador, produto, motivo } = req.query;
+  const { dataInicial, dataFinal, supervisor, operador, produto, motivo, status } = req.query;
 
   let list = await db.getSinalizacoes();
 
@@ -282,6 +282,13 @@ app.get('/api/sinalizacoes', authenticateToken, async (req: Request, res: Respon
   }
   if (dataFinal && typeof dataFinal === 'string') {
     list = list.filter((s) => s.data <= dataFinal);
+  }
+  if (status && typeof status === 'string' && status !== 'Todos') {
+    if (status.toLowerCase().startsWith('pendente')) {
+      list = list.filter((s) => !s.confirmado);
+    } else if (status.toLowerCase().startsWith('confirmado')) {
+      list = list.filter((s) => !!s.confirmado);
+    }
   }
   if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
     list = list.filter((s) => s.supervisor.toLowerCase() === supervisor.toLowerCase());
