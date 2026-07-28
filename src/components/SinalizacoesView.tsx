@@ -35,6 +35,16 @@ interface SinalizacoesViewProps {
   user: UserSession;
 }
 
+const getGravidadeBadge = (grav: string = 'Médio') => {
+  const g = grav.toLowerCase().trim();
+  if (g === 'muito alto') return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 border border-red-200 shadow-2xs">Muito alto</span>;
+  if (g === 'alto') return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-100 text-orange-800 border border-orange-200 shadow-2xs">Alto</span>;
+  if (g === 'médio' || g === 'medio') return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shadow-2xs">Médio</span>;
+  if (g === 'baixo') return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 border border-blue-200 shadow-2xs">Baixo</span>;
+  if (g === 'muito baixo') return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs">Muito baixo</span>;
+  return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs">{grav || 'Médio'}</span>;
+};
+
 export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   const canRegister = user.perfil === 'Administrador' || user.perfil === 'Planejamento';
 
@@ -47,6 +57,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   const [selectedSupervisor, setSelectedSupervisor] = useState('');
   const [selectedProduto, setSelectedProduto] = useState('');
   const [selectedMotivo, setSelectedMotivo] = useState('');
+  const [selectedGravidade, setSelectedGravidade] = useState('Médio');
   const [observacao, setObservacao] = useState('');
 
   // Image Upload State
@@ -76,6 +87,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   const [filterOperador, setFilterOperador] = useState('');
   const [filterProduto, setFilterProduto] = useState('Todos');
   const [filterMotivo, setFilterMotivo] = useState('Todos');
+  const [filterGravidade, setFilterGravidade] = useState('Todos');
   const [tableSearch, setTableSearch] = useState('');
 
   // Pagination
@@ -148,6 +160,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   const [editSupervisor, setEditSupervisor] = useState('');
   const [editProduto, setEditProduto] = useState('');
   const [editMotivo, setEditMotivo] = useState('');
+  const [editGravidade, setEditGravidade] = useState('Médio');
   const [editObservacao, setEditObservacao] = useState('');
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [editImagePreviewUrl, setEditImagePreviewUrl] = useState<string | null>(null);
@@ -162,6 +175,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
     setEditSupervisor(item.supervisor);
     setEditProduto(item.produto);
     setEditMotivo(item.motivo);
+    setEditGravidade(item.gravidade || 'Médio');
     setEditObservacao(item.observacao || '');
     setEditImageFile(null);
     setEditImagePreviewUrl(item.caminho_evidencia || null);
@@ -223,6 +237,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
       formData.append('supervisor', editSupervisor);
       formData.append('produto', editProduto);
       formData.append('motivo', editMotivo);
+      formData.append('gravidade', editGravidade);
       formData.append('observacao', editObservacao);
 
       if (editImageFile) {
@@ -265,7 +280,8 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
         supervisor: filterSupervisor,
         operador: filterOperador,
         produto: filterProduto,
-        motivo: filterMotivo
+        motivo: filterMotivo,
+        gravidade: filterGravidade
       });
       setHistoryList(data);
       setCurrentPage(1);
@@ -286,7 +302,8 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
     filterSupervisor,
     filterOperador,
     filterProduto,
-    filterMotivo
+    filterMotivo,
+    filterGravidade
   ]);
 
   // Image upload handling & validation (File input or Paste Ctrl+V)
@@ -392,6 +409,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
       formData.append('supervisor', selectedSupervisor);
       formData.append('produto', selectedProduto);
       formData.append('motivo', selectedMotivo);
+      formData.append('gravidade', selectedGravidade);
       formData.append('observacao', observacao);
 
       if (imageFile) {
@@ -408,6 +426,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
       setSelectedSupervisor('');
       setSelectedProduto('');
       setSelectedMotivo('');
+      setSelectedGravidade('Médio');
       setObservacao('');
       handleClearImage();
 
@@ -429,7 +448,8 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
       supervisor: filterSupervisor,
       operador: filterOperador,
       produto: filterProduto,
-      motivo: filterMotivo
+      motivo: filterMotivo,
+      gravidade: filterGravidade
     });
   };
 
@@ -523,7 +543,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
           )}
 
           <form onSubmit={handleSubmitSinalizacao} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
               {/* Campo 1: Operador (Pesquisável) */}
               <div className="relative">
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -635,6 +655,25 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                       {m.descricao}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              {/* Campo 5: Gravidade */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Gravidade <span className="text-red-500">*</span>
+                </label>
+                <select
+                  required
+                  value={selectedGravidade}
+                  onChange={(e) => setSelectedGravidade(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition font-medium"
+                >
+                  <option value="Muito alto">Muito alto</option>
+                  <option value="Alto">Alto</option>
+                  <option value="Médio">Médio</option>
+                  <option value="Baixo">Baixo</option>
+                  <option value="Muito baixo">Muito baixo</option>
                 </select>
               </div>
             </div>
@@ -779,6 +818,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 setFilterOperador('');
                 setFilterProduto('Todos');
                 setFilterMotivo('Todos');
+                setFilterGravidade('Todos');
                 setTableSearch('');
               }}
               className="text-[11px] font-semibold text-blue-600 hover:underline flex items-center gap-1"
@@ -788,7 +828,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             {/* Data Inicial */}
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1">Data Inicial</label>
@@ -938,6 +978,23 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 ))}
               </select>
             </div>
+
+            {/* Gravidade */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Gravidade</label>
+              <select
+                value={filterGravidade}
+                onChange={(e) => setFilterGravidade(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
+              >
+                <option value="Todos">Todos</option>
+                <option value="Muito alto">Muito alto</option>
+                <option value="Alto">Alto</option>
+                <option value="Médio">Médio</option>
+                <option value="Baixo">Baixo</option>
+                <option value="Muito baixo">Muito baixo</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -970,6 +1027,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 <th className="px-3.5 py-3">Supervisor</th>
                 <th className="px-3.5 py-3">Produto</th>
                 <th className="px-3.5 py-3">Motivo</th>
+                <th className="px-3.5 py-3 text-center">Gravidade</th>
                 <th className="px-3.5 py-3">Observação</th>
                 <th className="px-3.5 py-3 text-center">Imagem</th>
                 <th className="px-3.5 py-3">Usuário Responsável</th>
@@ -981,7 +1039,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
             <tbody className="divide-y divide-slate-100 bg-white">
               {isLoadingHistory ? (
                 <tr>
-                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 11 : 10} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 12 : 11} className="px-4 py-8 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                       Carregando sinalizações...
@@ -1045,6 +1103,9 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     </td>
                     <td className="px-3.5 py-3 font-medium text-slate-800 whitespace-nowrap">
                       {item.motivo}
+                    </td>
+                    <td className="px-3.5 py-3 text-center whitespace-nowrap">
+                      {getGravidadeBadge(item.gravidade)}
                     </td>
                     <td className="px-3.5 py-3 text-slate-600 max-w-xs truncate" title={item.observacao}>
                       {item.observacao || '-'}
@@ -1350,6 +1411,25 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                         {mot.descricao}
                       </option>
                     ))}
+                  </select>
+                </div>
+
+                {/* Gravidade */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Gravidade <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    value={editGravidade}
+                    onChange={(e) => setEditGravidade(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition font-medium"
+                  >
+                    <option value="Muito alto">Muito alto</option>
+                    <option value="Alto">Alto</option>
+                    <option value="Médio">Médio</option>
+                    <option value="Baixo">Baixo</option>
+                    <option value="Muito baixo">Muito baixo</option>
                   </select>
                 </div>
               </div>

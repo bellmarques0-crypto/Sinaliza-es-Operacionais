@@ -44,6 +44,7 @@ export interface Sinalizacao {
   supervisor: string;
   produto: string;
   motivo: string;
+  gravidade?: string;
   observacao: string;
   nome_evidencia?: string;
   caminho_evidencia?: string;

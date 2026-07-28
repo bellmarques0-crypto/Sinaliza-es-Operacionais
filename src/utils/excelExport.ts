@@ -93,6 +93,7 @@ export function exportHistoryToExcel(
     dataInicial?: string;
     dataFinal?: string;
     status?: string;
+    gravidade?: string;
     supervisor?: string;
     operador?: string;
     produto?: string;
@@ -110,6 +111,7 @@ export function exportHistoryToExcel(
       'Supervisor',
       'Produto',
       'Motivo',
+      'Gravidade',
       'Observação',
       'Possui Evidência',
       'Nome da Evidência',
@@ -129,6 +131,7 @@ export function exportHistoryToExcel(
     s.supervisor,
     s.produto,
     s.motivo,
+    s.gravidade || 'Médio',
     s.observacao,
     s.nome_evidencia ? 'SIM' : 'NÃO',
     s.nome_evidencia || '-',

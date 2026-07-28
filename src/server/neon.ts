@@ -93,6 +93,7 @@ export async function ensureNeonInitialized(): Promise<boolean> {
             supervisor VARCHAR(255) NOT NULL,
             produto VARCHAR(255) NOT NULL,
             motivo VARCHAR(255) NOT NULL,
+            gravidade VARCHAR(50) DEFAULT 'Médio',
             observacao TEXT,
             nome_evidencia VARCHAR(255),
             caminho_evidencia TEXT,
@@ -106,6 +107,7 @@ export async function ensureNeonInitialized(): Promise<boolean> {
         await sql`ALTER TABLE sinalizacoes ADD COLUMN IF NOT EXISTS confirmado BOOLEAN DEFAULT FALSE;`;
         await sql`ALTER TABLE sinalizacoes ADD COLUMN IF NOT EXISTS data_confirmacao VARCHAR(100);`;
         await sql`ALTER TABLE sinalizacoes ADD COLUMN IF NOT EXISTS usuario_confirmacao VARCHAR(255);`;
+        await sql`ALTER TABLE sinalizacoes ADD COLUMN IF NOT EXISTS gravidade VARCHAR(50) DEFAULT 'Médio';`;
         await sql`
           CREATE TABLE IF NOT EXISTS configuracao_api (
             id SERIAL PRIMARY KEY,
@@ -492,12 +494,13 @@ export const neonDb = {
     if (!sqlQuery) throw new Error('Database not connected');
     const ok = await ensureNeonInitialized();
     if (!ok) throw new Error('Database initialization failed');
+    const gravidade = data.gravidade || 'Médio';
     const obs = data.observacao || '';
     const nomeEv = data.nome_evidencia || '';
     const camEv = data.caminho_evidencia || '';
     const rows = (await sqlQuery`
-      INSERT INTO sinalizacoes (data, hora, operador, supervisor, produto, motivo, observacao, nome_evidencia, caminho_evidencia, usuario_responsavel, data_cadastro)
-      VALUES (${data.data}, ${data.hora}, ${data.operador}, ${data.supervisor}, ${data.produto}, ${data.motivo}, ${obs}, ${nomeEv}, ${camEv}, ${data.usuario_responsavel}, ${data.data_cadastro})
+      INSERT INTO sinalizacoes (data, hora, operador, supervisor, produto, motivo, gravidade, observacao, nome_evidencia, caminho_evidencia, usuario_responsavel, data_cadastro)
+      VALUES (${data.data}, ${data.hora}, ${data.operador}, ${data.supervisor}, ${data.produto}, ${data.motivo}, ${gravidade}, ${obs}, ${nomeEv}, ${camEv}, ${data.usuario_responsavel}, ${data.data_cadastro})
       RETURNING *
     `) as any[];
     return rows[0];
@@ -525,13 +528,14 @@ export const neonDb = {
       const supervisor = data.supervisor ?? current.supervisor;
       const produto = data.produto ?? current.produto;
       const motivo = data.motivo ?? current.motivo;
+      const gravidade = data.gravidade ?? current.gravidade ?? 'Médio';
       const observacao = data.observacao ?? current.observacao;
       const nome_evidencia = data.nome_evidencia ?? current.nome_evidencia;
       const caminho_evidencia = data.caminho_evidencia ?? current.caminho_evidencia;
 
       const rows = (await sqlQuery`
         UPDATE sinalizacoes
-        SET operador = ${operador}, supervisor = ${supervisor}, produto = ${produto}, motivo = ${motivo}, observacao = ${observacao}, nome_evidencia = ${nome_evidencia}, caminho_evidencia = ${caminho_evidencia}
+        SET operador = ${operador}, supervisor = ${supervisor}, produto = ${produto}, motivo = ${motivo}, gravidade = ${gravidade}, observacao = ${observacao}, nome_evidencia = ${nome_evidencia}, caminho_evidencia = ${caminho_evidencia}
         WHERE id = ${id}
         RETURNING *
       `) as any[];

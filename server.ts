@@ -273,7 +273,7 @@ app.put('/api/auth/change-password', authenticateToken, async (req: AuthRequest,
 
 // --- SINALIZAÇÕES ROUTES ---
 app.get('/api/sinalizacoes', authenticateToken, async (req: Request, res: Response) => {
-  const { dataInicial, dataFinal, supervisor, operador, produto, motivo, status } = req.query;
+  const { dataInicial, dataFinal, supervisor, operador, produto, motivo, status, gravidade } = req.query;
 
   let list = await db.getSinalizacoes();
 
@@ -302,6 +302,9 @@ app.get('/api/sinalizacoes', authenticateToken, async (req: Request, res: Respon
   if (motivo && typeof motivo === 'string' && motivo !== 'Todos') {
     list = list.filter((s) => s.motivo.toLowerCase() === motivo.toLowerCase());
   }
+  if (gravidade && typeof gravidade === 'string' && gravidade !== 'Todos') {
+    list = list.filter((s) => (s.gravidade || 'Médio').toLowerCase() === gravidade.toLowerCase());
+  }
 
   return res.json(list);
 });
@@ -313,7 +316,7 @@ app.post(
   upload.single('evidencia'),
   async (req: AuthRequest, res: Response) => {
     try {
-      const { operador, supervisor, produto, motivo, observacao } = req.body;
+      const { operador, supervisor, produto, motivo, gravidade, observacao } = req.body;
 
       if (!operador || !supervisor || !produto || !motivo) {
         return res.status(400).json({ error: 'Por favor, preencha todos os campos obrigatórios.' });
@@ -343,6 +346,7 @@ app.post(
         supervisor,
         produto,
         motivo,
+        gravidade: gravidade || 'Médio',
         observacao: observacao || '',
         nome_evidencia,
         caminho_evidencia,
@@ -372,13 +376,14 @@ app.put(
         return res.status(400).json({ error: 'ID de sinalização inválido.' });
       }
 
-      const { operador, supervisor, produto, motivo, observacao } = req.body;
+      const { operador, supervisor, produto, motivo, gravidade, observacao } = req.body;
 
       const updateData: Partial<any> = {};
       if (operador) updateData.operador = operador;
       if (supervisor) updateData.supervisor = supervisor;
       if (produto) updateData.produto = produto;
       if (motivo) updateData.motivo = motivo;
+      if (gravidade) updateData.gravidade = gravidade;
       if (observacao !== undefined) updateData.observacao = observacao;
 
       if (req.file) {

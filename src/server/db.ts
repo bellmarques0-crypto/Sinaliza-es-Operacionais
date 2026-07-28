@@ -487,7 +487,7 @@ export const db = {
     }
     const dataStore = loadDatabase();
     const id = dataStore.nextIds.sinalizacoes++;
-    const newSinalizacao: Sinalizacao = { id, ...data };
+    const newSinalizacao: Sinalizacao = { id, gravidade: 'Médio', ...data };
     dataStore.sinalizacoes.unshift(newSinalizacao); // latest first
     saveDatabase();
     return newSinalizacao;
