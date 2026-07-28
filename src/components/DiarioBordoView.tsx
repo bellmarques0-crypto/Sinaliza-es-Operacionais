@@ -1434,8 +1434,50 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
               {/* Tab Histórico e Timeline */}
               {modalActiveTab === 'historico' && (
-                <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-2">
+                <div className="space-y-4 max-h-[28rem] overflow-y-auto pr-1">
+                  {/* Resumo/Detalhes da Ocorrência */}
+                  {editingItem && (
+                    <div className="bg-slate-900 text-white p-4 rounded-xl border border-slate-800 shadow-sm space-y-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[11px] font-bold">
+                            {editingItem.produto}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            {editingItem.data_ocorrencia} às {editingItem.hora_ocorrencia}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold">
+                            Impacto: {editingItem.impacto}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                            {editingItem.status}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-400 block mb-0.5">
+                          Descrição da Ocorrência
+                        </span>
+                        <p className="text-sm font-bold text-white leading-relaxed">
+                          {editingItem.ocorrencia}
+                        </p>
+                      </div>
+                      {editingItem.comentario && (
+                        <div className="pt-2 border-t border-slate-800/80">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-0.5">
+                            Observações / Detalhes Adicionais
+                          </span>
+                          <p className="text-xs text-slate-300 leading-relaxed">
+                            {editingItem.comentario}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-700 mb-2 pt-1">
                     <History className="h-4 w-4 text-blue-600" />
                     <span>Linha do Tempo e Histórico de Alterações</span>
                   </div>
@@ -1445,14 +1487,26 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                   ) : (
                     <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                       {itemHistorico.map((h) => (
-                        <div key={h.id} className="relative bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs space-y-1">
+                        <div key={h.id} className="relative bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-xs space-y-1.5">
                           <span className="absolute -left-6 top-3 h-2.5 w-2.5 rounded-full bg-blue-600 ring-4 ring-white" />
                           <div className="flex items-center justify-between font-bold text-slate-900">
                             <span>{h.tipo_alteracao}</span>
                             <span className="text-[10px] text-slate-400 font-mono">{h.data_hora}</span>
                           </div>
                           <p className="text-slate-600">{h.descricao}</p>
-                          <div className="text-[10px] text-slate-400 font-medium">
+                          {h.tipo_alteracao === 'Criação' && editingItem && !h.descricao.includes('Ocorrência:') && (
+                            <div className="mt-1.5 p-2.5 bg-white rounded-lg border border-slate-200 text-slate-700 shadow-2xs space-y-1">
+                              <div className="text-xs font-semibold text-slate-900">
+                                <span className="text-blue-600 font-bold">Ocorrência:</span> {editingItem.ocorrencia}
+                              </div>
+                              {editingItem.comentario && (
+                                <div className="text-[11px] text-slate-600 pt-1 border-t border-slate-100">
+                                  <span className="font-semibold text-slate-700">Obs:</span> {editingItem.comentario}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <div className="text-[10px] text-slate-400 font-medium pt-0.5">
                             Por: <strong className="text-slate-700">{h.usuario}</strong>
                           </div>
                         </div>

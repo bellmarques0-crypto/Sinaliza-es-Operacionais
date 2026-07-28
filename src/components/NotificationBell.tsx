@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { Bell, CheckCircle2, Clock } from 'lucide-react';
 import { UserSession, Sinalizacao } from '../types';
 import { api } from '../services/api';
 
@@ -15,7 +15,6 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [pendingList, setPendingList] = useState<Sinalizacao[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [confirmingId, setConfirmingId] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = async () => {
@@ -84,20 +83,6 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  const handleConfirm = async (id: number) => {
-    try {
-      setConfirmingId(id);
-      await api.confirmarSinalizacao(id);
-      setPendingList((prev) => prev.filter((item) => item.id !== id));
-      window.dispatchEvent(new Event('sinalizacoesUpdated'));
-    } catch (err: any) {
-      console.error('Erro ao confirmar sinalização via notificação:', err);
-      alert('Erro ao confirmar: ' + (err.message || 'Erro desconhecido'));
-    } finally {
-      setConfirmingId(null);
-    }
-  };
 
   const getGravidadeBadge = (grav: string = 'Médio') => {
     const g = grav.toLowerCase().trim();
@@ -196,30 +181,17 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 mt-1 pt-2 border-t border-slate-800/60">
+                  <div className="flex items-center justify-end mt-1 pt-2 border-t border-slate-800/60">
                     <button
                       type="button"
                       onClick={() => {
                         onNavigateToSinalizacoes();
                         setIsOpen(false);
                       }}
-                      className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 px-2 py-1 rounded hover:bg-blue-500/10 transition cursor-pointer"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 px-3 py-1.5 text-[11px] font-bold text-white shadow-xs transition cursor-pointer"
+                      title="Abrir aba de Sinalizações para verificar os detalhes e realizar o check"
                     >
-                      Ver detalhes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleConfirm(item.id)}
-                      disabled={confirmingId === item.id}
-                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-xs hover:bg-emerald-500 transition cursor-pointer disabled:opacity-50"
-                      title="Confirmar recebimento / check da sinalização"
-                    >
-                      {confirmingId === item.id ? (
-                        <span className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      )}
-                      <span>Confirmar Check</span>
+                      <span>Ver detalhes para confirmar →</span>
                     </button>
                   </div>
                 </div>

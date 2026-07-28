@@ -677,7 +677,7 @@ export const neonDb = {
       tipo_alteracao: 'Criação',
       status_anterior: undefined,
       status_novo: newRecord.status,
-      descricao: `Ocorrência iniciada por ${newRecord.usuario_registro} - Status: ${newRecord.status}`
+      descricao: `Ocorrência: "${newRecord.ocorrencia}"${newRecord.comentario ? ` • Obs: "${newRecord.comentario}"` : ''} - Iniciada por ${newRecord.usuario_registro} (Status: ${newRecord.status})`
     });
 
     return newRecord;
@@ -740,6 +740,10 @@ export const neonDb = {
     let desc = `Atualização realizada por ${usuarioAtualizacao}.`;
     let tipo = 'Atualização';
 
+    if (current.ocorrencia !== ocorrencia) {
+      desc += ` Descrição alterada para "${ocorrencia}".`;
+      tipo = 'Edição da Descrição';
+    }
     if (current.status !== status) {
       desc = `Status alterado de "${current.status}" para "${status}" por ${usuarioAtualizacao}.`;
       tipo = 'Mudança de Status';

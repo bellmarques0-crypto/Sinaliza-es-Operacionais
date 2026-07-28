@@ -623,7 +623,7 @@ export const db = {
       usuario: data.usuario_registro,
       tipo_alteracao: 'Criação',
       status_novo: data.status,
-      descricao: `Ocorrência iniciada por ${data.usuario_registro} - Status: ${data.status}`
+      descricao: `Ocorrência: "${data.ocorrencia}"${data.comentario ? ` • Obs: "${data.comentario}"` : ''} - Iniciada por ${data.usuario_registro} (Status: ${data.status})`
     };
     dataStore.diario_bordo_historico.push(histRecord);
 
@@ -660,6 +660,10 @@ export const db = {
     let desc = `Atualização realizada por ${usuarioAtualizacao}.`;
     let tipo = 'Atualização';
 
+    if (current.ocorrencia !== updated.ocorrencia) {
+      desc += ` Descrição alterada para "${updated.ocorrencia}".`;
+      tipo = 'Edição da Descrição';
+    }
     if (current.status !== updated.status) {
       desc = `Status alterado de "${current.status}" para "${updated.status}" por ${usuarioAtualizacao}.`;
       tipo = 'Mudança de Status';
