@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { UserSession, PerfilAcesso } from '../types';
 import { ChangePasswordModal } from './ChangePasswordModal';
+import { NotificationBell } from './NotificationBell';
 
 export type ActiveTab = 'dashboard' | 'sinalizacoes' | 'diario_bordo' | 'administracao';
 
@@ -90,6 +91,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             {/* Right User Badge & Dropdown Trigger (Desktop) */}
             <div className="hidden sm:flex items-center gap-3">
+              <NotificationBell
+                user={user}
+                onNavigateToSinalizacoes={() => setActiveTab('sinalizacoes')}
+              />
+
               <div className="relative" ref={userMenuRef}>
                 <button
                   type="button"
@@ -190,8 +196,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
 
-            {/* Mobile Menu Toggle */}
-            <div className="sm:hidden flex items-center">
+            {/* Mobile Menu Toggle & Notification Bell */}
+            <div className="sm:hidden flex items-center gap-2">
+              <NotificationBell
+                user={user}
+                onNavigateToSinalizacoes={() => setActiveTab('sinalizacoes')}
+              />
+
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800"

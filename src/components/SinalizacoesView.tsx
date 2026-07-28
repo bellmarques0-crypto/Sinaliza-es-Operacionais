@@ -285,6 +285,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
       });
       setHistoryList(data);
       setCurrentPage(1);
+      window.dispatchEvent(new Event('sinalizacoesUpdated'));
     } catch (err: any) {
       console.error('Erro ao carregar histórico de sinalizações:', err);
     } finally {
