@@ -29,6 +29,7 @@ import {
   UserSession
 } from '../types';
 import { exportHistoryToExcel } from '../utils/excelExport';
+import { calculateSLA } from '../utils/dateUtils';
 import { ImageModal } from './ImageModal';
 
 interface SinalizacoesViewProps {
@@ -852,9 +853,9 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
               />
             </div>
 
-            {/* Status Check */}
+            {/* Status */}
             <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Status Check</label>
+              <label className="block text-[11px] font-semibold text-slate-600 mb-1">Status</label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -1021,7 +1022,8 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 font-semibold text-slate-700 uppercase tracking-wider border-b border-slate-200">
               <tr>
-                <th className="px-3.5 py-3 text-center">Check / Status</th>
+                <th className="px-3.5 py-3 text-center">STATUS</th>
+                <th className="px-3.5 py-3 text-center" title="SLA: Tempo até a confirmação do check">SLA</th>
                 <th className="px-3.5 py-3">Data</th>
                 <th className="px-3.5 py-3">Hora</th>
                 <th className="px-3.5 py-3">Operador</th>
@@ -1040,7 +1042,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
             <tbody className="divide-y divide-slate-100 bg-white">
               {isLoadingHistory ? (
                 <tr>
-                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 12 : 11} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 13 : 12} className="px-4 py-8 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                       Carregando sinalizações...
@@ -1088,6 +1090,34 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                           )}
                         </div>
                       )}
+                    </td>
+                    <td className="px-3.5 py-3 text-center whitespace-nowrap">
+                      {(() => {
+                        const sla = calculateSLA(item, nowClock);
+                        if (sla.status === 'indefinido') return <span className="text-slate-400">-</span>;
+                        if (sla.status === 'confirmado') {
+                          return (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs" title={`Check concluído em ${sla.text}`}>
+                              <Clock className="h-3 w-3 text-slate-500" />
+                              {sla.text}
+                            </span>
+                          );
+                        }
+                        const isLate = sla.diffMins > 120;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border shadow-2xs ${
+                              isLate
+                                ? 'bg-red-100 text-red-800 border-red-300 animate-pulse'
+                                : 'bg-amber-100 text-amber-800 border-amber-300'
+                            }`}
+                            title={`Tempo aguardando check: ${sla.text}`}
+                          >
+                            <Clock className="h-3 w-3 text-amber-700" />
+                            {sla.text}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-3.5 py-3 font-semibold text-slate-800 whitespace-nowrap">
                       {item.data}
@@ -1166,7 +1196,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 11 : 10} className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 13 : 12} className="px-4 py-8 text-center text-slate-500">
                     Nenhuma sinalização encontrada com os filtros aplicados.
                   </td>
                 </tr>

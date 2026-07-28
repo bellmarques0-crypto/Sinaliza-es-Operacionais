@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { DashboardMetrics, Sinalizacao } from '../types';
-import { getBrasiliaDateString, getBrasiliaFullString } from './dateUtils';
+import { getBrasiliaDateString, getBrasiliaFullString, calculateSLA } from './dateUtils';
 
 export function exportDashboardToExcel(
   metrics: DashboardMetrics,
@@ -116,7 +116,8 @@ export function exportHistoryToExcel(
       'Possui Evidência',
       'Nome da Evidência',
       'Usuário Responsável',
-      'Status Check',
+      'Status',
+      'SLA (Tempo de Check)',
       'Confirmado Por',
       'Data Confirmação',
       'Data Registro'
@@ -137,6 +138,7 @@ export function exportHistoryToExcel(
     s.nome_evidencia || '-',
     s.usuario_responsavel,
     s.confirmado ? 'CONFIRMADO' : 'PENDENTE',
+    calculateSLA(s).text,
     s.usuario_confirmacao || '-',
     s.data_confirmacao || '-',
     s.data_cadastro
