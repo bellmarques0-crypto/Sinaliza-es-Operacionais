@@ -30,6 +30,10 @@
     "operadores": 1,
     "produtos": 1,
     "motivos": 1,
-    "sinalizacoes": 1
-  }
+    "sinalizacoes": 1,
+    "diario_bordo": 1,
+    "diario_bordo_historico": 1
+  },
+  "diario_bordo": [],
+  "diario_bordo_historico": []
 }

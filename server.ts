@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
@@ -9,7 +11,7 @@ import { PerfilAcesso } from './src/types.js';
 import { getBrasiliaDateParts, getBrasiliaFullString } from './src/utils/dateUtils.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sinalizacoes_secret_key_2026_super_secure';
-const PORT = 3000;
+const PORT = 3001;
 
 const app = express();
 
