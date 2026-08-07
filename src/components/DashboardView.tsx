@@ -53,6 +53,7 @@ export const DashboardView: React.FC = () => {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchInFlightRef = useRef(false);
 
   // Close operador dropdown on outside click
   useEffect(() => {
@@ -73,22 +74,79 @@ export const DashboardView: React.FC = () => {
   const itemsPerPage = 5;
 
   useEffect(() => {
-    // Load dropdown options
-    Promise.all([api.getSupervisores(), api.getProdutos(), api.getOperadores()])
-      .then(([sups, prods, ops]) => {
-        setSupervisoresList(sups);
-        setProdutosList(prods);
-        setOperadoresList(ops);
-      })
-      .catch((err) => console.error('Erro ao carregar opções dos filtros:', err));
+    let cancelled = false;
+
+    const loadDropdownData = async () => {
+      try {
+        const [sups, prods, ops] = await Promise.all([
+          api.getSupervisores(),
+          api.getProdutos(),
+          api.getOperadores()
+        ]);
+        if (!cancelled) {
+          setSupervisoresList(sups);
+          setProdutosList(prods);
+          setOperadoresList(ops);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Erro ao carregar opções dos filtros:', err);
+        }
+      }
+    };
+
+    void loadDropdownData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Fetch metrics automatically whenever filters change
+  // Fetch metrics automatically whenever filters change.
   useEffect(() => {
-    fetchMetrics();
+    let cancelled = false;
+
+    const loadMetrics = async () => {
+      if (cancelled) return;
+
+      fetchInFlightRef.current = true;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await api.getDashboard({
+          dataInicial,
+          dataFinal,
+          produto,
+          supervisor,
+          operador
+        });
+        if (!cancelled) {
+          setMetrics(data);
+          setCurrentPage(1);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err.message || 'Erro ao carregar os dados do dashboard.');
+        }
+      } finally {
+        if (!cancelled) {
+          fetchInFlightRef.current = false;
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadMetrics();
+
+    return () => {
+      cancelled = true;
+    };
   }, [dataInicial, dataFinal, produto, supervisor, operador]);
 
   const fetchMetrics = async () => {
+    if (fetchInFlightRef.current) return;
+
+    fetchInFlightRef.current = true;
     setIsLoading(true);
     setError(null);
     try {
@@ -104,6 +162,7 @@ export const DashboardView: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar os dados do dashboard.');
     } finally {
+      fetchInFlightRef.current = false;
       setIsLoading(false);
     }
   };

@@ -80,6 +80,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   // History / Table State & Filters
   const [historyList, setHistoryList] = useState<Sinalizacao[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const fetchHistoryInFlightRef = useRef(false);
 
   const [filterDataInicial, setFilterDataInicial] = useState('');
   const [filterDataFinal, setFilterDataFinal] = useState('');
@@ -102,17 +103,30 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
     details: { operador: string; motivo: string; data: string; hora: string };
   } | null>(null);
 
-  // Auto time clock
-  const [nowClock, setNowClock] = useState(new Date());
+  // Clock shown once to avoid constant re-rendering and UI churn.
+  const [nowClock] = useState(() => new Date());
 
   useEffect(() => {
-    const timer = setInterval(() => setNowClock(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
-    loadDropdownData();
-    fetchHistory();
+    const loadInitialData = async () => {
+      try {
+        await loadDropdownData();
+        if (!cancelled) {
+          await fetchHistory();
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Erro ao carregar dados iniciais:', err);
+        }
+      }
+    };
+
+    void loadInitialData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const loadDropdownData = async () => {
@@ -272,31 +286,41 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   };
 
   const fetchHistory = async () => {
+    if (fetchHistoryInFlightRef.current) return;
+
+    fetchHistoryInFlightRef.current = true;
     setIsLoadingHistory(true);
     try {
       const data = await api.getSinalizacoes({
         dataInicial: filterDataInicial,
         dataFinal: filterDataFinal,
         status: filterStatus,
-        supervisor: filterSupervisor,
         operador: filterOperador,
+        supervisor: filterSupervisor,
         produto: filterProduto,
         motivo: filterMotivo,
         gravidade: filterGravidade
       });
       setHistoryList(data);
       setCurrentPage(1);
-      window.dispatchEvent(new Event('sinalizacoesUpdated'));
     } catch (err: any) {
       console.error('Erro ao carregar histórico de sinalizações:', err);
     } finally {
+      fetchHistoryInFlightRef.current = false;
       setIsLoadingHistory(false);
     }
   };
 
-  // Re-fetch history when filters change
+  // Re-fetch history when filters change, but only after the initial load.
+  const initialLoadRef = useRef(false);
+
   useEffect(() => {
-    fetchHistory();
+    if (!initialLoadRef.current) {
+      initialLoadRef.current = true;
+      return;
+    }
+
+    void fetchHistory();
   }, [
     filterDataInicial,
     filterDataFinal,

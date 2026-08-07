@@ -1400,12 +1400,30 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Vite middleware / Express static setup
 async function startServer() {
+  // Allow overriding bind host via env (e.g. HOST=10.12.0.49)
+  const bindHost = process.env.HOST || process.env.BIND_HOST || '0.0.0.0';
+
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
+
+    // Configure Vite dev server options so HMR and client connect correctly
+    const viteServerOptions: any = {
+      server: {
+        middlewareMode: true
+      },
       appType: 'spa'
-    });
+    };
+
+    // If a concrete host (not 0.0.0.0) is provided, set it for HMR
+    if (bindHost && bindHost !== '0.0.0.0' && bindHost !== '127.0.0.1' && bindHost !== 'localhost') {
+      viteServerOptions.server.host = bindHost;
+      viteServerOptions.server.hmr = { host: bindHost };
+    } else {
+      // Let Vite pick correct host for local development
+      viteServerOptions.server.host = true;
+    }
+
+    const vite = await createViteServer(viteServerOptions);
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
@@ -1415,8 +1433,9 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+  app.listen(PORT, bindHost, () => {
+    const displayHost = bindHost === '0.0.0.0' ? '0.0.0.0 (all interfaces)' : bindHost;
+    console.log(`Server running on http://${displayHost}:${PORT}`);
   });
 }
 

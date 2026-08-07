@@ -16,15 +16,51 @@ import {
 } from "../types.js";
 
 import { getBrasiliaFullString } from "../utils/dateUtils.js";
+import {
+  getLocalConfigApi,
+  getLocalMotivos,
+  getLocalOperadores,
+  getLocalProdutos,
+  getLocalSinalizacoes,
+  getLocalSupervisores,
+  getLocalUsuarios,
+  getLocalUsuarioByLogin,
+  getLocalUsuarioById,
+  saveLocalConfigApi,
+  saveLocalSinalizacao,
+  updateLocalSinalizacao
+} from "./localDb.js";
 
 const connectionString = process.env.DATABASE_URL || "";
+const schemaName = process.env.PG_SCHEMA || 'public';
 
 console.log("DATABASE_URL:", connectionString);
+console.log("PG_SCHEMA:", schemaName);
 
 export const pool = new Pool({
   connectionString,
-  ssl: false
+  ssl: false,
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000
 });
+
+async function setSearchPath(client: any) {
+  if (schemaName) {
+    await client.query(`SET search_path TO ${schemaName}, public`);
+  }
+}
+
+const originalPoolQuery = pool.query.bind(pool);
+
+pool.query = async (...args: any[]) => {
+  const client = await pool.connect();
+  try {
+    await setSearchPath(client);
+    return await client.query(...args);
+  } finally {
+    client.release();
+  }
+};
 
 pool.on("connect", () => {
   console.log("✅ PostgreSQL conectado.");
@@ -38,6 +74,7 @@ async function dbQuery(text: string, params: any[] = []) {
   const client = await pool.connect();
 
   try {
+    await setSearchPath(client);
     return await client.query(text, params);
   } finally {
     client.release();
@@ -53,8 +90,8 @@ export const db = {
 
         return rows as Usuario[];
     } catch (err) {
-        console.error(err);
-        return [];
+        console.warn("[PostgreSQL] Falling back to local users data:", err);
+        return getLocalUsuarios();
     }
     },
 
@@ -71,10 +108,20 @@ export const db = {
         return rows[0];
 
     } catch (err) {
+        console.warn("Falling back to local auth data for login lookup:", err);
+        const localUser = getLocalUsuarioByLogin(login);
+        if (!localUser) return undefined;
 
-        console.error(err);
-        return undefined;
-
+        return {
+          id: localUser.id,
+          nome: localUser.nome,
+          login: localUser.login,
+          senha: localUser.senha,
+          perfil: localUser.perfil,
+          status: localUser.status,
+          produto: localUser.produto || 'Todos',
+          supervisor: localUser.supervisor || 'Todos'
+        } as Usuario;
     }
   },
 
@@ -95,9 +142,20 @@ export const db = {
         return rows[0];
 
     } catch (err) {
+        console.warn("Falling back to local auth data for user lookup:", err);
+        const localUser = getLocalUsuarioById(id);
+        if (!localUser) return undefined;
 
-        console.error(err);
-        return undefined;
+        return {
+          id: localUser.id,
+          nome: localUser.nome,
+          login: localUser.login,
+          senha: localUser.senha,
+          perfil: localUser.perfil,
+          status: localUser.status,
+          produto: localUser.produto || 'Todos',
+          supervisor: localUser.supervisor || 'Todos'
+        } as Usuario;
 
     }
   },
@@ -205,8 +263,8 @@ export const db = {
 
     } catch (err) {
 
-        console.error(err);
-        return [];
+        console.warn("[PostgreSQL] Falling back to local supervisors data:", err);
+        return getLocalSupervisores();
 
     }
   },
@@ -315,8 +373,8 @@ getOperadores: async (): Promise<Operador[]> => {
 
     } catch (err) {
 
-        console.error(err);
-        return [];
+        console.warn("[PostgreSQL] Falling back to local operadores data:", err);
+        return getLocalOperadores();
 
     }
   },
@@ -410,8 +468,8 @@ updateOperador: async (
 
     return result.rows as Produto[];
   } catch (err) {
-    console.error('[PostgreSQL] Error in getProdutos:', err);
-    return [];
+    console.warn('[PostgreSQL] Falling back to local products data:', err);
+    return getLocalProdutos();
   }
 },
 deleteOperador: async (id: number): Promise<void> => {
@@ -499,8 +557,8 @@ getMotivos: async (): Promise<Motivo[]> => {
 
     return result.rows as Motivo[];
   } catch (err) {
-    console.error('[PostgreSQL] Error in getMotivos:', err);
-    return [];
+    console.warn('[PostgreSQL] Falling back to local motivos data:', err);
+    return getLocalMotivos();
   }
 },
 
@@ -561,8 +619,8 @@ getSinalizacoes: async (): Promise<Sinalizacao[]> => {
 
     return result.rows as Sinalizacao[];
   } catch (err) {
-    console.error('[PostgreSQL] Error in getSinalizacoes:', err);
-    return [];
+    console.warn('[PostgreSQL] Falling back to local signal data:', err);
+    return getLocalSinalizacoes();
   }
 },
 
@@ -613,8 +671,26 @@ addSinalizacao: async (
 
     return result.rows[0] as Sinalizacao;
   } catch (err) {
-    console.error('[PostgreSQL] Error in addSinalizacao:', err);
-    throw err;
+    console.warn('[PostgreSQL] Falling back to local signal create:', err);
+    const newItem = {
+      id: Date.now(),
+      data: data.data,
+      hora: data.hora,
+      operador: data.operador,
+      supervisor: data.supervisor,
+      produto: data.produto,
+      motivo: data.motivo,
+      gravidade: data.gravidade || 'Médio',
+      observacao: data.observacao || '',
+      nome_evidencia: data.nome_evidencia || '',
+      caminho_evidencia: data.caminho_evidencia || '',
+      usuario_responsavel: data.usuario_responsavel || '',
+      data_cadastro: data.data_cadastro || new Date().toISOString(),
+      confirmado: false,
+      data_confirmacao: '',
+      usuario_confirmacao: ''
+    } as Sinalizacao;
+    return saveLocalSinalizacao(newItem);
   }
 },
 
@@ -688,8 +764,17 @@ deleteSinalizacao: async (id: number): Promise<void> => {
       ? (result.rows[0] as Sinalizacao)
       : null;
   } catch (err) {
-    console.error('[PostgreSQL] Error in updateSinalizacao:', err);
-    return null;
+    console.warn('[PostgreSQL] Falling back to local signal update:', err);
+    return updateLocalSinalizacao(id, {
+      operador: data.operador,
+      supervisor: data.supervisor,
+      produto: data.produto,
+      motivo: data.motivo,
+      gravidade: data.gravidade,
+      observacao: data.observacao,
+      nome_evidencia: data.nome_evidencia,
+      caminho_evidencia: data.caminho_evidencia,
+    });
   }
 },
 
@@ -719,8 +804,12 @@ confirmarSinalizacao: async (
       ? (result.rows[0] as Sinalizacao)
       : null;
   } catch (err) {
-    console.error('[PostgreSQL] Error in confirmarSinalizacao:', err);
-    return null;
+    console.warn('[PostgreSQL] Falling back to local signal confirmation:', err);
+    return updateLocalSinalizacao(id, {
+      confirmado: true,
+      data_confirmacao: getBrasiliaFullString(new Date()),
+      usuario_confirmacao: usuario_confirmacao,
+    });
   }
 },
 
@@ -757,8 +846,8 @@ getConfigApi: async (): Promise<ConfiguracaoApi> => {
 
     return result.rows[0] as ConfiguracaoApi;
   } catch (err) {
-    console.error('[PostgreSQL] Error in getConfigApi:', err);
-    return defaultConfig;
+    console.warn('[PostgreSQL] Falling back to local config api data:', err);
+    return getLocalConfigApi();
   }
 },
 
@@ -797,8 +886,8 @@ getConfigApi: async (): Promise<ConfiguracaoApi> => {
 
     return result.rows[0] as ConfiguracaoApi;
   } catch (err) {
-    console.error('[PostgreSQL] Error in updateConfigApi:', err);
-    throw err;
+    console.warn('[PostgreSQL] Falling back to local config api update:', err);
+    return saveLocalConfigApi(data);
   }
 },
 

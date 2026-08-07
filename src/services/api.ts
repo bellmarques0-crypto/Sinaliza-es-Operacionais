@@ -39,10 +39,30 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(endpoint, {
-    ...options,
-    headers
-  });
+  // Try fetch; on network failure, attempt explicit fallback to localhost:3001
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      ...options,
+      headers
+    });
+  } catch (networkErr) {
+    // If endpoint is a relative API path, try localhost dev server as fallback
+    if (typeof endpoint === 'string' && endpoint.startsWith('/')) {
+      try {
+        const fallbackUrl = `http://127.0.0.1:3001${endpoint}`;
+        console.warn(`Primary fetch failed (${networkErr}). Retrying ${fallbackUrl}`);
+        response = await fetch(fallbackUrl, {
+          ...options,
+          headers
+        });
+      } catch (secondErr) {
+        throw new Error(secondErr?.message || networkErr?.message || 'Network error');
+      }
+    } else {
+      throw new Error((networkErr as any)?.message || 'Network error');
+    }
+  }
 
   const data = await response.json().catch(() => ({}));
 

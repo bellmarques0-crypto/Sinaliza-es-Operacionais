@@ -4,7 +4,7 @@
       "id": 1,
       "nome": "Administrador Geral",
       "login": "admin",
-      "senha": "$2b$10$.IWP6Mwy/ow5vTJ.xxaqf.TS6auP/rqUPoWNxBpgrQAFghqFAXYMi",
+      "senha": "$2b$10$eND.5F/ilqPr0bWp4sJ5N.iPi8AI1sgQiCTDDq0t13i7stkT0mXdq",
       "perfil": "Administrador",
       "status": "Ativo",
       "produto": "Todos",
@@ -18,8 +18,8 @@
   "sinalizacoes": [],
   "configuracao_api": {
     "id": 1,
-    "url_api": "",
-    "token": "",
+    "url_api": "https://proflow-lac.vercel.app/api/external/funcionarios?api_key=Plan@01*proflow_external_secure_token_2026",
+    "token": "Plan@01*proflow_external_secure_token_2026",
     "usuario": "",
     "senha": "",
     "ultima_sincronizacao": ""

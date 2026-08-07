@@ -93,7 +93,7 @@ export default function App() {
       case 'administracao':
         return 'Painel de Administração do Sistema';
       default:
-        return 'Sistema de Sinalizações';
+        return 'Diário de bordo';
     }
   };
 

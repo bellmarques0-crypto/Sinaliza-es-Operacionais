@@ -16,9 +16,13 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const [pendingList, setPendingList] = useState<Sinalizacao[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fetchInFlightRef = useRef(false);
 
   const fetchNotifications = async () => {
+    if (fetchInFlightRef.current) return;
+
     try {
+      fetchInFlightRef.current = true;
       setIsLoading(true);
       const list = await api.getSinalizacoes();
       
@@ -51,22 +55,22 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     } catch (err) {
       console.error('Erro ao carregar notificações:', err);
     } finally {
+      fetchInFlightRef.current = false;
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    void fetchNotifications();
 
-    // Poll every 12 seconds for real-time notification updates
-    const timer = setInterval(fetchNotifications, 12000);
-    
-    // Listen to custom event when sinalizações are added or updated
-    const handleUpdateEvent = () => fetchNotifications();
+    // Listen to custom event when sinalizações are added or updated.
+    // Avoid polling continuously so the interface stays responsive.
+    const handleUpdateEvent = () => {
+      void fetchNotifications();
+    };
     window.addEventListener('sinalizacoesUpdated', handleUpdateEvent);
 
     return () => {
-      clearInterval(timer);
       window.removeEventListener('sinalizacoesUpdated', handleUpdateEvent);
     };
   }, [user]);

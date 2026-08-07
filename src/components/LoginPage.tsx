@@ -89,7 +89,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           {/* Subtitle / System Name */}
           <div className="text-center mb-6">
             <h1 className="text-lg font-bold text-slate-800 tracking-tight">
-              Controle de Sinalizações
+              DIÁRIO DE BORDO
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               Entre com seu usuário e senha
