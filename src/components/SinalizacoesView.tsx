@@ -501,10 +501,19 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
     currentPage * itemsPerPage
   );
 
-  // Filter operators by search query
-  const filteredOperatorsList = operadoresList.filter((op) =>
-    op.nome.toLowerCase().includes(operadorQuery.toLowerCase())
-  );
+  // Filter operators by search query (accent insensitive, checks name, supervisor, product)
+  const normalizeSearchText = (str: string) =>
+    (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  const filteredOperatorsList = operadoresList.filter((op) => {
+    const q = normalizeSearchText(operadorQuery);
+    if (!q) return true;
+    return (
+      normalizeSearchText(op.nome).includes(q) ||
+      normalizeSearchText(op.supervisor).includes(q) ||
+      normalizeSearchText(op.produto).includes(q)
+    );
+  });
 
   return (
     <div className="space-y-8 pb-12">
@@ -939,13 +948,23 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
 
               {showFilterOperadorDropdown && filterOperador.trim().length > 0 && (
                 <div className="absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-xl bg-white border border-slate-200 shadow-lg divide-y divide-slate-100">
-                  {operadoresList.filter((op) =>
-                    op.nome.toLowerCase().includes(filterOperador.toLowerCase().trim())
-                  ).length > 0 ? (
+                  {operadoresList.filter((op) => {
+                    const q = normalizeSearchText(filterOperador);
+                    return (
+                      normalizeSearchText(op.nome).includes(q) ||
+                      normalizeSearchText(op.supervisor).includes(q) ||
+                      normalizeSearchText(op.produto).includes(q)
+                    );
+                  }).length > 0 ? (
                     operadoresList
-                      .filter((op) =>
-                        op.nome.toLowerCase().includes(filterOperador.toLowerCase().trim())
-                      )
+                      .filter((op) => {
+                        const q = normalizeSearchText(filterOperador);
+                        return (
+                          normalizeSearchText(op.nome).includes(q) ||
+                          normalizeSearchText(op.supervisor).includes(q) ||
+                          normalizeSearchText(op.produto).includes(q)
+                        );
+                      })
                       .map((op) => (
                         <button
                           key={op.id}

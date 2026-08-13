@@ -56,7 +56,7 @@ pool.query = async (...args: any[]) => {
   const client = await pool.connect();
   try {
     await setSearchPath(client);
-    return await client.query(...args);
+    return await (client.query as any)(...args);
   } finally {
     client.release();
   }

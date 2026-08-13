@@ -69,6 +69,17 @@ export const db = {
     return await postgresDb.addOperador(data);
   },
 
+  updateOperador: async (
+    id: number,
+    data: Partial<Operador>
+  ): Promise<Operador | null> => {
+    return await postgresDb.updateOperador(id, data);
+  },
+
+  deleteOperador: async (id: number): Promise<void> => {
+    await postgresDb.deleteOperador(id);
+  },
+
   getProdutos: async (): Promise<Produto[]> => {
   return await postgresDb.getProdutos();
   },

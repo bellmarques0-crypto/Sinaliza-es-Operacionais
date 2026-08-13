@@ -7,7 +7,7 @@ import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { db } from './src/server/db.js';
-import { PerfilAcesso } from './src/types.js';
+import { PerfilAcesso, Operador } from './src/types.js';
 import { getBrasiliaDateParts, getBrasiliaFullString } from './src/utils/dateUtils.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sinalizacoes_secret_key_2026_super_secure';
@@ -1268,123 +1268,190 @@ app.post(
   }
 );
 
+export async function performApiSync() {
+  const config = await db.getConfigApi();
+  if (!config.url_api) {
+    throw new Error('Nenhuma URL de API configurada. Por favor, salve uma URL válida em Configuração da API.');
+  }
+
+  const headers: Record<string, string> = {
+    'Accept': 'application/json'
+  };
+  if (config.token) {
+    headers['Authorization'] = config.token.startsWith('Bearer ') ? config.token : `Bearer ${config.token}`;
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  const response = await fetch(config.url_api, {
+    method: 'GET',
+    headers,
+    signal: controller.signal
+  });
+  clearTimeout(timeoutId);
+
+  if (!response.ok) {
+    throw new Error(`A API respondeu com erro HTTP ${response.status} ${response.statusText}`);
+  }
+
+  const apiData = await response.json();
+
+  let opCountNew = 0;
+  let opCountUpdated = 0;
+  let supCount = 0;
+  let prodCount = 0;
+
+  if (apiData) {
+    const ops = Array.isArray(apiData)
+      ? apiData
+      : apiData.operadores || apiData.colaboradores || apiData.users || [];
+    const sups = apiData.supervisores || [];
+    const prods = apiData.produtos || [];
+
+    // Pre-fetch current DB states for fast lookup
+    const existingOps = await db.getOperadores();
+    const opsMap = new Map<string, Operador>();
+    for (const o of existingOps) {
+      opsMap.set(o.nome.toLowerCase().trim(), o);
+    }
+
+    const existingSups = await db.getSupervisores();
+    const supsSet = new Set<string>();
+    for (const s of existingSups) {
+      supsSet.add(s.nome.toLowerCase().trim());
+    }
+
+    const existingProds = await db.getProdutos();
+    const prodsSet = new Set<string>();
+    for (const p of existingProds) {
+      prodsSet.add(p.nome.toLowerCase().trim());
+    }
+
+    // Process explicit products array if present
+    if (Array.isArray(prods)) {
+      for (const p of prods) {
+        const nomeProd = (typeof p === 'string' ? p : p.nome || p.description || '').trim();
+        if (nomeProd && !prodsSet.has(nomeProd.toLowerCase())) {
+          await db.addProduto(nomeProd);
+          prodsSet.add(nomeProd.toLowerCase());
+          prodCount++;
+        }
+      }
+    }
+
+    // Process explicit supervisors array if present
+    if (Array.isArray(sups)) {
+      for (const s of sups) {
+        const nomeSup = (typeof s === 'string' ? s : s.nome || s.name || '').trim();
+        if (nomeSup && !supsSet.has(nomeSup.toLowerCase())) {
+          await db.addSupervisor({
+            nome: nomeSup,
+            produto: (typeof s === 'object' && s.produto) ? s.produto : 'Geral',
+            status: (typeof s === 'object' && s.status) ? s.status : 'Ativo'
+          });
+          supsSet.add(nomeSup.toLowerCase());
+          supCount++;
+        }
+      }
+    }
+
+    // Process operators and extract embedded supervisors/products
+    if (Array.isArray(ops)) {
+      for (const o of ops) {
+        const nomeOp = (typeof o === 'string' ? o : o.nome || o.name || '').trim();
+        if (!nomeOp) continue;
+
+        const supervisor = (typeof o === 'object' && (o.supervisor || o.supervisor_nome))
+          ? String(o.supervisor || o.supervisor_nome).trim()
+          : 'Geral';
+
+        const produto = (typeof o === 'object' && (o.atendimento || o.produto || o.agrupamento))
+          ? String(o.atendimento || o.produto || o.agrupamento).trim()
+          : 'Geral';
+
+        const situacao = (typeof o === 'object' && (o.status || o.situacao))
+          ? String(o.status || o.situacao).trim()
+          : 'Ativo';
+
+        // Auto-add missing supervisor from operator record
+        if (supervisor && supervisor !== 'Geral' && !supsSet.has(supervisor.toLowerCase())) {
+          await db.addSupervisor({
+            nome: supervisor,
+            produto: produto || 'Geral',
+            status: 'Ativo'
+          });
+          supsSet.add(supervisor.toLowerCase());
+          supCount++;
+        }
+
+        // Auto-add missing product from operator record
+        if (produto && produto !== 'Geral' && !prodsSet.has(produto.toLowerCase())) {
+          await db.addProduto(produto);
+          prodsSet.add(produto.toLowerCase());
+          prodCount++;
+        }
+
+        // Insert or update operator
+        const existing = opsMap.get(nomeOp.toLowerCase());
+        if (!existing) {
+          await db.addOperador({
+            nome: nomeOp,
+            produto: produto || 'Geral',
+            supervisor: supervisor || 'Geral',
+            situacao: situacao || 'Ativo'
+          });
+          opCountNew++;
+        } else if (
+          existing.supervisor !== supervisor ||
+          existing.produto !== produto ||
+          existing.situacao !== situacao
+        ) {
+          await db.updateOperador(existing.id, {
+            supervisor: supervisor || existing.supervisor,
+            produto: produto || existing.produto,
+            situacao: situacao || existing.situacao
+          });
+          opCountUpdated++;
+        }
+      }
+    }
+  }
+
+  const now = new Date();
+  const formattedDate = getBrasiliaFullString(now);
+  await db.updateConfigApi({ ultima_sincronizacao: formattedDate });
+
+  return {
+    operadoresNovos: opCountNew,
+    operadoresAtualizados: opCountUpdated,
+    supervisoresAtualizados: supCount,
+    produtosSincronizados: prodCount,
+    dataSincronizacao: formattedDate
+  };
+}
+
 app.post(
   '/api/config-api/sync',
   authenticateToken,
   requireRole(['Administrador']),
   async (req: Request, res: Response) => {
-    const config = await db.getConfigApi();
-    if (!config.url_api) {
-      return res.status(400).json({
-        success: false,
-        message: 'Nenhuma URL de API configurada. Por favor, salve uma URL válida em Configuração da API.'
-      });
-    }
-
     try {
-      const headers: Record<string, string> = {
-        'Accept': 'application/json'
-      };
-      if (config.token) {
-        headers['Authorization'] = config.token.startsWith('Bearer ') ? config.token : `Bearer ${config.token}`;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-      const response = await fetch(config.url_api, {
-        method: 'GET',
-        headers,
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        return res.status(400).json({
-          success: false,
-          message: `A API respondeu com erro HTTP ${response.status} ${response.statusText}`
-        });
-      }
-
-      const apiData = await response.json();
-
-      let opCount = 0;
-      let supCount = 0;
-      let prodCount = 0;
-
-      if (apiData) {
-        const ops = Array.isArray(apiData)
-          ? apiData
-          : apiData.operadores || apiData.colaboradores || apiData.users || [];
-        const sups = apiData.supervisores || [];
-        const prods = apiData.produtos || [];
-
-        if (Array.isArray(prods)) {
-          for (const p of prods) {
-            const nomeProd = typeof p === 'string' ? p : p.nome || p.description;
-            if (nomeProd) {
-              await db.addProduto(nomeProd);
-              prodCount++;
-            }
-          }
-        }
-
-        if (Array.isArray(sups)) {
-          for (const s of sups) {
-            if (s.nome) {
-              const existingSups = await db.getSupervisores();
-              const found = existingSups.find(x => x.nome.toLowerCase() === s.nome.toLowerCase());
-              if (!found) {
-                await db.addSupervisor({
-                  nome: s.nome,
-                  produto: s.produto || 'Geral',
-                  status: s.status || 'Ativo'
-                });
-                supCount++;
-              }
-            }
-          }
-        }
-
-        if (Array.isArray(ops)) {
-          for (const o of ops) {
-            const nomeOp = typeof o === 'string' ? o : o.nome || o.name;
-            if (nomeOp) {
-              const existingOps = await db.getOperadores();
-              const found = existingOps.find(x => x.nome.toLowerCase() === nomeOp.toLowerCase());
-              if (!found) {
-                await db.addOperador({
-                  nome: nomeOp,
-                  produto: o.produto || 'Geral',
-                  supervisor: o.supervisor || 'Geral',
-                  situacao: o.situacao || 'Ativo'
-                });
-                opCount++;
-              }
-            }
-          }
-        }
-      }
-
-      const now = new Date();
-      const formattedDate = getBrasiliaFullString(now);
-
-      await db.updateConfigApi({ ultima_sincronizacao: formattedDate });
-
+      const detalhes = await performApiSync();
       return res.json({
         success: true,
-        message: 'Sincronização com a API aplicada realizada com sucesso!',
+        message: 'Sincronização com a API externa realizada com sucesso!',
         detalhes: {
-          operadoresAtualizados: opCount,
-          supervisoresAtualizados: supCount,
-          produtosSincronizados: prodCount,
-          dataSincronizacao: formattedDate
+          operadoresAtualizados: detalhes.operadoresNovos + detalhes.operadoresAtualizados,
+          supervisoresAtualizados: detalhes.supervisoresAtualizados,
+          produtosSincronizados: detalhes.produtosSincronizados,
+          dataSincronizacao: detalhes.dataSincronizacao
         }
       });
     } catch (err: any) {
       return res.status(500).json({
         success: false,
-        message: `Erro ao conectar à API (${config.url_api}): ${err.message || 'Falha de conexão'}`
+        message: `Erro ao sincronizar com a API: ${err.message || 'Falha de conexão'}`
       });
     }
   }
@@ -1436,6 +1503,27 @@ async function startServer() {
   app.listen(PORT, bindHost, () => {
     const displayHost = bindHost === '0.0.0.0' ? '0.0.0.0 (all interfaces)' : bindHost;
     console.log(`Server running on http://${displayHost}:${PORT}`);
+
+    // Initial auto-sync from external API after server start
+    setTimeout(async () => {
+      try {
+        console.log('[Auto-Sync] Executando sincronização inicial com a API externa...');
+        const res = await performApiSync();
+        console.log('[Auto-Sync] Sincronização inicial concluída com sucesso:', res);
+      } catch (err: any) {
+        console.warn('[Auto-Sync] Falha na sincronização inicial:', err?.message || err);
+      }
+    }, 3000);
+
+    // Periodic auto-sync every 30 minutes
+    setInterval(async () => {
+      try {
+        console.log('[Auto-Sync] Executando sincronização periódica...');
+        await performApiSync();
+      } catch (err: any) {
+        console.warn('[Auto-Sync] Falha na sincronização periódica:', err?.message || err);
+      }
+    }, 30 * 60 * 1000);
   });
 }
 
