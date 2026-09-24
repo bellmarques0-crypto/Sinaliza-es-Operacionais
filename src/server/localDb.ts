@@ -24,23 +24,45 @@ export interface LocalUser {
   supervisor?: string;
 }
 
-const dbPath = path.resolve(process.cwd(), 'data', 'db.json');
+const isVercelEnv = !!process.env.VERCEL || !!process.env.VERCEL_ENV;
+const dbDir = isVercelEnv ? '/tmp/data' : path.resolve(process.cwd(), 'data');
+const dbPath = path.join(dbDir, 'db.json');
 
 function readDb() {
-  if (!fs.existsSync(dbPath)) {
+  try {
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+    if (!fs.existsSync(dbPath)) {
+      const rootDbPath = path.resolve(process.cwd(), 'data', 'db.json');
+      if (fs.existsSync(rootDbPath)) {
+        fs.copyFileSync(rootDbPath, dbPath);
+      } else {
+        return { usuarios: [] as LocalUser[] };
+      }
+    }
+
+    const content = fs.readFileSync(dbPath, 'utf8');
+    const parsed = JSON.parse(content);
+    return {
+      ...parsed,
+      usuarios: (parsed.usuarios || []) as LocalUser[]
+    };
+  } catch (err) {
+    console.warn('[localDb] Erro ao ler db.json:', err);
     return { usuarios: [] as LocalUser[] };
   }
-
-  const content = fs.readFileSync(dbPath, 'utf8');
-  const parsed = JSON.parse(content);
-  return {
-    ...parsed,
-    usuarios: (parsed.usuarios || []) as LocalUser[]
-  };
 }
 
 function writeDb(data: any) {
-  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  try {
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('[localDb] Erro ao gravar db.json:', err);
+  }
 }
 
 export function ensureSeedUser() {
@@ -100,6 +122,26 @@ export function getLocalOperadores(): Operador[] {
   return (data.operadores || []) as Operador[];
 }
 
+export function saveLocalOperador(op: Omit<Operador, 'id'>): Operador {
+  const data = readDb();
+  if (!data.operadores) data.operadores = [];
+  const nextId = (data.operadores.length > 0 ? Math.max(...data.operadores.map((o: any) => o.id || 0)) : 0) + 1;
+  const newOp: Operador = { id: nextId, ...op };
+  data.operadores.push(newOp);
+  writeDb(data);
+  return newOp;
+}
+
+export function updateLocalOperador(id: number, updates: Partial<Operador>): Operador | null {
+  const data = readDb();
+  if (!data.operadores) data.operadores = [];
+  const idx = data.operadores.findIndex((o: any) => o.id === id);
+  if (idx < 0) return null;
+  data.operadores[idx] = { ...data.operadores[idx], ...updates };
+  writeDb(data);
+  return data.operadores[idx] as Operador;
+}
+
 export function getLocalProdutos(): Produto[] {
   const data = readDb();
   return (data.produtos || []) as Produto[];
@@ -112,6 +154,44 @@ export function getLocalMotivos(): Motivo[] {
 
 export function getLocalSinalizacoes(): Sinalizacao[] {
   const data = readDb();
+  if (!data.sinalizacoes || data.sinalizacoes.length === 0) {
+    const today = new Date().toISOString().split('T')[0];
+    data.sinalizacoes = [
+      {
+        id: 1,
+        data: today,
+        hora: '09:30:00',
+        operador: 'IZABELA SILVA BARCELAR',
+        supervisor: 'VITORIA MARQUES CUNHA',
+        produto: 'CARTAO DE CREDITO',
+        motivo: 'Pausa estendida sem justificativa',
+        gravidade: 'Médio',
+        observacao: 'Operador ultrapassou tempo de pausa em 15 minutos.',
+        nome_evidencia: '',
+        caminho_evidencia: '',
+        usuario_responsavel: 'Administrador Geral',
+        data_cadastro: new Date().toISOString(),
+        confirmado: false
+      },
+      {
+        id: 2,
+        data: today,
+        hora: '10:15:00',
+        operador: 'ANA CAROLINA FERNANDES MARTINS',
+        supervisor: 'VITORIA MARQUES CUNHA',
+        produto: 'CONSIGNADO',
+        motivo: 'Uso de celular na operação',
+        gravidade: 'Alto',
+        observacao: 'Identificado em auditoria operacional.',
+        nome_evidencia: '',
+        caminho_evidencia: '',
+        usuario_responsavel: 'Administrador Geral',
+        data_cadastro: new Date().toISOString(),
+        confirmado: true
+      }
+    ];
+    writeDb(data);
+  }
   return (data.sinalizacoes || []) as Sinalizacao[];
 }
 
@@ -152,3 +232,33 @@ export function updateLocalSinalizacao(id: number, updates: Partial<Sinalizacao>
   writeDb(data);
   return data.sinalizacoes[index] as Sinalizacao;
 }
+
+export function getLocalAbsenteismo(dataFilter?: string) {
+  const data = readDb();
+  let list = (data.absenteismo || []) as any[];
+  if (dataFilter) {
+    list = list.filter((r) => r.data === dataFilter);
+  }
+  return list;
+}
+
+export function saveLocalAbsenteismoBatch(records: any[]) {
+  const data = readDb();
+  if (!data.absenteismo) data.absenteismo = [];
+
+  records.forEach((rec) => {
+    const idx = data.absenteismo.findIndex(
+      (r: any) => r.data === rec.data && (r.operador || '').toLowerCase().trim() === (rec.operador || '').toLowerCase().trim()
+    );
+    if (idx >= 0) {
+      data.absenteismo[idx] = { ...data.absenteismo[idx], ...rec };
+    } else {
+      const nextId = (data.absenteismo.length > 0 ? Math.max(...data.absenteismo.map((r: any) => r.id || 0)) : 0) + 1;
+      data.absenteismo.push({ ...rec, id: nextId });
+    }
+  });
+
+  writeDb(data);
+  return data.absenteismo;
+}
+

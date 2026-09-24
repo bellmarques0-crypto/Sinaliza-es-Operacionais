@@ -12,13 +12,14 @@ import {
   Sun,
   Moon,
   ChevronDown,
-  BookOpen
+  BookOpen,
+  UserCheck
 } from 'lucide-react';
 import { UserSession, PerfilAcesso } from '../types';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { NotificationBell } from './NotificationBell';
 
-export type ActiveTab = 'dashboard' | 'sinalizacoes' | 'diario_bordo' | 'administracao';
+export type ActiveTab = 'dashboard' | 'sinalizacoes' | 'diario_bordo' | 'absenteismo' | 'administracao';
 
 interface SidebarProps {
   activeTab: ActiveTab;
@@ -253,6 +254,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <BookOpen className="h-4 w-4" />
               <span>Diário de Bordo</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('absenteismo');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
+                activeTab === 'absenteismo' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <UserCheck className="h-4 w-4" />
+              <span>Controle de Absenteísmo</span>
             </button>
 
             {isAdmin && (

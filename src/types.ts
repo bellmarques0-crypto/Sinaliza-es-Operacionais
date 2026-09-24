@@ -24,6 +24,9 @@ export interface Operador {
   produto: string;
   supervisor: string;
   situacao: string;
+  intergrall?: string;
+  entrada?: string;
+  cargo?: string;
 }
 
 export interface Produto {
@@ -73,13 +76,19 @@ export interface DashboardFiltros {
 
 export interface DashboardMetrics {
   totalSinalizacoes: number;
+  percentualTratados: number;
+  tempoMedioMinutos: number;
+  totalReincidentes: number;
   totalOperadoresSinalizados: number;
   totalSupervisoresComSinalizacoes: number;
   totalMotivosCadastrados: number;
+  evolucaoSinalizacoes: { data: string; label: string; quantidade: number }[];
+  sinalizacoesPorHorario: { hora: string; quantidade: number }[];
   sinalizacoesPorSupervisor: { supervisor: string; quantidade: number }[];
-  maioresMotivos: { motivo: string; quantidade: number }[];
-  topOperadores: { operador: string; quantidade: number }[];
+  maioresMotivos: { motivo: string; quantidade: number; percentual?: number }[];
+  topOperadores: { operador: string; intergrall?: string; label?: string; quantidade: number }[];
   sinalizacoesPorProduto: { produto: string; quantidade: number }[];
+  insights: string[];
   resumoTabela: Sinalizacao[];
 }
 
@@ -102,6 +111,7 @@ export interface DiarioBordoOcorrencia {
   produto: string;
   ocorrencia: string;
   impacto: string;
+  tipo?: 'Operacional' | 'Interna';
   comentario: string;
   status: DiarioBordoStatus;
   responsavel: string;
@@ -134,6 +144,7 @@ export interface DiarioBordoFiltros {
   status?: string;
   responsavel?: string;
   impacto?: string;
+  tipo?: string;
   busca?: string;
 }
 
@@ -146,6 +157,7 @@ export interface DiarioBordoMetrics {
   totalCanceladas: number;
   tempoMedioResolucoesHoras: number;
   produtosMaisImpactados: { produto: string; quantidade: number }[];
+  sistemasMaisImpactados: { sistema: string; quantidade: number }[];
   ocorrenciasPorProduto: { produto: string; quantidade: number }[];
   ocorrenciasPorStatus: { status: string; quantidade: number }[];
   ocorrenciasPorImpacto: { impacto: string; quantidade: number }[];
@@ -153,3 +165,19 @@ export interface DiarioBordoMetrics {
   ocorrenciasPorTurno: { turno: string; quantidade: number }[];
   tempoMedioPorProduto: { produto: string; tempoMedioHoras: number }[];
 }
+
+// --- CONTROLE DE ABSENTEÍSMO TYPES ---
+export type AbsenteismoStatus = 'Presente' | 'Falta Injustificada' | 'Falta Justificada' | 'Indisponível';
+
+export interface RegistroAbsenteismo {
+  id?: number;
+  data: string; // YYYY-MM-DD
+  operador: string;
+  supervisor: string;
+  entrada?: string; // HH:mm
+  status: AbsenteismoStatus;
+  observacao?: string; // Max 100 chars
+  usuario_registro?: string;
+  data_atualizacao?: string;
+}
+

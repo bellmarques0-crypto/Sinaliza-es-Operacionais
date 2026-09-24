@@ -7,7 +7,8 @@ import {
   Operador,
   Produto,
   Motivo,
-  ConfiguracaoApi
+  ConfiguracaoApi,
+  RegistroAbsenteismo
 } from '../types';
 
 const TOKEN_KEY = 'sinalizacoes_auth_token';
@@ -39,36 +40,78 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers['Content-Type'] = 'application/json';
   }
 
-  // Try fetch; on network failure, attempt explicit fallback to localhost:3001
+  // Timeout controller (45 seconds)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    try {
+      controller.abort(new Error('Tempo limite excedido ao salvar os dados (45s).'));
+    } catch {
+      controller.abort();
+    }
+  }, 45000);
+  const signal = options.signal || controller.signal;
+
   let response: Response;
   try {
     response = await fetch(endpoint, {
       ...options,
-      headers
+      headers,
+      signal
     });
-  } catch (networkErr) {
-    // If endpoint is a relative API path, try localhost dev server as fallback
+    const host = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname : '127.0.0.1';
+    // If primary fetch returned 404 on a relative API route, attempt fallback to backend port 3001
+    if (response.status === 404 && typeof endpoint === 'string' && endpoint.startsWith('/')) {
+      try {
+        const fallbackUrl = `http://${host}:3001${endpoint}`;
+        const fbRes = await fetch(fallbackUrl, {
+          ...options,
+          headers,
+          signal
+        });
+        if (fbRes.ok) {
+          response = fbRes;
+        }
+      } catch {
+        // preserve original 404 response
+      }
+    }
+  } catch (networkErr: any) {
+    // Handle abort or network failure
+    const isAbort = networkErr?.name === 'AbortError' || String(networkErr?.message || '').toLowerCase().includes('aborted');
+    if (isAbort) {
+      throw new Error('Tempo limite excedido (45s). Por favor, tente novamente.');
+    }
+
+    // If endpoint is a relative API path, try dev server port 3001 as fallback
     if (typeof endpoint === 'string' && endpoint.startsWith('/')) {
       try {
-        const fallbackUrl = `http://127.0.0.1:3001${endpoint}`;
+        const host = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname : '127.0.0.1';
+        const fallbackUrl = `http://${host}:3001${endpoint}`;
         console.warn(`Primary fetch failed (${networkErr}). Retrying ${fallbackUrl}`);
         response = await fetch(fallbackUrl, {
           ...options,
-          headers
+          headers,
+          signal
         });
-      } catch (secondErr) {
-        throw new Error(secondErr?.message || networkErr?.message || 'Network error');
+      } catch (secondErr: any) {
+        const secondAbort = secondErr?.name === 'AbortError' || String(secondErr?.message || '').toLowerCase().includes('aborted');
+        if (secondAbort) {
+          throw new Error('Tempo limite excedido (45s). Por favor, tente novamente.');
+        }
+        throw new Error(secondErr?.message || networkErr?.message || 'Erro de conexão.');
       }
     } else {
-      throw new Error((networkErr as any)?.message || 'Network error');
+      throw new Error((networkErr as any)?.message || 'Erro de conexão.');
     }
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {
-      if (endpoint !== '/api/auth/login') {
+      if (endpoint === '/api/auth/me') {
         removeStoredToken();
       }
     }
@@ -276,6 +319,44 @@ export const api = {
   syncConfigApi: async (): Promise<{ success: boolean; message: string; detalhes: any }> => {
     return request<{ success: boolean; message: string; detalhes: any }>('/api/config-api/sync', {
       method: 'POST'
+    });
+  },
+
+  gerarRelatorioReincidenciasIa: async (payload: {
+    periodo: string;
+    totalReincidentes: number;
+    totalCriticos: number;
+    reincidentes: any[];
+  }): Promise<{ success: boolean; diagnosis: string }> => {
+    return request<{ success: boolean; diagnosis: string }>('/api/ia/relatorio-reincidencia', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+
+  gerarRelatorioAbsenteismoIa: async (payload: {
+    periodo: string;
+    totalFaltas: number;
+    totalInjustificadas: number;
+    totalJustificadas: number;
+    operadoresComFaltas: any[];
+  }): Promise<{ success: boolean; diagnosis: string }> => {
+    return request<{ success: boolean; diagnosis: string }>('/api/ia/relatorio-absenteismo', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+
+  // Absenteísmo
+  getAbsenteismo: async (data?: string, all?: boolean): Promise<RegistroAbsenteismo[]> => {
+    const query = all ? '?all=true' : data ? `?data=${data}` : '';
+    return request<RegistroAbsenteismo[]>(`/api/absenteismo${query}`);
+  },
+
+  saveAbsenteismoBatch: async (records: RegistroAbsenteismo[]): Promise<{ message: string; data: RegistroAbsenteismo[] }> => {
+    return request<{ message: string; data: RegistroAbsenteismo[] }>('/api/absenteismo/batch', {
+      method: 'POST',
+      body: JSON.stringify({ records })
     });
   }
 };

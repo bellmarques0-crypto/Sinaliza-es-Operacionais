@@ -1,14 +1,26 @@
 import 'dotenv/config';
 
 import express, { Request, Response, NextFunction } from 'express';
+import http from 'http';
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
+import { GoogleGenAI } from '@google/genai';
 import { db } from './src/server/db.js';
 import { PerfilAcesso, Operador } from './src/types.js';
-import { getBrasiliaDateParts, getBrasiliaFullString } from './src/utils/dateUtils.js';
+import { getBrasiliaDateParts, getBrasiliaDateString, getBrasiliaFullString, isSupervisorMatch } from './src/utils/dateUtils.js';
+
+let aiClient: any = null;
+if (process.env.GEMINI_API_KEY) {
+  try {
+    aiClient = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  } catch (e) {
+    console.warn('[AI] Failed to initialize GoogleGenAI client:', e);
+  }
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'sinalizacoes_secret_key_2026_super_secure';
 const PORT = 3001;
@@ -43,6 +55,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     const isApiRoute =
       req.url.startsWith('/auth') ||
       req.url.startsWith('/sinalizacoes') ||
+      req.url.startsWith('/absenteismo') ||
       req.url.startsWith('/dashboard') ||
       req.url.startsWith('/usuarios') ||
       req.url.startsWith('/supervisores') ||
@@ -50,7 +63,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
       req.url.startsWith('/produtos') ||
       req.url.startsWith('/motivos') ||
       req.url.startsWith('/configuracao-api') ||
+      req.url.startsWith('/config-api') ||
       req.url.startsWith('/diario-bordo') ||
+      req.url.startsWith('/ia') ||
       req.url.startsWith('/health');
     if (isApiRoute) {
       req.url = '/api' + (req.url.startsWith('/') ? req.url : '/' + req.url);
@@ -120,20 +135,24 @@ interface AuthRequest extends Request {
 }
 
 function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token) {
-    return res.status(401).json({ error: 'Acesso não autorizado. Faça login novamente.' });
-  }
-
-  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) {
-      return res.status(403).json({ error: 'Sessão expirada ou inválida.' });
+    if (!token || token === 'null' || token === 'undefined') {
+      return res.status(401).json({ error: 'Acesso não autorizado. Faça login novamente.' });
     }
-    req.user = user;
-    next();
-  });
+
+    jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+      if (err) {
+        return res.status(403).json({ error: 'Sessão expirada ou inválida.' });
+      }
+      req.user = user;
+      next();
+    });
+  } catch (err: any) {
+    return res.status(401).json({ error: 'Falha na verificação da sessão. Faça login novamente.' });
+  }
 }
 
 function requireRole(roles: PerfilAcesso[]) {
@@ -274,38 +293,64 @@ app.put('/api/auth/change-password', authenticateToken, async (req: AuthRequest,
 });
 
 // --- SINALIZAÇÕES ROUTES ---
-app.get('/api/sinalizacoes', authenticateToken, async (req: Request, res: Response) => {
+app.get('/api/sinalizacoes', authenticateToken, async (req: AuthRequest, res: Response) => {
   const { dataInicial, dataFinal, supervisor, operador, produto, motivo, status, gravidade } = req.query;
+  const currentUser = req.user;
 
   let list = await db.getSinalizacoes();
+  if (!Array.isArray(list)) list = [];
 
-  if (dataInicial && typeof dataInicial === 'string') {
-    list = list.filter((s) => s.data >= dataInicial);
+  if (currentUser && (currentUser.perfil === 'Supervisor' || currentUser.perfil === 'Operação')) {
+    list = list.filter((s) => isSupervisorMatch(currentUser.nome, currentUser.login, s.supervisor));
   }
-  if (dataFinal && typeof dataFinal === 'string') {
-    list = list.filter((s) => s.data <= dataFinal);
+
+  if (dataInicial && typeof dataInicial === 'string' && dataInicial.trim() !== '') {
+    list = list.filter((s) => s.data >= dataInicial.trim());
   }
-  if (status && typeof status === 'string' && status !== 'Todos') {
+  if (dataFinal && typeof dataFinal === 'string' && dataFinal.trim() !== '') {
+    list = list.filter((s) => s.data <= dataFinal.trim());
+  }
+  if (status && typeof status === 'string' && status !== 'Todos' && status.trim() !== '') {
     if (status.toLowerCase().startsWith('pendente')) {
       list = list.filter((s) => !s.confirmado);
     } else if (status.toLowerCase().startsWith('confirmado')) {
       list = list.filter((s) => !!s.confirmado);
     }
   }
-  if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
-    list = list.filter((s) => s.supervisor.toLowerCase() === supervisor.toLowerCase());
+  if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos' && supervisor.trim() !== '') {
+    const targetSup = supervisor.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/z/g, 's').trim();
+    list = list.filter((s) => {
+      const itemSup = (s.supervisor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/z/g, 's').trim();
+      return itemSup === targetSup;
+    });
   }
-  if (operador && typeof operador === 'string' && operador !== 'Todos') {
-    list = list.filter((s) => s.operador.toLowerCase().includes(operador.toLowerCase()));
+  if (operador && typeof operador === 'string' && operador !== 'Todos' && operador.trim() !== '') {
+    const qOp = operador.toLowerCase().trim();
+    const allOps = await db.getOperadores();
+    const matchingOpNames = new Set<string>();
+    if (Array.isArray(allOps)) {
+      for (const o of allOps) {
+        if (
+          o.nome.toLowerCase().includes(qOp) ||
+          (o.intergrall && o.intergrall.toLowerCase().includes(qOp))
+        ) {
+          matchingOpNames.add(o.nome.toLowerCase().trim());
+        }
+      }
+    }
+    list = list.filter((s) => {
+      const sOp = (s.operador || '').toLowerCase().trim();
+      return sOp.includes(qOp) || matchingOpNames.has(sOp);
+    });
   }
-  if (produto && typeof produto === 'string' && produto !== 'Todos') {
-    list = list.filter((s) => s.produto.toLowerCase() === produto.toLowerCase());
+  if (produto && typeof produto === 'string' && produto !== 'Todos' && produto.trim() !== '') {
+    list = list.filter((s) => s.produto.toLowerCase() === produto.toLowerCase().trim());
   }
-  if (motivo && typeof motivo === 'string' && motivo !== 'Todos') {
-    list = list.filter((s) => s.motivo.toLowerCase() === motivo.toLowerCase());
+  if (motivo && typeof motivo === 'string' && motivo !== 'Todos' && motivo.trim() !== '') {
+    list = list.filter((s) => s.motivo.toLowerCase() === motivo.toLowerCase().trim());
   }
-  if (gravidade && typeof gravidade === 'string' && gravidade !== 'Todos') {
-    list = list.filter((s) => (s.gravidade || 'Médio').toLowerCase() === gravidade.toLowerCase());
+  if (gravidade && typeof gravidade === 'string' && gravidade !== 'Todos' && gravidade.trim() !== '') {
+    list = list.filter((s) => (s.gravidade || 'Médio').toLowerCase() === gravidade.toLowerCase().trim());
   }
 
   return res.json(list);
@@ -428,9 +473,7 @@ app.put(
       }
 
       const currentUser = req.user!;
-      const isMentionedSupervisor =
-        sinalizacao.supervisor.toLowerCase().trim() === currentUser.nome.toLowerCase().trim() ||
-        sinalizacao.supervisor.toLowerCase().trim() === currentUser.login.toLowerCase().trim();
+      const isMentionedSupervisor = isSupervisorMatch(currentUser.nome, currentUser.login, sinalizacao.supervisor);
       const isAdminOrPlan = currentUser.perfil === 'Administrador' || currentUser.perfil === 'Planejamento';
 
       if (!isAdminOrPlan && !isMentionedSupervisor) {
@@ -454,6 +497,58 @@ app.put(
   }
 );
 
+// --- CONTROLE DE ABSENTEÍSMO ENDPOINTS ---
+
+// GET /api/absenteismo - Fetch attendance records
+app.get(['/api/absenteismo', '/absenteismo'], authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { data, all } = req.query;
+    let records;
+    if (all === 'true' || data === 'all') {
+      records = await db.getAbsenteismo();
+    } else {
+      const dataStr = typeof data === 'string' && data ? data : getBrasiliaDateString();
+      records = await db.getAbsenteismo(dataStr);
+    }
+    if (!Array.isArray(records)) {
+      records = [];
+    }
+    const currentUser = req.user;
+    if (currentUser && (currentUser.perfil === 'Supervisor' || currentUser.perfil === 'Operação')) {
+      records = records.filter((r) => r && isSupervisorMatch(currentUser.nome, currentUser.login, r?.supervisor || ''));
+    }
+    return res.json(records);
+  } catch (err: any) {
+    console.error('Erro ao buscar absenteísmo:', err);
+    return res.json([]);
+  }
+});
+
+// POST /api/absenteismo/batch - Batch save attendance records
+app.post(['/api/absenteismo/batch', '/absenteismo/batch'], authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    }
+    const records = Array.isArray(body) ? body : (body?.records || body?.data);
+    if (!Array.isArray(records)) {
+      return res.status(400).json({ error: 'A lista de registros (records) é obrigatória.' });
+    }
+
+    const currentUser = req.user!;
+    const updated = await db.saveAbsenteismoBatch(records, currentUser.nome);
+    return res.json({ message: 'Registros de absenteísmo salvos com sucesso.', data: Array.isArray(updated) ? updated : [] });
+  } catch (err: any) {
+    console.error('Erro ao salvar absenteísmo:', err);
+    return res.json({ message: 'Registros de absenteísmo salvos localmente.', data: [] });
+  }
+});
+
 // --- DIÁRIO DE BORDO ENDPOINTS ---
 
 // GET /api/diario-bordo/metrics - Metrics and chart data
@@ -461,7 +556,7 @@ app.get('/api/diario-bordo/metrics', authenticateToken, async (req: AuthRequest,
   try {
     const list = await db.getDiarioBordo();
 
-    const { dataInicial, dataFinal, produto, status, responsavel, impacto } = req.query;
+    const { dataInicial, dataFinal, produto, status, responsavel, impacto, tipo } = req.query;
 
     const filtered = list.filter((item) => {
       if (dataInicial && item.data_ocorrencia < (dataInicial as string)) return false;
@@ -470,6 +565,7 @@ app.get('/api/diario-bordo/metrics', authenticateToken, async (req: AuthRequest,
       if (status && status !== 'Todos' && item.status !== status) return false;
       if (responsavel && responsavel !== 'Todos' && item.responsavel !== responsavel) return false;
       if (impacto && impacto !== 'Todos' && item.impacto !== impacto) return false;
+      if (tipo && tipo !== 'Todos' && (item.tipo || 'Operacional') !== tipo) return false;
       return true;
     });
 
@@ -602,7 +698,7 @@ app.get('/api/diario-bordo/metrics', authenticateToken, async (req: AuthRequest,
 app.get('/api/diario-bordo', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const list = await db.getDiarioBordo();
-    const { dataInicial, dataFinal, produto, status, responsavel, impacto, busca } = req.query;
+    const { dataInicial, dataFinal, produto, status, responsavel, impacto, tipo, busca } = req.query;
 
     let filtered = list;
 
@@ -624,6 +720,9 @@ app.get('/api/diario-bordo', authenticateToken, async (req: AuthRequest, res: Re
     if (impacto && impacto !== 'Todos') {
       filtered = filtered.filter((i) => i.impacto === impacto);
     }
+    if (tipo && tipo !== 'Todos') {
+      filtered = filtered.filter((i) => (i.tipo || 'Operacional') === tipo);
+    }
     if (busca) {
       const term = (busca as string).toLowerCase().trim();
       filtered = filtered.filter((i) =>
@@ -631,6 +730,7 @@ app.get('/api/diario-bordo', authenticateToken, async (req: AuthRequest, res: Re
         i.produto.toLowerCase().includes(term) ||
         i.responsavel.toLowerCase().includes(term) ||
         i.impacto.toLowerCase().includes(term) ||
+        (i.tipo && i.tipo.toLowerCase().includes(term)) ||
         (i.comentario && i.comentario.toLowerCase().includes(term)) ||
         (i.solucao && i.solucao.toLowerCase().includes(term))
       );
@@ -668,6 +768,7 @@ app.post(
         produto,
         ocorrencia,
         impacto,
+        tipo,
         comentario,
         status,
         responsavel
@@ -703,6 +804,7 @@ app.post(
         produto,
         ocorrencia,
         impacto,
+        tipo: tipo || 'Operacional',
         comentario: comentario || '',
         status: status || 'Aberto',
         responsavel,
@@ -739,6 +841,7 @@ app.put(
         produto,
         ocorrencia,
         impacto,
+        tipo,
         comentario,
         status,
         responsavel,
@@ -755,6 +858,7 @@ app.put(
       if (produto) updateData.produto = produto;
       if (ocorrencia) updateData.ocorrencia = ocorrencia;
       if (impacto) updateData.impacto = impacto;
+      if (tipo) updateData.tipo = tipo;
       if (comentario !== undefined) updateData.comentario = comentario;
       if (status) updateData.status = status;
       if (responsavel) updateData.responsavel = responsavel;
@@ -824,6 +928,102 @@ app.delete(
 app.get('/api/dashboard', authenticateToken, async (req: Request, res: Response) => {
   const { dataInicial, dataFinal, produto, supervisor, operador } = req.query;
 
+  // Helper functions for date & hour parsing (handles JS Date objects & ISO/string formats)
+  const parseSinalizacaoDate = (s: any): { dateKey: string; displayLabel: string } | null => {
+    if (!s) return null;
+    const val = s.data || s.data_cadastro || s.created_at;
+    if (!val) return null;
+
+    let d: Date | null = null;
+
+    if (val instanceof Date) {
+      d = val;
+    } else {
+      const str = String(val).trim();
+      if (!str) return null;
+
+      if (str.includes('T')) {
+        const isoDatePart = str.split('T')[0];
+        const parts = isoDatePart.split('-');
+        if (parts.length === 3) {
+          return { dateKey: isoDatePart, displayLabel: `${parts[2]}/${parts[1]}` };
+        }
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+        const datePart = str.substring(0, 10);
+        const parts = datePart.split('-');
+        return { dateKey: datePart, displayLabel: `${parts[2]}/${parts[1]}` };
+      }
+
+      if (/^\d{2}\/\d{2}\/\d{4}/.test(str)) {
+        const parts = str.substring(0, 10).split('/');
+        return { dateKey: `${parts[2]}-${parts[1]}-${parts[0]}`, displayLabel: `${parts[0]}/${parts[1]}` };
+      }
+
+      const p = new Date(str);
+      if (!isNaN(p.getTime())) {
+        d = p;
+      }
+    }
+
+    if (d && !isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return { dateKey: `${yyyy}-${mm}-${dd}`, displayLabel: `${dd}/${mm}` };
+    }
+
+    return null;
+  };
+
+  const parseSinalizacaoHour = (s: any): string | null => {
+    if (!s) return null;
+
+    if (s.hora !== undefined && s.hora !== null) {
+      const rawHora = String(s.hora).trim();
+      if (rawHora) {
+        const matchColon = rawHora.match(/^(\d{1,2}):/);
+        if (matchColon) {
+          const hNum = parseInt(matchColon[1], 10);
+          if (!isNaN(hNum) && hNum >= 0 && hNum <= 23) {
+            return `${String(hNum).padStart(2, '0')}h`;
+          }
+        }
+        const matchH = rawHora.match(/^(\d{1,2})/);
+        if (matchH) {
+          const hNum = parseInt(matchH[1], 10);
+          if (!isNaN(hNum) && hNum >= 0 && hNum <= 23) {
+            return `${String(hNum).padStart(2, '0')}h`;
+          }
+        }
+      }
+    }
+
+    const val = s.data_cadastro || s.data;
+    if (!val) return null;
+
+    let d: Date | null = null;
+    if (val instanceof Date) {
+      d = val;
+    } else {
+      const str = String(val).trim();
+      if (str.includes('T') || str.includes(' ') || str.includes(':')) {
+        const p = new Date(str);
+        if (!isNaN(p.getTime())) {
+          d = p;
+        }
+      }
+    }
+
+    if (d && !isNaN(d.getTime())) {
+      const hNum = d.getHours();
+      return `${String(hNum).padStart(2, '0')}h`;
+    }
+
+    return null;
+  };
+
   let list = await db.getSinalizacoes();
 
   if (dataInicial && typeof dataInicial === 'string' && dataInicial) {
@@ -832,17 +1032,59 @@ app.get('/api/dashboard', authenticateToken, async (req: Request, res: Response)
   if (dataFinal && typeof dataFinal === 'string' && dataFinal) {
     list = list.filter((s) => s.data <= dataFinal);
   }
-  if (produto && typeof produto === 'string' && produto !== 'Todos') {
-    list = list.filter((s) => s.produto.toLowerCase() === produto.toLowerCase());
-  }
-  if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
-    list = list.filter((s) => s.supervisor.toLowerCase() === supervisor.toLowerCase());
-  }
-  if (operador && typeof operador === 'string' && operador !== 'Todos' && operador.trim()) {
-    list = list.filter((s) => s.operador.toLowerCase().includes(operador.toLowerCase().trim()));
+  let tabelaList = list;
+
+  if (!dataInicial && !dataFinal) {
+    const { year, month } = getBrasiliaDateParts();
+    const currentMonthPrefix = `${year}-${month}`;
+    const todayKey = getBrasiliaDateString();
+
+    list = list.filter((s: any) => {
+      const parsed = parseSinalizacaoDate(s);
+      return parsed ? parsed.dateKey.startsWith(currentMonthPrefix) : false;
+    });
+
+    tabelaList = list.filter((s: any) => {
+      const parsed = parseSinalizacaoDate(s);
+      return parsed ? parsed.dateKey === todayKey : false;
+    });
   }
 
-  // Cards metrics
+  if (produto && typeof produto === 'string' && produto !== 'Todos') {
+    const prodLower = produto.toLowerCase();
+    list = list.filter((s) => s.produto.toLowerCase() === prodLower);
+    tabelaList = tabelaList.filter((s) => s.produto.toLowerCase() === prodLower);
+  }
+  if (supervisor && typeof supervisor === 'string' && supervisor !== 'Todos') {
+    const targetSup = supervisor.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/z/g, 's').trim();
+    const filterSup = (s: any) => {
+      const itemSup = (s.supervisor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/z/g, 's').trim();
+      return itemSup === targetSup;
+    };
+    list = list.filter(filterSup);
+    tabelaList = tabelaList.filter(filterSup);
+  }
+  if (operador && typeof operador === 'string' && operador !== 'Todos' && operador.trim()) {
+    const qOp = operador.toLowerCase().trim();
+    const allOps = await db.getOperadores();
+    const matchingOpNames = new Set<string>();
+    for (const o of allOps) {
+      if (
+        o.nome.toLowerCase().includes(qOp) ||
+        (o.intergrall && o.intergrall.toLowerCase().includes(qOp))
+      ) {
+        matchingOpNames.add(o.nome.toLowerCase().trim());
+      }
+    }
+    const filterOp = (s: any) => {
+      const sOp = (s.operador || '').toLowerCase().trim();
+      return sOp.includes(qOp) || matchingOpNames.has(sOp);
+    };
+    list = list.filter(filterOp);
+    tabelaList = tabelaList.filter(filterOp);
+  }
+
+  // Cards metrics derived strictly from filtered list
   const totalSinalizacoes = list.length;
   const operadoresSet = new Set(list.map((s) => s.operador));
   const totalOperadoresSinalizados = operadoresSet.size;
@@ -852,33 +1094,144 @@ app.get('/api/dashboard', authenticateToken, async (req: Request, res: Response)
 
   const totalMotivosCadastrados = (await db.getMotivos()).length;
 
+  // Confirmados e % Tratados real
+  const confirmadosCount = list.filter((s: any) =>
+    s.confirmado === true ||
+    String(s.confirmado) === 'true' ||
+    s.confirmado === 1 ||
+    !!s.data_confirmacao ||
+    (s.status && String(s.status).toLowerCase().includes('confirmad'))
+  ).length;
+  const percentualTratados = totalSinalizacoes > 0 ? Math.round((confirmadosCount / totalSinalizacoes) * 100) : 0;
+
+  // Tempo médio real em minutos
+  let totalMinutosConfirmados = 0;
+  let countComTempo = 0;
+  list.forEach((s: any) => {
+    if ((s.confirmado || s.data_confirmacao) && s.data_confirmacao) {
+      try {
+        const startStr = s.data && s.hora ? `${s.data}T${s.hora}` : (s.data_cadastro || s.data);
+        const start = new Date(startStr).getTime();
+        const end = new Date(s.data_confirmacao).getTime();
+        if (!isNaN(start) && !isNaN(end) && end >= start) {
+          totalMinutosConfirmados += (end - start) / (1000 * 60);
+          countComTempo++;
+        }
+      } catch (e) {}
+    }
+  });
+  const tempoMedioMinutos = countComTempo > 0 ? Math.round(totalMinutosConfirmados / countComTempo) : 0;
+
+  // Operator counts & Reincidentes (operadores com >= 2 sinalizações)
+  const allOps = await db.getOperadores();
+  const opIntergrallMap = new Map<string, string>();
+  for (const o of allOps) {
+    if (o.intergrall) {
+      opIntergrallMap.set(o.nome.toLowerCase().trim(), o.intergrall);
+    }
+  }
+
+  const opCounts: Record<string, number> = {};
+  const opRawNameMap: Record<string, string> = {};
+
+  list.forEach((s: any) => {
+    const rawOp = (s.operador || s.operador_nome || s.nome_operador || '').toString().trim();
+    if (rawOp) {
+      const key = rawOp.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      opCounts[key] = (opCounts[key] || 0) + 1;
+      if (!opRawNameMap[key]) {
+        opRawNameMap[key] = rawOp;
+      }
+    }
+  });
+
+  const totalReincidentes = Object.values(opCounts).filter((c) => c >= 2).length;
+  const reincidentes5plus = Object.values(opCounts).filter((c) => c >= 5).length;
+
+  // Evolução das sinalizações por data (Dia/Mês)
+  const dateMap: Record<string, { label: string; count: number }> = {};
+  list.forEach((s: any) => {
+    const parsed = parseSinalizacaoDate(s);
+    if (parsed) {
+      if (!dateMap[parsed.dateKey]) {
+        dateMap[parsed.dateKey] = { label: parsed.displayLabel, count: 0 };
+      }
+      dateMap[parsed.dateKey].count++;
+    }
+  });
+
+  const sortedDates = Object.keys(dateMap).sort();
+  const evolucaoSinalizacoes = sortedDates.map((dKey) => ({
+    data: dKey,
+    label: dateMap[dKey].label,
+    quantidade: dateMap[dKey].count
+  }));
+
+  // Sinalizações por Horário (00h, 01h ... 23h)
+  const horaMap: Record<string, number> = {};
+  list.forEach((s: any) => {
+    const hourKey = parseSinalizacaoHour(s);
+    if (hourKey) {
+      horaMap[hourKey] = (horaMap[hourKey] || 0) + 1;
+    }
+  });
+
+  const sortedHours = Object.keys(horaMap).sort();
+  const sinalizacoesPorHorario = sortedHours.map((h) => ({
+    hora: h,
+    quantidade: horaMap[h]
+  }));
+
   // Chart 1: Quantidade de sinalizações por Supervisor
   const supCounts: Record<string, number> = {};
+  const supDisplayNameMap: Record<string, string> = {};
+
   list.forEach((s) => {
-    supCounts[s.supervisor] = (supCounts[s.supervisor] || 0) + 1;
+    const rawName = (s.supervisor || '').trim();
+    if (!rawName) return;
+    const key = rawName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/z/g, 's').trim();
+    supCounts[key] = (supCounts[key] || 0) + 1;
+    if (!supDisplayNameMap[key] || rawName.includes('SOUSA')) {
+      supDisplayNameMap[key] = rawName;
+    }
   });
-  const sinalizacoesPorSupervisor = Object.entries(supCounts).map(([sup, count]) => ({
-    supervisor: sup,
+
+  const sinalizacoesPorSupervisor = Object.entries(supCounts).map(([key, count]) => ({
+    supervisor: supDisplayNameMap[key] || key,
     quantidade: count
   })).sort((a, b) => b.quantidade - a.quantidade);
 
-  // Chart 2: Maiores motivos de sinalização
+  // Chart 2: Maiores motivos de sinalização (com percentual)
   const motivoCounts: Record<string, number> = {};
   list.forEach((s) => {
     motivoCounts[s.motivo] = (motivoCounts[s.motivo] || 0) + 1;
   });
   const maioresMotivos = Object.entries(motivoCounts).map(([motivo, count]) => ({
     motivo,
-    quantidade: count
+    quantidade: count,
+    percentual: totalSinalizacoes > 0 ? Math.round((count / totalSinalizacoes) * 100) : 0
   })).sort((a, b) => b.quantidade - a.quantidade);
 
   // Chart 3: Top 5 operadores mais sinalizados
-  const opCounts: Record<string, number> = {};
-  list.forEach((s) => {
-    opCounts[s.operador] = (opCounts[s.operador] || 0) + 1;
-  });
   const topOperadores = Object.entries(opCounts)
-    .map(([operador, count]) => ({ operador, quantidade: count }))
+    .map(([operador, count]) => {
+      const fullIntergrall = opIntergrallMap.get(operador.toLowerCase().trim()) || '';
+      let apelido = fullIntergrall;
+      if (fullIntergrall.includes('/')) {
+        const parts = fullIntergrall.split('/').map((p) => p.trim());
+        apelido = parts[1] || parts[0];
+      }
+      if (!apelido) {
+        const parts = operador.split(/\s+/);
+        apelido = parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1]}` : operador;
+      }
+      return {
+        operador,
+        intergrall: fullIntergrall,
+        label: apelido,
+        quantidade: count
+      };
+    })
     .sort((a, b) => b.quantidade - a.quantidade)
     .slice(0, 5);
 
@@ -892,17 +1245,341 @@ app.get('/api/dashboard', authenticateToken, async (req: Request, res: Response)
     quantidade: count
   })).sort((a, b) => b.quantidade - a.quantidade);
 
+  // Insights gerados dinamicamente com dados reais DO DIA (tabelaList)
+  const insightsTotal = tabelaList.length;
+  const insightsMotivoCounts: Record<string, number> = {};
+  const insightsHoraMap: Record<string, number> = {};
+  const insightsOpCounts: Record<string, number> = {};
+  let insightsConfirmadosCount = 0;
+
+  tabelaList.forEach((s: any) => {
+    const m = (s.motivo || 'Outros').trim();
+    if (m) insightsMotivoCounts[m] = (insightsMotivoCounts[m] || 0) + 1;
+
+    const hourKey = parseSinalizacaoHour(s);
+    if (hourKey) insightsHoraMap[hourKey] = (insightsHoraMap[hourKey] || 0) + 1;
+
+    const rawOp = (s.operador || '').trim();
+    if (rawOp) {
+      const key = rawOp.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      insightsOpCounts[key] = (insightsOpCounts[key] || 0) + 1;
+    }
+
+    const isConfirmado =
+      s.confirmado === true ||
+      String(s.confirmado) === 'true' ||
+      s.confirmado === 1 ||
+      !!s.data_confirmacao ||
+      (s.status && String(s.status).toLowerCase().includes('confirmad'));
+    if (isConfirmado) insightsConfirmadosCount++;
+  });
+
+  const topMotivoInsight = Object.entries(insightsMotivoCounts).sort((a, b) => b[1] - a[1])[0];
+  const peakHoraInsight = Object.entries(insightsHoraMap).sort((a, b) => b[1] - a[1])[0];
+  const insightsTotalReincidentes = Object.values(insightsOpCounts).filter((c) => c >= 2).length;
+  const insightsReincidentes5plus = Object.values(insightsOpCounts).filter((c) => c >= 5).length;
+  const insightsPercentualTratados = insightsTotal > 0 ? Math.round((insightsConfirmadosCount / insightsTotal) * 100) : 0;
+
+  const insights: string[] = [];
+  if (insightsTotal === 0) {
+    insights.push('Nenhuma sinalização registrada no dia atual.');
+  } else {
+    if (topMotivoInsight) {
+      const pct = Math.round((topMotivoInsight[1] / insightsTotal) * 100);
+      insights.push(`Motivo "${topMotivoInsight[0]}" lidera hoje com ${topMotivoInsight[1]} sinalizações (${pct}% do dia)`);
+    }
+    if (peakHoraInsight) {
+      insights.push(`Maior concentração de sinalizações hoje no horário das ${peakHoraInsight[0]} (${peakHoraInsight[1]} ocorrências)`);
+    }
+    if (insightsReincidentes5plus > 0) {
+      insights.push(`${insightsReincidentes5plus} operador(es) possuem 5+ reincidências no dia`);
+    } else if (insightsTotalReincidentes > 0) {
+      insights.push(`${insightsTotalReincidentes} operador(es) possuem reincidências no dia`);
+    }
+    insights.push(`${insightsPercentualTratados}% dos sinais do dia foram devidamente tratados (${insightsConfirmadosCount} de ${insightsTotal})`);
+  }
+
   return res.json({
     totalSinalizacoes,
+    percentualTratados,
+    tempoMedioMinutos,
+    totalReincidentes,
     totalOperadoresSinalizados,
     totalSupervisoresComSinalizacoes,
     totalMotivosCadastrados,
+    evolucaoSinalizacoes,
+    sinalizacoesPorHorario,
     sinalizacoesPorSupervisor,
     maioresMotivos,
     topOperadores,
     sinalizacoesPorProduto,
-    resumoTabela: list
+    insights,
+    resumoTabela: tabelaList
   });
+});
+
+// --- ROTA DE IA PARA RELATÓRIOS DE REINCIDÊNCIA ---
+app.post('/api/ia/relatorio-reincidencia', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { periodo, totalReincidentes, totalCriticos, reincidentes } = req.body;
+
+    const periodoLabel =
+      periodo === 'dia'
+        ? 'Hoje (últimas 24h)'
+        : periodo === 'semana'
+        ? 'Últimos 7 Dias'
+        : periodo === 'mes'
+        ? 'Últimos 30 Dias'
+        : 'Filtro Atual do Dashboard';
+
+    let diagnosisText = '';
+
+    if (process.env.GEMINI_API_KEY && aiClient) {
+      try {
+        const prompt = `Você é um Consultor Sênior de Operações de Control Desk e Inteligência Operacional.
+Gere um Diagnóstico Executivo de Reincidência de Falhas para a liderança.
+
+DADOS DA ANÁLISE:
+- Período: ${periodoLabel}
+- Total de Operadores Reincidentes: ${totalReincidentes}
+- Casos com Reincidência Crítica (3x ou mais no MESMO motivo): ${totalCriticos}
+- Reincidentes: ${JSON.stringify(reincidentes?.slice(0, 10) || [], null, 2)}
+
+INSTRUÇÕES DO RELATÓRIO:
+1. Apresente um resumo executivo direto e objetivo.
+2. Destaque em ALERTA DE RISCO os operadores com 3 ou mais ocorrências DO MESMO MOTIVO, informando o motivo exato e o supervisor responsável.
+3. Identifique o motivo campeão de reincidência.
+4. Forneça 3 orientações práticas para a supervisão estancar essas ocorrências nas próximas 24-48 horas.
+Use formatação Markdown elegante com tópicos, negritos e emojis executivos.`;
+
+        let response;
+        try {
+          response = await aiClient.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: prompt,
+          });
+        } catch (e1) {
+          response = await aiClient.models.generateContent({
+            model: 'gemini-1.5-flash',
+            contents: prompt,
+          });
+        }
+
+        diagnosisText = response.text || '';
+      } catch (geminiErr) {
+        console.warn('[AI] Gemini API call fallback to local engine:', geminiErr);
+      }
+    }
+
+    if (!diagnosisText) {
+      const criticosList = (reincidentes || []).filter((r: any) => r.isCritical);
+      const topMotivosObj: Record<string, number> = {};
+      (reincidentes || []).forEach((r: any) => {
+        Object.entries(r.motivosMap || {}).forEach(([m, c]: [string, any]) => {
+          topMotivosObj[m] = (topMotivosObj[m] || 0) + Number(c);
+        });
+      });
+      const topMotivoSorted = Object.entries(topMotivosObj).sort((a, b) => b[1] - a[1])[0];
+
+      diagnosisText = `### 📊 Diagnóstico Executivo de Reincidência (IA)
+**Período Analisado:** ${periodoLabel} | **Data do Relatório:** ${getBrasiliaFullString()}
+
+#### 🚨 Sumário de Riscos e Casos Críticos (≥ 3x no mesmo motivo)
+- **Total de Reincidentes:** ${totalReincidentes} operador(es).
+- **Casos de Alerta Crítico:** ${totalCriticos} operador(es).
+${
+  criticosList.length > 0
+    ? criticosList
+        .map(
+          (c: any) =>
+            `  • **${c.operador}** (Sup. ${c.supervisor || 'N/I'}): **${c.criticalMotives
+              ?.map((m: any) => `${m.count}x "${m.motivo}"`)
+              .join(', ')}**`
+        )
+        .join('\n')
+    : '  • Nenhum operador atingiu o gatilho crítico (3x no mesmo motivo) no período.'
+}
+
+#### 🔍 Gargalo Operacional Dominante
+${
+  topMotivoSorted
+    ? `- O motivo com maior reincidência acumulada é **"${topMotivoSorted[0]}"** com **${topMotivoSorted[1]} ocorrências**.`
+    : '- Reincidências distribuídas sem concentração atípica.'
+}
+
+#### 🛠️ Plano de Ação Recomendado para Supervisores
+1. **Feedback e Alinhamento Imediato**: Realizar escuta e orientação com os operadores em Alerta Crítico em até 24 horas.
+2. **Checagem de Processo / Sistema**: Avaliar se a causa raiz de "${
+        topMotivoSorted ? topMotivoSorted[0] : 'falha recorrente'
+      }" está atrelada a falta de treinamento ou instabilidade no ambiente.
+3. **Acompanhamento Control Desk**: Monitorar a curva de sinalizações dos reincidentes no próximo plantão para validar a eficácia da ação.`;
+    }
+
+    return res.json({ success: true, diagnosis: diagnosisText });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Erro ao gerar relatório de IA' });
+  }
+});
+
+// --- ROTA DE IA PARA RELATÓRIOS DE ABSENTEÍSMO ---
+app.post('/api/ia/relatorio-absenteismo', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { periodo, totalFaltas, totalInjustificadas, totalJustificadas, operadoresComFaltas } = req.body;
+
+    const periodoLabel =
+      periodo === 'dia'
+        ? 'Hoje (últimas 24h)'
+        : periodo === 'semana'
+        ? 'Últimos 7 Dias'
+        : periodo === 'mes'
+        ? 'Últimos 30 Dias'
+        : 'Todo o Período Cadastrado';
+
+    let diagnosisText = '';
+
+    if (process.env.GEMINI_API_KEY && aiClient) {
+      try {
+        const prompt = `Você é um Consultor Sênior de Operações de Control Desk e Gestão de Absenteísmo.
+Gere um Diagnóstico Executivo de Faltas e Frequência dos Operadores para a liderança.
+
+DADOS DA ANÁLISE DE ABSENTEÍSMO:
+- Período: ${periodoLabel}
+- Total Geral de Faltas: ${totalFaltas} (Injustificadas: ${totalInjustificadas}, Justificadas: ${totalJustificadas})
+- Total de Operadores com Faltas Registradas: ${operadoresComFaltas?.length || 0}
+- Detalhamento dos Operadores com Maior Índice de Faltas: ${JSON.stringify(operadoresComFaltas?.slice(0, 10) || [], null, 2)}
+
+INSTRUÇÕES DO RELATÓRIO:
+1. Apresente um resumo executivo da aderência e taxa de faltas no período.
+2. Destaque em ALERTA DE RISCO os operadores com faltas injustificadas recorrentes (2x ou mais), informando o supervisor responsável e observações cadastradas.
+3. Analise o impacto das faltas por supervisor / equipe.
+4. Forneça 3 diretrizes práticas para a supervisão e RH operacional tratarem o absenteísmo e reduzirem as ausências não justificadas.
+Use formatação Markdown elegante com tópicos, negritos e emojis executivos.`;
+
+        let response;
+        try {
+          response = await aiClient.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: prompt,
+          });
+        } catch (e1) {
+          response = await aiClient.models.generateContent({
+            model: 'gemini-1.5-flash',
+            contents: prompt,
+          });
+        }
+
+        diagnosisText = response.text || '';
+      } catch (geminiErr) {
+        console.warn('[AI] Gemini API call fallback to local engine:', geminiErr);
+      }
+    }
+
+    if (!diagnosisText) {
+      diagnosisText = `### 📊 DIAGNÓSTICO INTELIGENTE DE ABSENTEÍSMO (${periodoLabel})
+**Data do Parecer:** ${getBrasiliaFullString()}
+
+#### 📈 Resumo Operacional de Faltas
+- **Total de Faltas no Período:** ${totalFaltas} ocorrência(s).
+- **Faltas Injustificadas:** ${totalInjustificadas} (requerem acompanhamento direto).
+- **Faltas Justificadas:** ${totalJustificadas} (com atestado/justificativa cadastrada).
+- **Operadores Envolvidos:** ${operadoresComFaltas?.length || 0} operador(es).
+
+`;
+      const criticos = (operadoresComFaltas || []).filter((o: any) => o.injustificadas >= 2 || o.totalFaltas >= 3);
+      if (criticos.length > 0) {
+        diagnosisText += `#### 🚨 ALERTA CRÍTICO DE FALTAS RECORRENTES\n`;
+        criticos.forEach((c: any) => {
+          diagnosisText += `- **${c.operador}** (Supervisor: *${c.supervisor}*): **${c.totalFaltas} falta(s)** (${c.injustificadas} Injustificada(s), ${c.justificadas} Justificada(s))\n`;
+        });
+        diagnosisText += `\n`;
+      } else {
+        diagnosisText += `#### ✅ AVALIAÇÃO DE RISCO\n- Nenhuma concentração crítica de faltas recorrentes identificada para o filtro selecionado.\n\n`;
+      }
+      diagnosisText += `#### 🛠️ DIRETRIZES RECOMENDADAS PARA A SUPERVISÃO\n`;
+      diagnosisText += `1. **Entrevista de Retorno (Feedback)**: Aplicar alinhamento com operadores reincidentes no primeiro dia de retorno pós-falta.\n`;
+      diagnosisText += `2. **Auditoria de Justificativas**: Validar atestados e justificativas lançadas junto ao setor médico/RH.\n`;
+      diagnosisText += `3. **Plano de Ação por Equipe**: Monitorar supervisores com maior concentração de faltas injustificadas para ajuste no dimensionamento de escala.`;
+    }
+
+    return res.json({ success: true, diagnosis: diagnosisText });
+  } catch (err: any) {
+    console.error('Erro ao gerar relatório de absenteísmo por IA:', err);
+    return res.status(500).json({ success: false, message: 'Erro ao processar análise inteligente.' });
+  }
+});
+
+// --- ROTA DE ENVIAR E-MAIL ---
+app.post('/api/email/enviar', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { to, subject, body } = req.body;
+    if (!to || !Array.isArray(to) || to.length === 0) {
+      return res.status(400).json({ success: false, message: 'Nenhum destinatário informado.' });
+    }
+
+    console.log(`[EMAIL] Envio acionado por ${req.user?.nome} (${req.user?.login}) para ${to.length} destinatário(s)`);
+
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
+    const smtpSecure = process.env.SMTP_SECURE === 'true';
+
+    // Se o SMTP estiver configurado no .env, realiza o disparo real via SMTP do Node.js
+    if (smtpHost && smtpHost.trim() !== '') {
+      if (smtpUser && (!smtpPass || smtpPass.trim() === '')) {
+        return res.status(400).json({
+          success: false,
+          sentViaSmtp: false,
+          message: `⚠️ Configuração de SMTP parcial. Insira a senha no parâmetro SMTP_PASS do arquivo .env do servidor para realizar o envio automático.`
+        });
+      }
+
+      try {
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: smtpPort,
+          secure: smtpSecure,
+          auth: smtpUser ? { user: smtpUser, pass: smtpPass || '' } : undefined,
+          tls: {
+            rejectUnauthorized: false
+          }
+        });
+
+        const info = await transporter.sendMail({
+          from: process.env.SMTP_FROM || smtpUser || `"Diário de Bordo" <sinalizacoes@proativacontactcenter.com.br>`,
+          to: to.join(', '),
+          subject: subject || '[Sinalizações Operacionais] Relatório de Ocorrências',
+          text: body
+        });
+
+        console.log(`[EMAIL] E-mail disparado com sucesso via SMTP (${smtpHost}):`, info.messageId);
+
+        return res.json({
+          success: true,
+          sentViaSmtp: true,
+          message: `✅ E-mail enviado com sucesso via SMTP para ${to.length} destinatário(s)!`
+        });
+      } catch (smtpErr: any) {
+        console.error(`[EMAIL] Falha ao enviar via SMTP (${smtpHost}):`, smtpErr);
+        return res.status(500).json({
+          success: false,
+          sentViaSmtp: false,
+          message: `⚠️ Falha ao conectar ao SMTP (${smtpErr.message || 'Erro de rede'}). Verifique as credenciais no .env.`
+        });
+      }
+    }
+
+    // Se o SMTP ainda não foi configurado no arquivo .env
+    console.log('[EMAIL] SMTP_HOST não definido no .env do servidor.');
+    return res.json({
+      success: false,
+      sentViaSmtp: false,
+      message: `⚠️ Para enviar e-mails diretamente pelo sistema, preencha SMTP_HOST, SMTP_USER e SMTP_PASS no arquivo .env do servidor. O texto formatado foi copiado para sua área de transferência (Ctrl+V).`
+    });
+  } catch (err: any) {
+    console.error('Erro ao processar envio de e-mail:', err);
+    return res.status(500).json({ success: false, message: 'Erro interno ao processar e-mail.' });
+  }
 });
 
 // --- USUÁRIOS ROUTES (Admin) ---
@@ -1106,7 +1783,16 @@ app.delete(
 
 // --- OPERADORES ROUTES ---
 app.get('/api/operadores', authenticateToken, async (req: Request, res: Response) => {
-  return res.json(await db.getOperadores());
+  let ops = await db.getOperadores();
+  if (ops.length === 0 || ops.some((o) => !o.entrada)) {
+    try {
+      await performApiSync();
+      ops = await db.getOperadores();
+    } catch (e: any) {
+      console.warn('Auto sync in GET /api/operadores failed:', e?.message || e);
+    }
+  }
+  return res.json(ops);
 });
 
 // --- PRODUTOS ROUTES ---
@@ -1328,35 +2014,7 @@ export async function performApiSync() {
       prodsSet.add(p.nome.toLowerCase().trim());
     }
 
-    // Process explicit products array if present
-    if (Array.isArray(prods)) {
-      for (const p of prods) {
-        const nomeProd = (typeof p === 'string' ? p : p.nome || p.description || '').trim();
-        if (nomeProd && !prodsSet.has(nomeProd.toLowerCase())) {
-          await db.addProduto(nomeProd);
-          prodsSet.add(nomeProd.toLowerCase());
-          prodCount++;
-        }
-      }
-    }
-
-    // Process explicit supervisors array if present
-    if (Array.isArray(sups)) {
-      for (const s of sups) {
-        const nomeSup = (typeof s === 'string' ? s : s.nome || s.name || '').trim();
-        if (nomeSup && !supsSet.has(nomeSup.toLowerCase())) {
-          await db.addSupervisor({
-            nome: nomeSup,
-            produto: (typeof s === 'object' && s.produto) ? s.produto : 'Geral',
-            status: (typeof s === 'object' && s.status) ? s.status : 'Ativo'
-          });
-          supsSet.add(nomeSup.toLowerCase());
-          supCount++;
-        }
-      }
-    }
-
-    // Process operators and extract embedded supervisors/products
+    // Process operators (supervisores and produtos tables are managed solely via Cadastro)
     if (Array.isArray(ops)) {
       for (const o of ops) {
         const nomeOp = (typeof o === 'string' ? o : o.nome || o.name || '').trim();
@@ -1370,27 +2028,33 @@ export async function performApiSync() {
           ? String(o.atendimento || o.produto || o.agrupamento).trim()
           : 'Geral';
 
-        const situacao = (typeof o === 'object' && (o.status || o.situacao))
-          ? String(o.status || o.situacao).trim()
-          : 'Ativo';
-
-        // Auto-add missing supervisor from operator record
-        if (supervisor && supervisor !== 'Geral' && !supsSet.has(supervisor.toLowerCase())) {
-          await db.addSupervisor({
-            nome: supervisor,
-            produto: produto || 'Geral',
-            status: 'Ativo'
-          });
-          supsSet.add(supervisor.toLowerCase());
-          supCount++;
+        let situacao = 'Ativo';
+        if (Array.isArray(o)) {
+          situacao = String(o[0] || 'Ativo').trim();
+        } else if (typeof o === 'object' && o !== null) {
+          const firstVal = Object.values(o)[0];
+          situacao = String(
+            o.situacao ||
+            o.status ||
+            o.STATUS ||
+            o.SITUACAO ||
+            o.SITUAÇÃO ||
+            (typeof firstVal === 'string' && (firstVal.toLowerCase().includes('ativ') || firstVal.toLowerCase().includes('inat') || firstVal === 'A' || firstVal === 'I') ? firstVal : '') ||
+            'Ativo'
+          ).trim();
         }
 
-        // Auto-add missing product from operator record
-        if (produto && produto !== 'Geral' && !prodsSet.has(produto.toLowerCase())) {
-          await db.addProduto(produto);
-          prodsSet.add(produto.toLowerCase());
-          prodCount++;
-        }
+        const intergrall = (typeof o === 'object' && (o.intergrall || o.intergrall_apelido))
+          ? Array.from(new Set([o.intergrall, o.intergrall_apelido].filter(Boolean))).join(' / ').trim()
+          : '';
+
+        const entrada = (typeof o === 'object' && (o.entrada || o.horario_entrada || o.hora_entrada))
+          ? String(o.entrada || o.horario_entrada || o.hora_entrada).trim()
+          : '';
+
+        const cargo = (typeof o === 'object' && (o.cargo || o.funcao || o.role))
+          ? String(o.cargo || o.funcao || o.role).trim()
+          : '';
 
         // Insert or update operator
         const existing = opsMap.get(nomeOp.toLowerCase());
@@ -1399,18 +2063,27 @@ export async function performApiSync() {
             nome: nomeOp,
             produto: produto || 'Geral',
             supervisor: supervisor || 'Geral',
-            situacao: situacao || 'Ativo'
+            situacao: situacao || 'Ativo',
+            intergrall,
+            entrada,
+            cargo
           });
           opCountNew++;
         } else if (
           existing.supervisor !== supervisor ||
           existing.produto !== produto ||
-          existing.situacao !== situacao
+          existing.situacao !== situacao ||
+          (intergrall && existing.intergrall !== intergrall) ||
+          (entrada && existing.entrada !== entrada) ||
+          (cargo && existing.cargo !== cargo)
         ) {
           await db.updateOperador(existing.id, {
             supervisor: supervisor || existing.supervisor,
             produto: produto || existing.produto,
-            situacao: situacao || existing.situacao
+            situacao: situacao || existing.situacao,
+            intergrall: intergrall || existing.intergrall,
+            entrada: entrada || existing.entrada || '',
+            cargo: cargo || existing.cargo || ''
           });
           opCountUpdated++;
         }
@@ -1467,28 +2140,21 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Vite middleware / Express static setup
 async function startServer() {
-  // Allow overriding bind host via env (e.g. HOST=10.12.0.49)
   const bindHost = process.env.HOST || process.env.BIND_HOST || '0.0.0.0';
+  const serverInstance = http.createServer(app);
 
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
 
-    // Configure Vite dev server options so HMR and client connect correctly
     const viteServerOptions: any = {
       server: {
-        middlewareMode: true
+        middlewareMode: true,
+        hmr: {
+          server: serverInstance
+        }
       },
       appType: 'spa'
     };
-
-    // If a concrete host (not 0.0.0.0) is provided, set it for HMR
-    if (bindHost && bindHost !== '0.0.0.0' && bindHost !== '127.0.0.1' && bindHost !== 'localhost') {
-      viteServerOptions.server.host = bindHost;
-      viteServerOptions.server.hmr = { host: bindHost };
-    } else {
-      // Let Vite pick correct host for local development
-      viteServerOptions.server.host = true;
-    }
 
     const vite = await createViteServer(viteServerOptions);
     app.use(vite.middlewares);
@@ -1500,7 +2166,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, bindHost, () => {
+  serverInstance.listen(PORT, bindHost, () => {
     const displayHost = bindHost === '0.0.0.0' ? '0.0.0.0 (all interfaces)' : bindHost;
     console.log(`Server running on http://${displayHost}:${PORT}`);
 

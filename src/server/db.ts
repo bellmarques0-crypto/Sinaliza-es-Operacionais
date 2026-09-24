@@ -7,7 +7,8 @@ import {
   Sinalizacao,
   ConfiguracaoApi,
   DiarioBordoOcorrencia,
-  DiarioBordoHistorico
+  DiarioBordoHistorico,
+  RegistroAbsenteismo
 } from '../types.js';
 
 import { db as postgresDb } from './neon.js';
@@ -182,4 +183,16 @@ export const db = {
   ): Promise<DiarioBordoHistorico[]> => {
     return await postgresDb.getDiarioBordoHistorico(diario_bordo_id);
   },
+
+  // ABSENTEÍSMO METHODS
+  getAbsenteismo: async (dataFilter?: string): Promise<RegistroAbsenteismo[]> => {
+    return await postgresDb.getAbsenteismo(dataFilter);
+  },
+
+  saveAbsenteismoBatch: async (
+    records: RegistroAbsenteismo[],
+    usuarioRegistro?: string
+  ): Promise<RegistroAbsenteismo[]> => {
+    return await postgresDb.saveAbsenteismoBatch(records, usuarioRegistro);
+  }
 };

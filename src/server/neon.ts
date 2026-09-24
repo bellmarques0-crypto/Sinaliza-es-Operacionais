@@ -12,7 +12,8 @@ import {
   Sinalizacao,
   ConfiguracaoApi,
   DiarioBordoOcorrencia,
-  DiarioBordoHistorico
+  DiarioBordoHistorico,
+  RegistroAbsenteismo
 } from "../types.js";
 
 import { getBrasiliaFullString } from "../utils/dateUtils.js";
@@ -28,7 +29,11 @@ import {
   getLocalUsuarioById,
   saveLocalConfigApi,
   saveLocalSinalizacao,
-  updateLocalSinalizacao
+  updateLocalSinalizacao,
+  getLocalAbsenteismo,
+  saveLocalAbsenteismoBatch,
+  saveLocalOperador,
+  updateLocalOperador
 } from "./localDb.js";
 
 const connectionString = process.env.DATABASE_URL || "";
@@ -64,6 +69,9 @@ pool.query = async (...args: any[]) => {
 
 pool.on("connect", () => {
   console.log("✅ PostgreSQL conectado.");
+  dbQuery(`ALTER TABLE diario_bordo ADD COLUMN IF NOT EXISTS tipo VARCHAR(50) DEFAULT 'Operacional';`).catch((e) => {
+    console.warn('[PostgreSQL] Migration note on tipo column:', e);
+  });
 });
 
 pool.on("error", (err) => {
@@ -71,6 +79,9 @@ pool.on("error", (err) => {
 });
 
 async function dbQuery(text: string, params: any[] = []) {
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not configured.");
+  }
   const client = await pool.connect();
 
   try {
@@ -378,87 +389,86 @@ getOperadores: async (): Promise<Operador[]> => {
 
     }
   },
-addOperador: async (
+  addOperador: async (
     data: Omit<Operador,"id">
-): Promise<Operador> => {
-
-    const { rows } = await dbQuery(
-
+  ): Promise<Operador> => {
+    try {
+      await dbQuery(`ALTER TABLE operadores ADD COLUMN IF NOT EXISTS entrada VARCHAR(10)`);
+      await dbQuery(`ALTER TABLE operadores ADD COLUMN IF NOT EXISTS cargo VARCHAR(100)`);
+      const { rows } = await dbQuery(
         `INSERT INTO operadores
         (
             nome,
             produto,
             supervisor,
-            situacao
+            situacao,
+            intergrall,
+            entrada,
+            cargo
         )
-
-        VALUES ($1,$2,$3,$4)
-
+        VALUES ($1,$2,$3,$4,$5,$6,$7)
         RETURNING *`,
-
         [
-
-            data.nome,
-            data.produto,
-            data.supervisor,
-            data.situacao
-
+          data.nome,
+          data.produto,
+          data.supervisor,
+          data.situacao,
+          data.intergrall || '',
+          data.entrada || '',
+          data.cargo || ''
         ]
-
-    );
-
-    return rows[0];
+      );
+      return rows[0];
+    } catch (err) {
+      console.warn("[PostgreSQL] Falling back to local addOperador:", err);
+      return saveLocalOperador(data);
+    }
   },
-updateOperador: async (
-    id:number,
-    data:Partial<Operador>
-): Promise<Operador | null> => {
 
-    const { rows: atualRows } = await dbQuery(
-
+  updateOperador: async (
+    id: number,
+    data: Partial<Operador>
+  ): Promise<Operador | null> => {
+    try {
+      await dbQuery(`ALTER TABLE operadores ADD COLUMN IF NOT EXISTS cargo VARCHAR(100)`);
+      const { rows: atualRows } = await dbQuery(
         `SELECT *
          FROM operadores
          WHERE id=$1`,
-
         [id]
+      );
 
-    );
+      if (atualRows.length === 0) return null;
+      const atual = atualRows[0];
 
-    if(atualRows.length===0)
-        return null;
-
-    const atual = atualRows[0];
-
-    const { rows } = await dbQuery(
-
+      const { rows } = await dbQuery(
         `UPDATE operadores
-
         SET
-
             nome=$1,
             produto=$2,
             supervisor=$3,
-            situacao=$4
-
-        WHERE id=$5
-
+            situacao=$4,
+            intergrall=$5,
+            entrada=$6,
+            cargo=$7
+        WHERE id=$8
         RETURNING *`,
-
         [
-
-            data.nome ?? atual.nome,
-            data.produto ?? atual.produto,
-            data.supervisor ?? atual.supervisor,
-            data.situacao ?? atual.situacao,
-
-            id
-
+          data.nome ?? atual.nome,
+          data.produto ?? atual.produto,
+          data.supervisor ?? atual.supervisor,
+          data.situacao ?? atual.situacao,
+          data.intergrall ?? atual.intergrall,
+          data.entrada ?? atual.entrada ?? '',
+          data.cargo ?? atual.cargo ?? '',
+          id
         ]
-
-    );
-
-    return rows[0];
-
+      );
+      return rows[0];
+    } catch (err) {
+      console.warn("[PostgreSQL] Falling back to local updateOperador:", err);
+      return updateLocalOperador(id, data);
+    }
   },
   getProdutos: async (): Promise<Produto[]> => {
   try {
@@ -932,6 +942,7 @@ addDiarioBordo: async (
   data: Omit<DiarioBordoOcorrencia, 'id'>
 ): Promise<DiarioBordoOcorrencia> => {
   try {
+    const tipo = data.tipo || 'Operacional';
     const comentario = data.comentario || '';
     const nomeEvidencia = data.nome_evidencia || '';
     const caminhoEvidencia = data.caminho_evidencia || '';
@@ -947,6 +958,7 @@ addDiarioBordo: async (
         produto,
         ocorrencia,
         impacto,
+        tipo,
         comentario,
         status,
         responsavel,
@@ -961,10 +973,10 @@ addDiarioBordo: async (
         data_atualizacao
       )
       VALUES (
-        $1, $2, $3, $4, $5,
-        $6, $7, $8, $9, $10,
-        $11, $12, $13, $14,
-        $15, $16, $17
+        $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, $10, $11,
+        $12, $13, $14, $15,
+        $16, $17, $18
       )
       RETURNING *`,
       [
@@ -973,6 +985,7 @@ addDiarioBordo: async (
         data.produto,
         data.ocorrencia,
         data.impacto,
+        tipo,
         comentario,
         data.status,
         data.responsavel,
@@ -998,7 +1011,7 @@ addDiarioBordo: async (
       tipo_alteracao: 'Criação',
       status_anterior: undefined,
       status_novo: newRecord.status,
-      descricao: `Ocorrência: "${newRecord.ocorrencia}"${
+      descricao: `Ocorrência: "${newRecord.ocorrencia}" (${newRecord.tipo || 'Operacional'})${
         newRecord.comentario
           ? ` • Obs: "${newRecord.comentario}"`
           : ''
@@ -1028,6 +1041,7 @@ updateDiarioBordo: async (
     const produto = data.produto ?? current.produto;
     const ocorrencia = data.ocorrencia ?? current.ocorrencia;
     const impacto = data.impacto ?? current.impacto;
+    const tipoOcorrencia = data.tipo ?? current.tipo ?? 'Operacional';
     const comentario = data.comentario ?? current.comentario;
     const status = data.status ?? current.status;
     const responsavel = data.responsavel ?? current.responsavel;
@@ -1046,17 +1060,18 @@ updateDiarioBordo: async (
             produto = $3,
             ocorrencia = $4,
             impacto = $5,
-            comentario = $6,
-            status = $7,
-            responsavel = $8,
-            nome_evidencia = $9,
-            caminho_evidencia = $10,
-            data_solucao = $11,
-            hora_solucao = $12,
-            solucao = $13,
-            responsavel_solucao = $14,
-            data_atualizacao = $15
-         WHERE id = $16
+            tipo = $6,
+            comentario = $7,
+            status = $8,
+            responsavel = $9,
+            nome_evidencia = $10,
+            caminho_evidencia = $11,
+            data_solucao = $12,
+            hora_solucao = $13,
+            solucao = $14,
+            responsavel_solucao = $15,
+            data_atualizacao = $16
+         WHERE id = $17
          RETURNING *`,
         [
             data_ocorrencia,
@@ -1064,6 +1079,7 @@ updateDiarioBordo: async (
             produto,
             ocorrencia,
             impacto,
+            tipoOcorrencia,
             comentario,
             status,
             responsavel,
@@ -1169,6 +1185,89 @@ addDiarioBordoHistorico: async (
 
     return result.rows[0];
 
+},
+
+getAbsenteismo: async (dataFilter?: string): Promise<RegistroAbsenteismo[]> => {
+    if (connectionString) {
+      try {
+        let query = `SELECT * FROM absenteismo`;
+        const params: any[] = [];
+        if (dataFilter) {
+            query += ` WHERE data = $1`;
+            params.push(dataFilter);
+        }
+        query += ` ORDER BY operador ASC`;
+        const pgTask = dbQuery(query, params).then((res) => res.rows as RegistroAbsenteismo[]).catch(() => null);
+        const timeoutTask = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000));
+        const res = await Promise.race([pgTask, timeoutTask]);
+        if (res) return res;
+      } catch (err) {
+        console.warn("[PostgreSQL] Falling back to local absenteismo data:", err);
+      }
+    }
+    return getLocalAbsenteismo(dataFilter) as RegistroAbsenteismo[];
+},
+
+saveAbsenteismoBatch: async (records: RegistroAbsenteismo[], usuarioRegistro?: string): Promise<RegistroAbsenteismo[]> => {
+    if (!records || records.length === 0) return [];
+
+    // 1. Persist locally immediately (0ms delay)
+    const localRes = saveLocalAbsenteismoBatch(records) as RegistroAbsenteismo[];
+
+    // 2. Sync to PostgreSQL if DATABASE_URL is configured
+    if (connectionString) {
+      try {
+        const pgTask = (async () => {
+          const chunkSize = 50;
+          for (let i = 0; i < records.length; i += chunkSize) {
+            const chunk = records.slice(i, i + chunkSize);
+            const valueClauses: string[] = [];
+            const params: any[] = [];
+            let paramIdx = 1;
+
+            for (const rec of chunk) {
+              valueClauses.push(
+                `($${paramIdx}, $${paramIdx + 1}, $${paramIdx + 2}, $${paramIdx + 3}, $${paramIdx + 4}, $${paramIdx + 5}, $${paramIdx + 6}, NOW())`
+              );
+              params.push(
+                rec.data || '',
+                rec.operador || '',
+                rec.supervisor || '',
+                rec.entrada || '',
+                rec.status || 'Presente',
+                (rec.observacao || '').substring(0, 100),
+                rec.usuario_registro || usuarioRegistro || ''
+              );
+              paramIdx += 7;
+            }
+
+            const query = `
+              INSERT INTO absenteismo (data, operador, supervisor, entrada, status, observacao, usuario_registro, data_atualizacao)
+              VALUES ${valueClauses.join(', ')}
+              ON CONFLICT (data, operador) DO UPDATE
+              SET supervisor = EXCLUDED.supervisor,
+                  entrada = EXCLUDED.entrada,
+                  status = EXCLUDED.status,
+                  observacao = EXCLUDED.observacao,
+                  usuario_registro = EXCLUDED.usuario_registro,
+                  data_atualizacao = NOW()
+            `;
+
+            await dbQuery(query, params).catch((dbErr) => {
+              console.warn("[PostgreSQL] dbQuery error in saveAbsenteismoBatch:", dbErr);
+            });
+          }
+        })();
+
+        // Cap database sync wait at 2s to guarantee fast HTTP response
+        const timeoutTask = new Promise((resolve) => setTimeout(resolve, 2000));
+        await Promise.race([pgTask, timeoutTask]);
+      } catch (err) {
+        console.warn("[PostgreSQL] Sync warning in saveAbsenteismoBatch:", err);
+      }
+    }
+
+    return localRes;
 }
 
 };

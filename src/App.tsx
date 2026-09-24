@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
 import { SinalizacoesView } from './components/SinalizacoesView';
 import { DiarioBordoView } from './components/DiarioBordoView';
+import { AbsenteismoView } from './components/AbsenteismoView';
 import { AdminView } from './components/AdminView';
 import { UserSession } from './types';
 import { api, getStoredToken } from './services/api';
@@ -14,7 +15,16 @@ export default function App() {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   // Layout & Theme states
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [activeTab, setActiveTabState] = useState<ActiveTab>(() => {
+    const saved = localStorage.getItem('sinalizacoes_active_tab');
+    return (saved as ActiveTab) || 'dashboard';
+  });
+
+  const setActiveTab = (tab: ActiveTab) => {
+    localStorage.setItem('sinalizacoes_active_tab', tab);
+    setActiveTabState(tab);
+  };
+
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('theme') === 'dark';
   });
@@ -58,7 +68,8 @@ export default function App() {
 
   const handleLoginSuccess = (userSession: UserSession) => {
     setUser(userSession);
-    setActiveTab('dashboard');
+    const savedTab = (localStorage.getItem('sinalizacoes_active_tab') as ActiveTab) || 'dashboard';
+    setActiveTab(savedTab);
   };
 
   const handleLogout = () => {
@@ -90,6 +101,8 @@ export default function App() {
           : 'Registro & Histórico de Sinalizações';
       case 'diario_bordo':
         return 'Diário de Bordo Operacional';
+      case 'absenteismo':
+        return 'Controle de Absenteísmo Operacional';
       case 'administracao':
         return 'Painel de Administração do Sistema';
       default:
@@ -120,9 +133,10 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-6 md:p-8">
         <div className="max-w-7xl mx-auto">
-          {activeTab === 'dashboard' && <DashboardView />}
+          {activeTab === 'dashboard' && <DashboardView user={user} />}
           {activeTab === 'sinalizacoes' && <SinalizacoesView user={user} />}
           {activeTab === 'diario_bordo' && <DiarioBordoView user={user} token={getStoredToken() || ''} />}
+          {activeTab === 'absenteismo' && <AbsenteismoView user={user} />}
           {activeTab === 'administracao' && user.perfil === 'Administrador' && <AdminView />}
         </div>
       </main>
