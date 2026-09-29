@@ -507,21 +507,27 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
   const normalizeSearchText = (str: string) =>
     (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  const filteredOperatorsList = operadoresList.filter((op) => {
-    if (user.perfil === 'Supervisor' || user.perfil === 'Operação') {
-      if (!isSupervisorMatch(user.nome, user.login, op.supervisor)) {
-        return false;
-      }
-    }
-    const q = normalizeSearchText(operadorQuery);
-    if (!q) return true;
-    return (
-      normalizeSearchText(op.nome).includes(q) ||
-      normalizeSearchText(op.supervisor).includes(q) ||
-      normalizeSearchText(op.produto).includes(q) ||
-      normalizeSearchText(op.intergrall || '').includes(q)
-    );
-  });
+  const filteredOperatorsList = Array.from(
+    new Map<string, Operador>(
+      operadoresList
+        .filter((op) => {
+          if (user.perfil === 'Supervisor' || user.perfil === 'Operação') {
+            if (!isSupervisorMatch(user.nome, user.login, op.supervisor)) {
+              return false;
+            }
+          }
+          const q = normalizeSearchText(operadorQuery);
+          if (!q) return true;
+          return (
+            normalizeSearchText(op.nome).includes(q) ||
+            normalizeSearchText(op.supervisor).includes(q) ||
+            normalizeSearchText(op.produto).includes(q) ||
+            normalizeSearchText(op.intergrall || '').includes(q)
+          );
+        })
+        .map((op) => [(op.nome || '').trim().toUpperCase(), op])
+    ).values()
+  );
 
   // Unique, sorted active supervisors list for dropdowns
   const uniqueActiveSupervisores = Array.from(
@@ -978,17 +984,9 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 )}
               </div>
 
-              {showFilterOperadorDropdown && filterOperador.trim().length > 0 && (
-                <div className="absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg divide-y divide-slate-100 dark:divide-slate-800">
-                  {operadoresList.filter((op) => {
-                    const q = normalizeSearchText(filterOperador);
-                    return (
-                      normalizeSearchText(op.nome).includes(q) ||
-                      normalizeSearchText(op.supervisor).includes(q) ||
-                      normalizeSearchText(op.produto).includes(q) ||
-                      normalizeSearchText(op.intergrall || '').includes(q)
-                    );
-                  }).length > 0 ? (
+              {showFilterOperadorDropdown && filterOperador.trim().length > 0 && (() => {
+                const list = Array.from(
+                  new Map<string, Operador>(
                     operadoresList
                       .filter((op) => {
                         const q = normalizeSearchText(filterOperador);
@@ -999,7 +997,13 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                           normalizeSearchText(op.intergrall || '').includes(q)
                         );
                       })
-                      .map((op) => (
+                      .map((op) => [(op.nome || '').trim().toUpperCase(), op])
+                  ).values()
+                );
+                return (
+                  <div className="absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg divide-y divide-slate-100 dark:divide-slate-800">
+                    {list.length > 0 ? (
+                      list.map((op) => (
                         <button
                           key={op.id}
                           type="button"
@@ -1015,13 +1019,14 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                           </span>
                         </button>
                       ))
-                  ) : (
+                    ) : (
                     <div className="px-3 py-2 text-xs text-slate-400 dark:text-slate-500 italic">
                       Nenhum operador encontrado.
                     </div>
                   )}
                 </div>
-              )}
+              );
+            })()}
             </div>
 
             {/* Produto */}
@@ -1453,28 +1458,32 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   </div>
                   {showEditOperadorDropdown && editOperadorQuery.length > 0 && (
                     <div className="absolute z-20 left-0 right-0 mt-1 max-h-40 overflow-y-auto rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg divide-y divide-slate-100 dark:divide-slate-800">
-                      {operadoresList
-                        .filter((op) => op.nome.toLowerCase().includes(editOperadorQuery.toLowerCase()))
-                        .map((op) => (
-                          <button
-                            key={op.id}
-                            type="button"
-                            onClick={() => {
-                              setEditOperador(op.nome);
-                              setEditOperadorQuery(op.nome);
-                              if (op.supervisor) {
-                                handleEditSupervisorSelect(op.supervisor);
-                              }
-                              setShowEditOperadorDropdown(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-700 dark:hover:text-cyan-400 flex flex-col cursor-pointer"
-                          >
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">{op.nome}</span>
-                            <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                              Sup: {op.supervisor} | Prod: {op.produto}
-                            </span>
-                          </button>
-                        ))}
+                      {Array.from(
+                        new Map<string, Operador>(
+                          operadoresList
+                            .filter((op) => op.nome.toLowerCase().includes(editOperadorQuery.toLowerCase()))
+                            .map((op) => [(op.nome || '').trim().toUpperCase(), op])
+                        ).values()
+                      ).map((op) => (
+                        <button
+                          key={op.id}
+                          type="button"
+                          onClick={() => {
+                            setEditOperador(op.nome);
+                            setEditOperadorQuery(op.nome);
+                            if (op.supervisor) {
+                              handleEditSupervisorSelect(op.supervisor);
+                            }
+                            setShowEditOperadorDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-700 dark:hover:text-cyan-400 flex flex-col cursor-pointer"
+                        >
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">{op.nome}</span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                            Sup: {op.supervisor} | Prod: {op.produto}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>

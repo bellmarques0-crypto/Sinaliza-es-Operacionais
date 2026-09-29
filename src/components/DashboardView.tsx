@@ -1153,15 +1153,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user }) => {
             </div>
 
             {/* Dropdown Suggestions */}
-            {showOperadorDropdown && operador.trim().length > 0 && (
-              <div className="absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl divide-y divide-slate-100 dark:divide-slate-800">
-                {operadoresList.filter((op) => {
-                  const matchesText = op.nome.toLowerCase().includes(operador.toLowerCase().trim());
-                  if (user && (user.perfil === 'Supervisor' || user.perfil === 'Operação')) {
-                    return matchesText && isSupervisorMatch(user.nome, user.login, op.supervisor);
-                  }
-                  return matchesText;
-                }).length > 0 ? (
+            {showOperadorDropdown && operador.trim().length > 0 && (() => {
+              const list = Array.from(
+                new Map<string, Operador>(
                   operadoresList
                     .filter((op) => {
                       const matchesText = op.nome.toLowerCase().includes(operador.toLowerCase().trim());
@@ -1170,7 +1164,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user }) => {
                       }
                       return matchesText;
                     })
-                    .map((op) => (
+                    .map((op) => [(op.nome || '').trim().toUpperCase(), op])
+                ).values()
+              );
+              return (
+                <div className="absolute z-30 left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl divide-y divide-slate-100 dark:divide-slate-800">
+                  {list.length > 0 ? (
+                    list.map((op) => (
                       <button
                         key={op.id}
                         type="button"
@@ -1186,13 +1186,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ user }) => {
                         </span>
                       </button>
                     ))
-                ) : (
-                  <div className="px-3.5 py-2 text-xs text-slate-400 dark:text-slate-500 italic">
-                    Nenhum operador encontrado.
-                  </div>
-                )}
-              </div>
-            )}
+                  ) : (
+                    <div className="px-3.5 py-2 text-xs text-slate-400 dark:text-slate-500 italic">
+                      Nenhum operador encontrado.
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Produto */}

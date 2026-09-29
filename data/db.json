@@ -13,7 +13,18 @@
   ],
   "supervisores": [],
   "produtos": [],
-  "operadores": [],
+  "operadores": [
+    {
+      "id": 1,
+      "nome": "JERLEY THIAGO BOTELHO RODRIGUES",
+      "produto": "BANESE",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "situacao": "Desligado",
+      "intergrall": "epapro0439 / JERLEY-0439",
+      "entrada": "07:40",
+      "cargo": "Operador/ Atendente"
+    }
+  ],
   "motivos": [],
   "sinalizacoes": [
     {
@@ -4304,8 +4315,8 @@
       "data": "2026-09-23",
       "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Falta Injustificada",
-      "observacao": "",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado até dia 01/10.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 471
     },
@@ -4493,8 +4504,8 @@
       "data": "2026-09-23",
       "operador": "LAYANNE MORAIS DOS SANTOS",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Falta Injustificada",
-      "observacao": "Sem atestado lançado no sistema.",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no sistema.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 492
     },
@@ -4566,7 +4577,7 @@
       "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
       "status": "Falta Injustificada",
-      "observacao": "Sem atestado lançado no sistema.",
+      "observacao": "Declaração recusada no sistema.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 500
     },
@@ -4602,7 +4613,7 @@
       "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
       "status": "Falta Injustificada",
-      "observacao": "Atestado lançado para o dia 22/03.",
+      "observacao": "Sem atestado lançado para o dia.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 504
     },
@@ -4620,7 +4631,7 @@
       "operador": "ALINE SILVA AMARAL",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
       "status": "Falta Injustificada",
-      "observacao": "",
+      "observacao": "Sem atestado lançado para o dia.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 506
     },
@@ -5033,8 +5044,8 @@
       "data": "2026-09-22",
       "operador": "ALINE SILVA AMARAL",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado para o dia.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 552
     },
@@ -5133,7 +5144,7 @@
       "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
       "status": "Falta Justificada",
-      "observacao": "",
+      "observacao": "Atestado lançado para o dia 21/09.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 563
     },
@@ -5393,8 +5404,8 @@
       "data": "2026-09-21",
       "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "Saiu mais cedo para levar a companheira ao médico.",
+      "status": "Falta Injustificada",
+      "observacao": "Declaração de horas recusada.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 592
     },
@@ -5447,8 +5458,8 @@
       "data": "2026-09-21",
       "operador": "ALINE SILVA AMARAL",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado para o dia.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 598
     },
@@ -5460,6 +5471,3849 @@
       "observacao": "",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 599
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "SOPHIA CRISTINY FERREIRA SILVA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 600
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "DIDIANY ALVES DE MOURA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 601
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "EDUARDA DE SOUZA TEOBALDO DUARTE",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 602
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ENZO YZAQUE RODRIGUES PACHECO",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 603
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "MARIA ELIZA APARECIDA FONSECA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 604
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "RICHARD SOUZA TRINDADE",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 605
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "CHAIENE IASMIN COSTA BARBOSA PEREIRA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 606
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "PAULO PEREIRA AQUINO",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 607
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ANA CAROLINA PALHARES DA SILVA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 608
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ASHELLY VITORIA DE SOUZA ALVES",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 609
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ERIC DINIZ LEAL",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 610
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 611
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 612
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 613
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 614
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 615
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 616
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 617
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 618
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 619
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado médico lançado até dia 01/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 620
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 621
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 622
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 623
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 624
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 625
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 626
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 627
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 628
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 629
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 630
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 631
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 632
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 633
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 634
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 635
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 636
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 637
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 638
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 639
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 640
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 641
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 642
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 643
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 644
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 645
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 646
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 647
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "Saiu para resolver problemas na Cemig. Sem atestado/declaração lançada.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 648
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 649
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 650
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 651
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 652
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 653
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 654
+    },
+    {
+      "data": "2026-09-24",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 655
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 656
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 657
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 658
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 659
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 660
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 661
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 662
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 663
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 664
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado médico lançado até dia 01/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 665
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 666
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 667
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 668
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado (08 dias) até 02/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 669
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 670
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 671
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "Sem atestado lançado até o momento.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 672
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 673
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 674
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 675
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 676
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "Grávida - sem atestado médico lançado!",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 677
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 678
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 679
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 680
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 681
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 682
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 683
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "Colaborador desligado dia 25/09.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 684
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 685
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 686
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 687
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 688
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 689
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 690
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 691
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 692
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 693
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 694
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 695
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 696
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 697
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 698
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 699
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 700
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 701
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 702
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 703
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 704
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 705
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 706
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 707
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 708
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 709
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado médico lançado até dia 01/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 710
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 711
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 712
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 713
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 714
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 715
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 716
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 717
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 718
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 719
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 720
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 721
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 722
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 723
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 724
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 725
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 726
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 727
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 728
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 729
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 730
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 731
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 732
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 733
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 734
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 735
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 736
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 737
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 738
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 739
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 740
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 741
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 742
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 743
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 744
+    },
+    {
+      "data": "2026-09-26",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 745
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 746
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 747
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 748
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 749
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 750
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 751
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 752
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 753
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 754
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado médico lançado até dia 01/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 755
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 756
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 757
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 758
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 759
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 760
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 761
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 762
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 763
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 764
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 765
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 766
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 767
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 768
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 769
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 770
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 771
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 772
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 773
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 774
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 775
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 776
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 777
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 778
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 779
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 780
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 781
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 782
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 783
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 784
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 785
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 786
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 787
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 788
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 789
+    },
+    {
+      "data": "2026-09-27",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 790
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 791
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 792
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "Chegou atrasada e avisou.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 793
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 794
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 795
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado no dia.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 796
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "Chegou atrasada por causa de problema para pegar receita médica.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 797
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 798
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "Até o momento sem atestado lançado no sistema.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 799
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado médico lançado até dia 01/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 800
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 801
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 802
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 803
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado (08 dias) até 02/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 804
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 805
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 806
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado até o momento.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 807
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 808
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 809
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 810
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 811
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 812
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 813
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 814
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 815
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 816
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 817
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 818
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "Colaborador demitido dia 25/09.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 819
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 820
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 821
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 822
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 823
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 824
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 825
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado até o momento.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 826
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 827
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 828
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 829
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 830
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 831
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 832
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 833
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 834
+    },
+    {
+      "data": "2026-09-28",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 835
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 836
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 837
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 838
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 839
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 840
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 841
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 842
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 843
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 844
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado médico lançado até dia 01/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 845
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado até dia 30/09.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 846
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 847
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 848
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado (08 dias) até 02/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 849
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 850
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 851
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 852
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 853
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 854
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 855
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 856
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 857
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 858
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 859
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 860
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 861
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 862
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 863
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 864
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 865
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 866
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 867
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 868
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 869
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 870
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 871
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 872
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 873
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 874
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 875
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 876
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Injustificada",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 877
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 878
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 879
+    },
+    {
+      "data": "2026-09-29",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 880
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 881
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 882
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 883
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 884
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 885
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 886
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 887
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 888
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 889
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado médico lançado até dia 01/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 890
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado lançado até dia 30/09.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 891
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 892
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 893
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado (08 dias) até 02/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 894
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 895
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 896
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 897
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 898
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 899
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 900
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 901
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 902
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 903
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 904
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 905
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 906
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 907
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 908
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 909
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 910
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 911
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 912
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 913
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 914
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 915
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 916
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 917
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 918
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 919
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 920
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 921
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 922
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 923
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 924
+    },
+    {
+      "data": "2026-09-30",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 925
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 926
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 927
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 928
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 929
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 930
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 931
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 932
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 933
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 934
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado médico lançado até dia 01/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 935
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 936
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 937
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 938
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado (08 dias) até 02/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 939
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 940
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 941
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 942
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 943
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 944
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 945
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 946
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 947
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 948
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 949
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 950
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 951
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 952
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 953
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 954
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 955
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 956
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 957
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 958
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 959
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 960
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 961
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 962
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 963
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 964
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 965
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 966
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 967
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 968
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 969
+    },
+    {
+      "data": "2026-10-01",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 970
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "SOPHIA CRISTINY FERREIRA SILVA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 971
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "DIDIANY ALVES DE MOURA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 972
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "EDUARDA DE SOUZA TEOBALDO DUARTE",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 973
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ENZO YZAQUE RODRIGUES PACHECO",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 974
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "MARIA ELIZA APARECIDA FONSECA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 975
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "RICHARD SOUZA TRINDADE",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 976
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "CHAIENE IASMIN COSTA BARBOSA PEREIRA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 977
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "PAULO PEREIRA AQUINO",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 978
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ANA CAROLINA PALHARES DA SILVA",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 979
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ASHELLY VITORIA DE SOUZA ALVES",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 980
+    },
+    {
+      "data": "2026-09-25",
+      "operador": "ERIC DINIZ LEAL",
+      "supervisor": "VITORIA MARQUES CUNHA",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "VITORIA MARQUES CUNHA",
+      "id": 981
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "AIDA CLARISSA CORDEIRO VITAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 982
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LUANA PONTELO DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 983
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "CLARICE BARRADINHO FONSECA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 984
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GABRIELE NOGUEIRA SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 985
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GABRIELLA SANTOS DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 986
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "BEATRIZ EMANUELI CORREA DE CAMPOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 987
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "VERONICA FORTUNATO DE OLIVEIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 988
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JESSICA CRISTINA DIAS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 989
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GUILHERME PIETRO NUNES BARRADINHO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 990
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 991
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GRACIELE DA SILVA ROCHA SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 992
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ISADORA NOGUEIRA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 993
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LARISSA PEREIRA BATISTA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 994
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LUCIMEIA RAMOS SOARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Falta Justificada",
+      "observacao": "Atestado (08 dias) até 02/10.",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 995
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "REGIANE RODRIGUES DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 996
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARIA LUIZA AMORIM DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 997
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA CLARA DA SILVA CRUZ",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 998
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LIZANDRA MARTINS RIBEIRO DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 999
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MIGUEL FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1000
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ALICE ESTER OLIVEIRA DA SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1001
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "CAMILA CRISTINA GOMES CESARINO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1002
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "VITORIA LORRANY RIBEIRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1003
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JESSICA ELOA DE PAULA MARTINS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1004
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ARTHUR ANTONIO DOS SANTOS GOULART",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1005
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARIA GERALDA CAMPELO",
+      "supervisor": "RODRIGO BUENO SAMPAIO",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1006
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA LUIZA SILVA TAVARES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1007
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LETICIA GABRIELA SARAIVA MOREIRA DE MELO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1008
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JULIANA CRISTINA VIEIRA NUNES DO CARMO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1009
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ROBMAR DE FREITAS SANTOS LOPES",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1010
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LAYANNE MORAIS DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1011
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LORRANY EMANUELY CASTRO SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1012
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "SARA KAROLINE DE ASSIS CABRAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1013
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "RAIANE PAULA DIAS FERREIRA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1014
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ALICE FERNANDES OLIMPIO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1015
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARCELLY SANT ANA FELIX",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1016
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ISABELLE RODRIGUES FERREIRA BARBOSA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1017
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ISABELLY SOUZA FRANCA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1018
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "KELLY CASSIANO DE FREITAS ARAUJO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1019
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LAVINIA NUNES DE AZEVEDO",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1020
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "RAIMILY PEREIRA AGUIAR MATOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1021
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LARISSA RAYANE GONCALVES DOS REIS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1022
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1023
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA CLARA TEIXEIRA ALVES SILVA",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1024
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ALINE SILVA AMARAL",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1025
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "CAMILLY VITORIA FERNANDES SOARES DOS SANTOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1026
     }
   ]
 }

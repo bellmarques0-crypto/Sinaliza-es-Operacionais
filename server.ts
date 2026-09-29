@@ -11,7 +11,7 @@ import nodemailer from 'nodemailer';
 import { GoogleGenAI } from '@google/genai';
 import { db } from './src/server/db.js';
 import { PerfilAcesso, Operador } from './src/types.js';
-import { getBrasiliaDateParts, getBrasiliaDateString, getBrasiliaFullString, isSupervisorMatch } from './src/utils/dateUtils.js';
+import { getBrasiliaDateParts, getBrasiliaDateString, getBrasiliaTimeString, getBrasiliaFullString, isSupervisorMatch } from './src/utils/dateUtils.js';
 
 let aiClient: any = null;
 if (process.env.GEMINI_API_KEY) {
@@ -709,19 +709,24 @@ app.get('/api/diario-bordo', authenticateToken, async (req: AuthRequest, res: Re
       filtered = filtered.filter((i) => i.data_ocorrencia <= (dataFinal as string));
     }
     if (produto && produto !== 'Todos') {
-      filtered = filtered.filter((i) => i.produto === produto);
+      const prods = String(produto).split(',').map((s) => s.trim());
+      filtered = filtered.filter((i) => prods.includes(i.produto));
     }
     if (status && status !== 'Todos') {
-      filtered = filtered.filter((i) => i.status === status);
+      const st = String(status).split(',').map((s) => s.trim());
+      filtered = filtered.filter((i) => st.includes(i.status));
     }
     if (responsavel && responsavel !== 'Todos') {
-      filtered = filtered.filter((i) => i.responsavel === responsavel);
+      const resps = String(responsavel).split(',').map((s) => s.trim());
+      filtered = filtered.filter((i) => resps.includes(i.responsavel));
     }
     if (impacto && impacto !== 'Todos') {
-      filtered = filtered.filter((i) => i.impacto === impacto);
+      const imps = String(impacto).split(',').map((s) => s.trim());
+      filtered = filtered.filter((i) => imps.includes(i.impacto));
     }
     if (tipo && tipo !== 'Todos') {
-      filtered = filtered.filter((i) => (i.tipo || 'Operacional') === tipo);
+      const tps = String(tipo).split(',').map((s) => s.trim());
+      filtered = filtered.filter((i) => tps.includes(i.tipo || 'Operacional'));
     }
     if (busca) {
       const term = (busca as string).toLowerCase().trim();
@@ -824,6 +829,64 @@ app.post(
     }
   }
 );
+
+// POST /api/diario-bordo/importar - Batch import occurrences from Excel/CSV
+app.post('/api/diario-bordo/importar', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'Nenhum registro enviado para importação.' });
+    }
+
+    const now = new Date();
+    const nowStr = getBrasiliaFullString(now);
+    const defaultDate = getBrasiliaDateString(now);
+    const defaultTime = getBrasiliaTimeString(now, false);
+
+    const insertedList = [];
+    let errorCount = 0;
+
+    for (const item of items) {
+      try {
+        const created = await db.addDiarioBordo({
+          data_ocorrencia: item.data_ocorrencia || defaultDate,
+          hora_ocorrencia: item.hora_ocorrencia || defaultTime,
+          produto: item.produto || 'Outros',
+          ocorrencia: item.ocorrencia || item.sistema_impactado || 'Ocorrência Importada',
+          impacto: item.impacto || 'Médio',
+          tipo: item.tipo === 'Interna' ? 'Interna' : 'Operacional',
+          comentario: item.comentario || '',
+          status: item.status || 'Aberto',
+          responsavel: item.responsavel || req.user!.nome,
+          data_solucao: item.data_solucao || (item.status === 'Resolvido' ? defaultDate : ''),
+          hora_solucao: item.hora_solucao || (item.status === 'Resolvido' ? defaultTime : ''),
+          solucao: item.solucao || '',
+          responsavel_solucao: item.responsavel_solucao || (item.status === 'Resolvido' ? req.user!.nome : ''),
+          nome_evidencia: item.nome_evidencia || '',
+          caminho_evidencia: item.caminho_evidencia || '',
+          usuario_registro: req.user!.nome,
+          data_cadastro: nowStr,
+          data_atualizacao: nowStr
+        });
+        insertedList.push(created);
+      } catch (itemErr) {
+        console.error('Erro ao importar item individual do Diário de Bordo:', itemErr);
+        errorCount++;
+      }
+    }
+
+    return res.status(201).json({
+      message: `Importação concluída com sucesso! ${insertedList.length} registro(s) importado(s).${errorCount > 0 ? ` (${errorCount} falha(s))` : ''}`,
+      totalImportados: insertedList.length,
+      falhas: errorCount,
+      data: insertedList
+    });
+  } catch (err: any) {
+    console.error('Erro geral ao importar diário de bordo:', err);
+    return res.status(500).json({ error: err.message || 'Erro interno ao realizar importação em lote.' });
+  }
+});
+
 
 // PUT /api/diario-bordo/:id - Update occurrence and add solution
 app.put(
@@ -2016,9 +2079,13 @@ export async function performApiSync() {
 
     // Process operators (supervisores and produtos tables are managed solely via Cadastro)
     if (Array.isArray(ops)) {
+      const processedInThisSync = new Set<string>();
       for (const o of ops) {
         const nomeOp = (typeof o === 'string' ? o : o.nome || o.name || '').trim();
         if (!nomeOp) continue;
+        const opKey = nomeOp.toLowerCase();
+        if (processedInThisSync.has(opKey)) continue;
+        processedInThisSync.add(opKey);
 
         const supervisor = (typeof o === 'object' && (o.supervisor || o.supervisor_nome))
           ? String(o.supervisor || o.supervisor_nome).trim()

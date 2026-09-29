@@ -26,6 +26,7 @@ import {
   Sun,
   Check,
   ChevronRight,
+  ChevronDown,
   AlertCircle,
   FileText,
   User,
@@ -282,6 +283,147 @@ function calculateMetrics(items: DiarioBordoOcorrencia[]): DiarioBordoMetrics {
   };
 }
 
+interface MultiSelectFilterProps {
+  label: string;
+  placeholder: string;
+  options: string[];
+  selected: string[];
+  onChange: (selected: string[]) => void;
+}
+
+const MultiSelectFilter: React.FC<MultiSelectFilterProps> = ({
+  label,
+  placeholder,
+  options,
+  selected = [],
+  onChange,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredOptions = options.filter((opt) =>
+    opt.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const isAllSelected = selected.length === 0 || selected.includes('Todos');
+
+  const toggleOption = (opt: string) => {
+    let current = selected.filter((s) => s !== 'Todos');
+    if (current.includes(opt)) {
+      current = current.filter((item) => item !== opt);
+    } else {
+      current = [...current, opt];
+    }
+    if (current.length === 0 || current.length === options.length) {
+      onChange([]);
+    } else {
+      onChange(current);
+    }
+  };
+
+  const handleSelectAll = () => {
+    onChange([]);
+  };
+
+  const displayLabel = () => {
+    if (isAllSelected) return placeholder;
+    if (selected.length === 1) return selected[0];
+    return `${selected.length} selecionado(s)`;
+  };
+
+  return (
+    <div ref={containerRef} className="relative w-full">
+      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+        {label}
+      </label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 outline-none transition cursor-pointer text-left font-medium"
+      >
+        <span className="truncate pr-2 font-medium">
+          {displayLabel()}
+        </span>
+        <ChevronDown className={`h-3.5 w-3.5 text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-40 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-2 space-y-2 animate-fadeIn max-h-64 flex flex-col">
+          {options.length > 5 && (
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Filtrar..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg pl-8 pr-2 py-1 text-xs text-slate-800 dark:text-slate-200 outline-none"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center justify-between text-[11px] px-1 pb-1 border-b border-slate-100 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className={`font-semibold hover:underline cursor-pointer ${isAllSelected ? 'text-blue-600 dark:text-cyan-400 font-bold' : 'text-slate-500 dark:text-slate-400'}`}
+            >
+              Todos
+            </button>
+            {!isAllSelected && (
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="font-semibold text-rose-500 hover:underline cursor-pointer"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
+
+          <div className="overflow-y-auto space-y-1 flex-1 pr-1 custom-scrollbar">
+            {filteredOptions.map((opt, idx) => {
+              const checked = !isAllSelected && selected.includes(opt);
+              return (
+                <label
+                  key={`opt-${idx}-${opt}`}
+                  className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition cursor-pointer select-none ${
+                    checked
+                      ? 'bg-blue-50 dark:bg-cyan-500/10 text-blue-700 dark:text-cyan-300 font-semibold'
+                      : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked || isAllSelected}
+                    onChange={() => toggleOption(opt)}
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 cursor-pointer"
+                  />
+                  <span className="truncate">{opt}</span>
+                </label>
+              );
+            })}
+            {filteredOptions.length === 0 && (
+              <p className="text-[11px] text-slate-400 italic p-2 text-center">Nenhuma opção encontrada.</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token }) => {
   // State
   const [ocorrencias, setOcorrencias] = useState<DiarioBordoOcorrencia[]>([]);
@@ -306,14 +448,23 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
     return calculateMetrics(displayedOcorrencias);
   }, [displayedOcorrencias]);
 
-  // Filters State
-  const [filtros, setFiltros] = useState<DiarioBordoFiltros>({
+  // Filters State (Multi-Select)
+  const [filtros, setFiltros] = useState<{
+    dataInicial: string;
+    dataFinal: string;
+    produto: string[];
+    status: string[];
+    responsavel: string[];
+    impacto: string[];
+    tipo: string;
+    busca: string;
+  }>({
     dataInicial: '',
     dataFinal: '',
-    produto: 'Todos',
-    status: 'Todos',
-    responsavel: 'Todos',
-    impacto: 'Todos',
+    produto: [],
+    status: [],
+    responsavel: [],
+    impacto: [],
     tipo: 'Todos',
     busca: ''
   });
@@ -346,6 +497,220 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
   const [newRecipientInput, setNewRecipientInput] = useState<string>('');
   const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
   const [emailStatusFeedback, setEmailStatusFeedback] = useState<string | null>(null);
+
+  // Import Modal State
+  const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importParsedRows, setImportParsedRows] = useState<any[]>([]);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState<boolean>(false);
+
+  // Download Modelo Excel / CSV
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        ID: '',
+        'Tipo Ocorrência': 'Operacional',
+        'Data Ocorrência': getBrasiliaDateString(),
+        'Hora Ocorrência': '14:30',
+        Produto: produtos[0] || 'Cartões de Crédito',
+        'Sistema Impactado': 'Indisponibilidade do Autorizador',
+        'Descrição do Sistema': 'Lentidão observada no processamento de pagamentos',
+        'Tipo de Impacto': 'Alto',
+        Status: 'Aberto',
+        'Responsável Ocorrência': user.nome || 'Operador',
+        'Descrição da Ocorrência': 'Lentidão observada no processamento de pagamentos',
+        'URL Evidência': '',
+        'Data Solução': '',
+        'Hora Solução': '',
+        'Responsável Solução': '',
+        'Descrição da Solução': '',
+        'Usuário Registro': user.nome || 'Operador',
+        'Data Cadastro': `${getBrasiliaDateString()} 14:30`
+      },
+      {
+        ID: '',
+        'Tipo Ocorrência': 'Interna',
+        'Data Ocorrência': getBrasiliaDateString(),
+        'Hora Ocorrência': '10:15',
+        Produto: produtos[1] || 'Consignado',
+        'Sistema Impactado': 'Falha no Barramento de Integração',
+        'Descrição do Sistema': 'Acúmulo de requisições pendentes na fila',
+        'Tipo de Impacto': 'Médio',
+        Status: 'Resolvido',
+        'Responsável Ocorrência': user.nome || 'Operador',
+        'Descrição da Ocorrência': 'Acúmulo de requisições pendentes na fila',
+        'URL Evidência': '',
+        'Data Solução': getBrasiliaDateString(),
+        'Hora Solução': '11:00',
+        'Responsável Solução': user.nome || 'Operador',
+        'Descrição da Solução': 'Reiniciado o serviço de mensageria da aplicação',
+        'Usuário Registro': user.nome || 'Operador',
+        'Data Cadastro': `${getBrasiliaDateString()} 10:15`
+      }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Modelo_Importacao');
+    XLSX.writeFile(workbook, `Modelo_Importacao_Diario_de_Bordo.xlsx`);
+  };
+
+  // Parse Uploaded Excel or CSV File
+  const handleParseImportFile = async (file: File) => {
+    setImportFile(file);
+    setImportError(null);
+    setImportSuccess(null);
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+        setImportError('Arquivo inválido ou sem planilhas.');
+        setImportParsedRows([]);
+        return;
+      }
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const rawJson = XLSX.utils.sheet_to_json<Record<string, any>>(worksheet, { defval: '' });
+
+      if (!rawJson || rawJson.length === 0) {
+        setImportError('Nenhum dado encontrado no arquivo selecionado.');
+        setImportParsedRows([]);
+        return;
+      }
+
+      const defaultDate = getBrasiliaDateString();
+      const defaultTime = getBrasiliaTimeString(new Date(), false);
+      const defaultUser = user.nome || 'Sistema';
+
+      const mapped = rawJson.map((row) => {
+        const keys = Object.keys(row);
+        const getValue = (patterns: string[]) => {
+          const foundKey = keys.find((k) => {
+            const norm = k
+              .trim()
+              .toLowerCase()
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '');
+            return patterns.some((p) => norm.includes(p));
+          });
+          return foundKey ? String(row[foundKey]).trim() : '';
+        };
+
+        const rawDateTime = getValue(['data/hora', 'data_hora', 'data e hora', 'datahora', 'data/ hora']);
+        let data_ocorrencia = getValue(['data ocorrencia', 'data ocorrência', 'data_ocorrencia', 'data']);
+        let hora_ocorrencia = getValue(['hora ocorrencia', 'hora ocorrência', 'hora_ocorrencia', 'hora']);
+
+        if (rawDateTime) {
+          const parts = rawDateTime.split(/\s+/);
+          if (parts.length >= 1 && !data_ocorrencia) data_ocorrencia = parts[0];
+          if (parts.length >= 2 && !hora_ocorrencia) hora_ocorrencia = parts[1];
+        }
+
+        if (data_ocorrencia && data_ocorrencia.includes('/')) {
+          const dateParts = data_ocorrencia.split('/');
+          if (dateParts.length === 3) {
+            if (dateParts[0].length === 4) {
+              data_ocorrencia = `${dateParts[0]}-${dateParts[1].padStart(2, '0')}-${dateParts[2].padStart(2, '0')}`;
+            } else {
+              data_ocorrencia = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+            }
+          }
+        }
+
+        const produto = getValue(['produto', 'product']) || (produtos[0] || 'Outros');
+        const ocorrencia =
+          getValue([
+            'sistema impactado',
+            'sistema_impactado',
+            'sistema',
+            'ocorrencia',
+            'ocorrência',
+            'descricao',
+            'descrição',
+            'titulo'
+          ]) || 'Ocorrência Importada';
+        const impactoRaw = getValue(['tipo de impacto', 'tipo impacto', 'impacto', 'gravidade']);
+        const impacto =
+          ['Baixo', 'Médio', 'Alto', 'Crítico'].find((i) => i.toLowerCase() === impactoRaw.toLowerCase()) || 'Médio';
+        const tipoRaw = getValue(['tipo ocorrência', 'tipo ocorrencia', 'tipo']);
+        const tipo = tipoRaw.toLowerCase().includes('interna') ? 'Interna' : 'Operacional';
+        const statusRaw = getValue(['status', 'situacao', 'situação']);
+        const status =
+          ['Aberto', 'Em Andamento', 'Monitorando', 'Resolvido', 'Cancelado'].find(
+            (s) => s.toLowerCase() === statusRaw.toLowerCase()
+          ) || 'Aberto';
+        const responsavel = getValue(['responsável ocorrência', 'responsavel ocorrencia', 'responsavel', 'responsável', 'operador', 'atendente']) || defaultUser;
+        const comentario = getValue(['descrição do sistema', 'descricao do sistema', 'descrição da ocorrência', 'descricao da ocorrencia', 'comentario', 'comentário', 'observacao', 'observação', 'detalhes']);
+        const solucao = getValue(['descrição da solução', 'descricao da solucao', 'solucao', 'solução', 'resolucao', 'resolução']);
+        const data_solucao = getValue(['data solução', 'data solucao', 'data_solucao']);
+        const hora_solucao = getValue(['hora solução', 'hora solucao', 'hora_solucao']);
+        const responsavel_solucao = getValue(['responsável solução', 'responsavel solucao', 'responsavel_solucao']);
+        const caminho_evidencia = getValue(['url evidência', 'url evidencia', 'caminho_evidencia', 'evidencia', 'evidência']);
+
+        return {
+          data_ocorrencia: data_ocorrencia || defaultDate,
+          hora_ocorrencia: hora_ocorrencia || defaultTime,
+          produto,
+          ocorrencia,
+          impacto,
+          tipo,
+          status,
+          responsavel,
+          comentario,
+          solucao,
+          data_solucao,
+          hora_solucao,
+          responsavel_solucao,
+          caminho_evidencia
+        };
+      });
+
+      setImportParsedRows(mapped);
+    } catch (err) {
+      console.error('Erro ao ler arquivo de importação:', err);
+      setImportError('Erro ao processar o arquivo. Certifique-se de que é um Excel (.xlsx) ou CSV válido.');
+    }
+  };
+
+  // Submit Import to API
+  const handleConfirmImport = async () => {
+    if (importParsedRows.length === 0) return;
+    setIsImporting(true);
+    setImportError(null);
+    setImportSuccess(null);
+    try {
+      const res = await fetch('/api/diario-bordo/importar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ items: importParsedRows })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setImportSuccess(data.message || 'Importação realizada com sucesso!');
+        fetchData();
+        setTimeout(() => {
+          setIsImportModalOpen(false);
+          setImportFile(null);
+          setImportParsedRows([]);
+          setImportSuccess(null);
+        }, 1800);
+      } else {
+        setImportError(data.error || 'Falha ao importar registros.');
+      }
+    } catch (err) {
+      console.error('Erro na requisição de importação:', err);
+      setImportError('Não foi possível conectar ao servidor para concluir a importação.');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
 
   // Auto select all saved recipients when modal opens
   useEffect(() => {
@@ -591,10 +956,18 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       const params = new URLSearchParams();
       if (filtros.dataInicial) params.append('dataInicial', filtros.dataInicial);
       if (filtros.dataFinal) params.append('dataFinal', filtros.dataFinal);
-      if (filtros.produto !== 'Todos') params.append('produto', filtros.produto);
-      if (filtros.status !== 'Todos') params.append('status', filtros.status);
-      if (filtros.responsavel !== 'Todos') params.append('responsavel', filtros.responsavel);
-      if (filtros.impacto !== 'Todos') params.append('impacto', filtros.impacto);
+      if (Array.isArray(filtros.produto) && filtros.produto.length > 0 && !filtros.produto.includes('Todos')) {
+        params.append('produto', filtros.produto.join(','));
+      }
+      if (Array.isArray(filtros.status) && filtros.status.length > 0 && !filtros.status.includes('Todos')) {
+        params.append('status', filtros.status.join(','));
+      }
+      if (Array.isArray(filtros.responsavel) && filtros.responsavel.length > 0 && !filtros.responsavel.includes('Todos')) {
+        params.append('responsavel', filtros.responsavel.join(','));
+      }
+      if (Array.isArray(filtros.impacto) && filtros.impacto.length > 0 && !filtros.impacto.includes('Todos')) {
+        params.append('impacto', filtros.impacto.join(','));
+      }
       if (filtros.tipo && filtros.tipo !== 'Todos') params.append('tipo', filtros.tipo);
       if (filtros.busca) params.append('busca', filtros.busca);
 
@@ -819,34 +1192,71 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
   // Export to Excel
   const handleExportExcel = () => {
-    if (displayedOcorrencias.length === 0) {
-      alert('Nenhum registro para exportar.');
-      return;
+    try {
+      const recordsToExport = displayedOcorrencias.length > 0 ? displayedOcorrencias : ocorrencias;
+
+      if (!recordsToExport || recordsToExport.length === 0) {
+        alert('Nenhum registro encontrado no Diário de Bordo para exportar.');
+        return;
+      }
+
+      // Helper to safely truncate any cell string to avoid Excel 32767 character limit
+      const safeExcelText = (val: any, maxLen = 30000): string => {
+        if (val === undefined || val === null) return '-';
+        const str = String(val);
+        return str.length > maxLen ? str.substring(0, maxLen) + '... (Truncado)' : str;
+      };
+
+      const formatEvidenceField = (caminho?: string, nome?: string): string => {
+        if (!caminho) return '-';
+        if (caminho.startsWith('data:image/')) {
+          return `[Imagem Anexada (${nome || 'Print de Evidência'})]`;
+        }
+        return safeExcelText(caminho, 2000);
+      };
+
+      const exportData = recordsToExport.map((item) => ({
+        ID: item.id,
+        'Tipo Ocorrência': safeExcelText(item.tipo || 'Operacional'),
+        'Data Ocorrência': safeExcelText(item.data_ocorrencia || '-'),
+        'Hora Ocorrência': safeExcelText(item.hora_ocorrencia || '-'),
+        Produto: safeExcelText(item.produto || '-'),
+        'Sistema Impactado': safeExcelText(item.ocorrencia || '-'),
+        'Descrição do Sistema': safeExcelText(item.comentario || ''),
+        'Tipo de Impacto': safeExcelText(item.impacto || '-'),
+        Status: safeExcelText(item.status || '-'),
+        'Responsável Ocorrência': safeExcelText(item.responsavel || '-'),
+        'Descrição da Ocorrência': safeExcelText(item.comentario || item.ocorrencia || ''),
+        'URL Evidência': formatEvidenceField(item.caminho_evidencia, item.nome_evidencia),
+        'Data Solução': safeExcelText(item.data_solucao || '-'),
+        'Hora Solução': safeExcelText(item.hora_solucao || '-'),
+        'Responsável Solução': safeExcelText(item.responsavel_solucao || '-'),
+        'Descrição da Solução': safeExcelText(item.solucao || '-'),
+        'Usuário Registro': safeExcelText(item.usuario_registro || '-'),
+        'Data Cadastro': safeExcelText(item.data_cadastro || '-')
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Diario_de_Bordo');
+
+      // Auto-calculate column widths
+      if (exportData.length > 0) {
+        const colWidths = Object.keys(exportData[0]).map((key) => {
+          const maxLen = Math.max(
+            key.length,
+            ...exportData.map((row) => String((row as any)[key] || '').length)
+          );
+          return { wch: Math.min(Math.max(maxLen + 2, 10), 60) };
+        });
+        worksheet['!cols'] = colWidths;
+      }
+
+      XLSX.writeFile(workbook, `Diario_de_Bordo_${getBrasiliaDateString()}.xlsx`);
+    } catch (err: any) {
+      console.error('Erro ao exportar Excel:', err);
+      alert(`Erro ao gerar a planilha Excel: ${err.message || 'Falha ao processar dados.'}`);
     }
-
-    const exportData = displayedOcorrencias.map((item) => ({
-      ID: item.id,
-      Tipo: item.tipo || 'Operacional',
-      'Data Ocorrência': item.data_ocorrencia,
-      'Hora Ocorrência': item.hora_ocorrencia,
-      Produto: item.produto,
-      Ocorrência: item.ocorrencia,
-      'Tipo de Impacto': item.impacto,
-      Status: item.status,
-      Responsável: item.responsavel,
-      Comentários: item.comentario || '',
-      'Data Solução': item.data_solucao || '-',
-      'Hora Solução': item.hora_solucao || '-',
-      'Responsável Solução': item.responsavel_solucao || '-',
-      Solução: item.solucao || '-',
-      'Usuário Registro': item.usuario_registro,
-      'Data Cadastro': item.data_cadastro
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Diario_de_Bordo');
-    XLSX.writeFile(workbook, `Diario_de_Bordo_${getBrasiliaDateString()}.xlsx`);
   };
 
   // Clear filters
@@ -854,10 +1264,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
     setFiltros({
       dataInicial: '',
       dataFinal: '',
-      produto: 'Todos',
-      status: 'Todos',
-      responsavel: 'Todos',
-      impacto: 'Todos',
+      produto: [],
+      status: [],
+      responsavel: [],
+      impacto: [],
       tipo: 'Todos',
       busca: ''
     });
@@ -868,16 +1278,14 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
   const [isExportingPDF, setIsExportingPDF] = useState<boolean>(false);
 
   const handleExportPDF = async () => {
-    if (!metrics) return;
     setIsExportingPDF(true);
-
-    if (activeTab !== 'dashboard') {
-      setActiveTab('dashboard');
-      // Delay to allow React re-render & Recharts animations to finish painting
-      await new Promise((resolve) => setTimeout(resolve, 600));
-    }
-
     try {
+      if (activeTab !== 'dashboard') {
+        setActiveTab('dashboard');
+        // Delay to allow React re-render & Recharts animations to finish painting
+        await new Promise((resolve) => setTimeout(resolve, 600));
+      }
+
       if (chartsContainerRef.current) {
         await exportDashboardToPDF(
           chartsContainerRef.current,
@@ -888,9 +1296,9 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       } else {
         alert('Contêiner dos gráficos não encontrado. Verifique se a aba de gráficos está visível.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao exportar PDF:', err);
-      alert('Não foi possível gerar o PDF dos gráficos. Tente novamente.');
+      alert(`Não foi possível gerar o PDF dos gráficos: ${err.message || 'Tente novamente.'}`);
     } finally {
       setIsExportingPDF(false);
     }
@@ -1036,48 +1444,66 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
               <Filter className="h-4 w-4 text-blue-600 dark:text-cyan-400" />
               <span>Filtros de Consulta</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
+                type="button"
                 onClick={() => handleOpenModal()}
-                className="flex items-center justify-center p-2.5 bg-blue-600 dark:bg-cyan-500 hover:bg-blue-700 dark:hover:bg-cyan-400 text-white dark:text-slate-950 rounded-xl transition-all shadow-md shadow-blue-600/20 dark:shadow-cyan-500/20 cursor-pointer active:scale-95"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 dark:bg-cyan-500 hover:bg-blue-700 dark:hover:bg-cyan-400 text-white dark:text-slate-950 rounded-xl transition-all shadow-md shadow-blue-600/20 dark:shadow-cyan-500/20 cursor-pointer active:scale-95 text-xs font-semibold"
                 title="Novo Registro"
               >
-                <Plus className="h-4.5 w-4.5" />
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Novo Registro</span>
               </button>
               <button
+                type="button"
                 onClick={handleExportExcel}
-                className="flex items-center justify-center p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-md shadow-emerald-600/20 cursor-pointer active:scale-95"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-md shadow-emerald-600/20 cursor-pointer active:scale-95 text-xs font-semibold"
                 title="Exportar Excel"
               >
-                <FileSpreadsheet className="h-4.5 w-4.5" />
+                <FileSpreadsheet className="h-4 w-4" />
+                <span className="hidden sm:inline">Exportar Excel</span>
               </button>
               <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition-all shadow-md shadow-teal-600/20 cursor-pointer active:scale-95 text-xs font-semibold"
+                title="Importar Excel / CSV"
+              >
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Importar</span>
+              </button>
+              <button
+                type="button"
                 onClick={handleExportPDF}
                 disabled={isExportingPDF}
-                className="flex items-center justify-center p-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl transition-all shadow-md shadow-rose-600/20 cursor-pointer active:scale-95"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl transition-all shadow-md shadow-rose-600/20 cursor-pointer active:scale-95 text-xs font-semibold"
                 title={isExportingPDF ? 'Gerando PDF...' : 'Exportar PDF'}
               >
                 {isExportingPDF ? (
-                  <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <FileDown className="h-4.5 w-4.5" />
+                  <FileDown className="h-4 w-4" />
                 )}
+                <span className="hidden sm:inline">{isExportingPDF ? 'Gerando PDF...' : 'Exportar PDF'}</span>
               </button>
               {activeTab === 'ocorrencias' && (
                 <button
+                  type="button"
                   onClick={handleOpenEmailModal}
-                  className="flex items-center justify-center p-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all shadow-md shadow-purple-600/20 cursor-pointer active:scale-95"
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all shadow-md shadow-purple-600/20 cursor-pointer active:scale-95 text-xs font-semibold"
                   title="Encaminhar E-mail"
                 >
-                  <Mail className="h-4.5 w-4.5" />
+                  <Mail className="h-4 w-4" />
+                  <span className="hidden sm:inline">E-mail</span>
                 </button>
               )}
               <button
+                type="button"
                 onClick={handleClearFilters}
-                className="flex items-center justify-center p-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer active:scale-95"
+                className="flex items-center justify-center p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer active:scale-95"
                 title="Limpar todos os filtros"
               >
-                <RotateCcw className="h-4.5 w-4.5" />
+                <RotateCcw className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -1127,79 +1553,40 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
             </div>
 
             {/* Produto */}
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                Produto
-              </label>
-              <select
-                value={filtros.produto}
-                onChange={(e) => setFiltros((prev) => ({ ...prev, produto: e.target.value }))}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 outline-none transition"
-              >
-                <option value="Todos">Todos os Produtos</option>
-                {produtos.map((p, idx) => (
-                  <option key={`prod-${p}-${idx}`} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <MultiSelectFilter
+              label="Produto"
+              placeholder="Todos os Produtos"
+              options={produtos}
+              selected={Array.isArray(filtros.produto) ? filtros.produto : []}
+              onChange={(selected) => setFiltros((prev) => ({ ...prev, produto: selected }))}
+            />
 
             {/* Status */}
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                Status
-              </label>
-              <select
-                value={filtros.status}
-                onChange={(e) => setFiltros((prev) => ({ ...prev, status: e.target.value }))}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 outline-none transition"
-              >
-                <option value="Todos">Todos os Status</option>
-                <option value="Aberto">Aberto</option>
-                <option value="Em Andamento">Em Andamento</option>
-                <option value="Resolvido">Resolvido</option>
-                <option value="Monitorando">Monitorando</option>
-                <option value="Cancelado">Cancelado</option>
-              </select>
-            </div>
+            <MultiSelectFilter
+              label="Status"
+              placeholder="Todos os Status"
+              options={['Aberto', 'Em Andamento', 'Resolvido', 'Monitorando', 'Cancelado']}
+              selected={Array.isArray(filtros.status) ? filtros.status : []}
+              onChange={(selected) => setFiltros((prev) => ({ ...prev, status: selected }))}
+            />
 
             {/* Responsável */}
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                Responsável
-              </label>
-              <select
-                value={filtros.responsavel}
-                onChange={(e) => setFiltros((prev) => ({ ...prev, responsavel: e.target.value }))}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 outline-none transition"
-              >
-                <option value="Todos">Todos os Responsáveis</option>
-                {usuariosList.map((u, idx) => (
-                  <option key={`user-${u}-${idx}`} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <MultiSelectFilter
+              label="Responsável"
+              placeholder="Todos os Responsáveis"
+              options={usuariosList}
+              selected={Array.isArray(filtros.responsavel) ? filtros.responsavel : []}
+              onChange={(selected) => setFiltros((prev) => ({ ...prev, responsavel: selected }))}
+            />
 
             {/* Tipo de Impacto */}
-            <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                Impacto
-              </label>
-              <select
-                value={filtros.impacto}
-                onChange={(e) => setFiltros((prev) => ({ ...prev, impacto: e.target.value }))}
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 outline-none transition"
-              >
-                <option value="Todos">Todos os Impactos</option>
-                <option value="Baixo">Baixo</option>
-                <option value="Médio">Médio</option>
-                <option value="Alto">Alto</option>
-                <option value="Crítico">Crítico</option>
-              </select>
-            </div>
+            <MultiSelectFilter
+              label="Impacto"
+              placeholder="Todos os Impactos"
+              options={['Baixo', 'Médio', 'Alto', 'Crítico']}
+              selected={Array.isArray(filtros.impacto) ? filtros.impacto : []}
+              onChange={(selected) => setFiltros((prev) => ({ ...prev, impacto: selected }))}
+            />
           </div>
 
           {/* Text Search Bar */}
@@ -1405,15 +1792,24 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider">
                   <tr>
-                    <th className="p-3.5 pl-5">Data/Hora</th>
+                    <th className="p-3.5 pl-5">ID</th>
+                    <th className="p-3.5">Tipo Ocorrência</th>
+                    <th className="p-3.5">Data Ocorrência</th>
+                    <th className="p-3.5">Hora Ocorrência</th>
                     <th className="p-3.5">Produto</th>
-                    <th className="p-3.5">{activeTab === 'ocorrencias' ? 'Sistema Impactado' : 'Ocorrência'}</th>
-                    <th className="p-3.5">Impacto</th>
+                    <th className="p-3.5">Sistema Impactado</th>
+                    <th className="p-3.5">Descrição do Sistema</th>
+                    <th className="p-3.5">Tipo de Impacto</th>
                     <th className="p-3.5">Status</th>
-                    <th className="p-3.5">Responsável</th>
-                    <th className="p-3.5">Solução / Resolução</th>
-                    <th className="p-3.5 text-center">Evidência</th>
-                    <th className="p-3.5 text-center">Linha do Tempo</th>
+                    <th className="p-3.5">Responsável Ocorrência</th>
+                    <th className="p-3.5">Descrição da Ocorrência</th>
+                    <th className="p-3.5 text-center">URL Evidência</th>
+                    <th className="p-3.5">Data Solução</th>
+                    <th className="p-3.5">Hora Solução</th>
+                    <th className="p-3.5">Responsável Solução</th>
+                    <th className="p-3.5">Descrição da Solução</th>
+                    <th className="p-3.5">Usuário Registro</th>
+                    <th className="p-3.5">Data Cadastro</th>
                     <th className="p-3.5 pr-5 text-center sticky right-0 bg-slate-50 dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 shadow-2xs z-10">
                       Ações
                     </th>
@@ -1432,69 +1828,72 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                         className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors"
                         title="Dê duplo clique para editar esta ocorrência"
                       >
-                        {/* Data / Hora */}
-                        <td className="p-3.5 pl-5 whitespace-nowrap">
-                          <div className="font-semibold text-slate-900 dark:text-slate-200">
-                            {item.data_ocorrencia}
-                          </div>
-                          <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
-                            {item.hora_ocorrencia}
-                          </div>
+                        {/* 1. ID */}
+                        <td className="p-3.5 pl-5 font-mono text-slate-500 font-semibold whitespace-nowrap">
+                          #{item.id}
                         </td>
 
-                        {/* Produto */}
+                        {/* 2. Tipo Ocorrência */}
+                        <td className="p-3.5 whitespace-nowrap">
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-cyan-400 border border-blue-200/60 dark:border-cyan-900/50">
+                            {item.tipo || 'Operacional'}
+                          </span>
+                        </td>
+
+                        {/* 3. Data Ocorrência */}
+                        <td className="p-3.5 font-semibold text-slate-900 dark:text-slate-200 whitespace-nowrap">
+                          {item.data_ocorrencia}
+                        </td>
+
+                        {/* 4. Hora Ocorrência */}
+                        <td className="p-3.5 font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                          {item.hora_ocorrencia || '-'}
+                        </td>
+
+                        {/* 5. Produto */}
                         <td className="p-3.5 font-medium text-slate-900 dark:text-slate-200 whitespace-nowrap">
                           {item.produto}
                         </td>
 
-                        {/* Ocorrência & Comentários */}
-                        <td className="p-3.5 max-w-xs">
-                          <div className="font-semibold text-slate-900 dark:text-slate-100 line-clamp-1">
-                            {item.ocorrencia}
-                          </div>
-                          {item.comentario && (
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-                              {item.comentario}
-                            </div>
-                          )}
+                        {/* 6. Sistema Impactado */}
+                        <td className="p-3.5 max-w-xs font-semibold text-slate-900 dark:text-slate-100 truncate" title={item.ocorrencia}>
+                          {item.ocorrencia || '-'}
                         </td>
 
-                        {/* Impacto */}
+                        {/* 7. Descrição do Sistema */}
+                        <td className="p-3.5 max-w-xs text-slate-600 dark:text-slate-300">
+                          <div className="line-clamp-2" title={item.comentario}>
+                            {item.comentario || '-'}
+                          </div>
+                        </td>
+
+                        {/* 8. Tipo de Impacto */}
                         <td className="p-3.5 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${impactoConfig.badge}`}>
                             {item.impacto}
                           </span>
                         </td>
 
-                        {/* Status */}
+                        {/* 9. Status */}
                         <td className="p-3.5 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold ${statusConfig.badge}`}>
                             {item.status}
                           </span>
                         </td>
 
-                        {/* Responsável */}
+                        {/* 10. Responsável Ocorrência */}
                         <td className="p-3.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap" title={item.responsavel}>
                           {formatFirstAndLastName(item.responsavel)}
                         </td>
 
-                        {/* Solução */}
-                        <td className="p-3.5 max-w-xs">
-                          {item.solucao ? (
-                            <div>
-                              <div className="text-slate-800 dark:text-slate-200 font-medium line-clamp-1">
-                                {item.solucao}
-                              </div>
-                              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold" title={item.responsavel_solucao}>
-                                {formatFirstAndLastName(item.responsavel_solucao)} ({item.data_solucao})
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 dark:text-slate-500 italic text-[11px]">Pendente</span>
-                          )}
+                        {/* 11. Descrição da Ocorrência */}
+                        <td className="p-3.5 max-w-xs text-slate-600 dark:text-slate-300">
+                          <div className="line-clamp-2" title={item.comentario || item.ocorrencia}>
+                            {item.comentario || item.ocorrencia || '-'}
+                          </div>
                         </td>
 
-                        {/* Evidência */}
+                        {/* 12. URL Evidência */}
                         <td className="p-3.5 text-center whitespace-nowrap">
                           {item.caminho_evidencia ? (
                             <button
@@ -1506,28 +1905,47 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                                   title: `Evidência - ${item.produto} (${item.data_ocorrencia})`
                                 });
                               }}
-                              className="p-1.5 text-blue-600 dark:text-cyan-400 hover:bg-blue-50 dark:hover:bg-cyan-500/20 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+                              className="p-1.5 text-blue-600 dark:text-cyan-400 hover:bg-blue-50 dark:hover:bg-cyan-500/20 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1 text-[11px] font-semibold"
                               title="Ver foto da evidência"
                             >
                               <ImageIcon className="h-4 w-4" />
+                              <span>Evidência</span>
                             </button>
                           ) : (
                             <span className="text-slate-300 dark:text-slate-600 text-xs">-</span>
                           )}
                         </td>
 
-                        {/* Linha do Tempo */}
-                        <td className="p-3.5 text-center whitespace-nowrap">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenModal(item, 'historico');
-                            }}
-                            className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
-                            title="Ver Linha do Tempo"
-                          >
-                            <Eye className="h-4 w-4 text-blue-600 dark:text-cyan-400" />
-                          </button>
+                        {/* 13. Data Solução */}
+                        <td className="p-3.5 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                          {item.data_solucao || '-'}
+                        </td>
+
+                        {/* 14. Hora Solução */}
+                        <td className="p-3.5 font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                          {item.hora_solucao || '-'}
+                        </td>
+
+                        {/* 15. Responsável Solução */}
+                        <td className="p-3.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap" title={item.responsavel_solucao}>
+                          {item.responsavel_solucao ? formatFirstAndLastName(item.responsavel_solucao) : '-'}
+                        </td>
+
+                        {/* 16. Descrição da Solução */}
+                        <td className="p-3.5 max-w-xs text-slate-700 dark:text-slate-300">
+                          <div className="line-clamp-2" title={item.solucao}>
+                            {item.solucao || '-'}
+                          </div>
+                        </td>
+
+                        {/* 17. Usuário Registro */}
+                        <td className="p-3.5 text-slate-600 dark:text-slate-400 whitespace-nowrap" title={item.usuario_registro}>
+                          {item.usuario_registro ? formatFirstAndLastName(item.usuario_registro) : '-'}
+                        </td>
+
+                        {/* 18. Data Cadastro */}
+                        <td className="p-3.5 text-slate-500 dark:text-slate-400 whitespace-nowrap text-[11px]">
+                          {item.data_cadastro ? (item.data_cadastro.includes('T') ? item.data_cadastro.split('T')[0] : item.data_cadastro) : '-'}
                         </td>
 
                         {/* Actions (Sticky Column on Right) */}
@@ -2305,6 +2723,188 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                   <span>{isSendingEmail ? 'Enviando...' : 'Enviar E-mail'}</span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. MODAL DE IMPORTAÇÃO EM LOTE (Excel / CSV) */}
+      {isImportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-fadeIn overflow-y-auto">
+          <div className="relative w-full max-w-3xl rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-5 my-8">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-teal-50 dark:bg-teal-950/80 text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800 rounded-xl">
+                  <Upload className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Importar Ocorrências (Diário de Bordo)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Importe múltiplas ocorrências via arquivo Excel (.xlsx, .xls) ou CSV (.csv)
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsImportModalOpen(false);
+                  setImportFile(null);
+                  setImportParsedRows([]);
+                  setImportError(null);
+                  setImportSuccess(null);
+                }}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Template Download Option */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900/50">
+              <div>
+                <h4 className="text-xs font-bold text-teal-900 dark:text-teal-300">Modelo de Importação Recomendado</h4>
+                <p className="text-[11px] text-teal-700 dark:text-teal-400">
+                  Títulos das colunas suportados: <code className="font-mono font-bold">Data/Hora; Produto; Sistema Impactado; Impacto; Tipo; Status; Responsável; Comentário; Solução</code>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                className="inline-flex items-center gap-1.5 shrink-0 px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer"
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                <span>Baixar Modelo Excel</span>
+              </button>
+            </div>
+
+            {/* Notifications */}
+            {importError && (
+              <div className="rounded-xl bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-800 p-3.5 text-xs text-red-800 dark:text-red-300 flex items-center justify-between">
+                <div className="flex items-center gap-2 font-medium">
+                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
+                  <span>{importError}</span>
+                </div>
+                <button onClick={() => setImportError(null)} className="text-red-400 hover:text-red-600">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
+            {importSuccess && (
+              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 p-3.5 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 font-medium">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{importSuccess}</span>
+              </div>
+            )}
+
+            {/* Dropzone */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Selecione o arquivo Excel / CSV para carregar
+              </label>
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl cursor-pointer bg-slate-50 dark:bg-slate-950/50 hover:bg-slate-100/80 dark:hover:bg-slate-900 transition">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 mb-2 text-teal-600 dark:text-teal-400" />
+                    <p className="mb-1 text-xs text-slate-600 dark:text-slate-300">
+                      <span className="font-semibold text-teal-600 dark:text-teal-400">Clique para selecionar</span> ou arraste o arquivo até aqui
+                    </p>
+                    <p className="text-[11px] text-slate-400">Formatos aceitos: .xlsx, .xls, .csv</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleParseImportFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              {importFile && (
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                  Arquivo selecionado: <span className="font-bold text-slate-800 dark:text-white">{importFile.name}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Parsed Rows Preview */}
+            {importParsedRows.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Pré-visualização dos Registros Lidos ({importParsedRows.length})
+                  </span>
+                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    Pronto para Importação
+                  </span>
+                </div>
+                <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-2">
+                  <table className="w-full text-left text-[11px]">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-bold uppercase tracking-wider">
+                        <th className="p-1.5">Data/Hora</th>
+                        <th className="p-1.5">Produto</th>
+                        <th className="p-1.5">Sistema Impactado</th>
+                        <th className="p-1.5">Impacto</th>
+                        <th className="p-1.5">Status</th>
+                        <th className="p-1.5">Responsável</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
+                      {importParsedRows.slice(0, 15).map((row, idx) => (
+                        <tr key={`preview-row-${idx}`}>
+                          <td className="p-1.5 whitespace-nowrap font-mono">{row.data_ocorrencia} {row.hora_ocorrencia}</td>
+                          <td className="p-1.5 whitespace-nowrap font-medium">{row.produto}</td>
+                          <td className="p-1.5 truncate max-w-[150px]">{row.ocorrencia}</td>
+                          <td className="p-1.5 whitespace-nowrap">{row.impacto}</td>
+                          <td className="p-1.5 whitespace-nowrap">{row.status}</td>
+                          <td className="p-1.5 whitespace-nowrap">{row.responsavel}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {importParsedRows.length > 15 && (
+                    <p className="text-[10px] text-slate-400 italic text-center pt-2">
+                      ... e mais {importParsedRows.length - 15} registro(s)
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsImportModalOpen(false);
+                  setImportFile(null);
+                  setImportParsedRows([]);
+                  setImportError(null);
+                  setImportSuccess(null);
+                }}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmImport}
+                disabled={isImporting || importParsedRows.length === 0}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 active:scale-98 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-md shadow-teal-600/20 cursor-pointer"
+              >
+                {isImporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                <span>{isImporting ? 'Importando...' : `Confirmar Importação (${importParsedRows.length})`}</span>
+              </button>
             </div>
           </div>
         </div>

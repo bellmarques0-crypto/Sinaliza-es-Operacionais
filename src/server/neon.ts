@@ -368,25 +368,47 @@ deleteSupervisor: async (id:number): Promise<void> => {
     );
   },
 
-getOperadores: async (): Promise<Operador[]> => {
-
+  getOperadores: async (): Promise<Operador[]> => {
     try {
-
-        const { rows } = await dbQuery(
-
-            `SELECT *
-             FROM operadores
-             ORDER BY id`
-
-        );
-
-        return rows as Operador[];
-
+      const { rows } = await dbQuery(
+        `SELECT *
+         FROM operadores
+         ORDER BY id ASC`
+      );
+      const uniqueMap = new Map<string, Operador>();
+      for (const row of rows as Operador[]) {
+        if (!row.nome) continue;
+        const key = row.nome.trim().toLowerCase();
+        const existing = uniqueMap.get(key);
+        if (!existing) {
+          uniqueMap.set(key, row);
+        } else {
+          // Prefer row with valid supervisor/produto data or higher id
+          const existingIsGeneric = !existing.supervisor || existing.supervisor === 'Geral';
+          const currentIsGeneric = !row.supervisor || row.supervisor === 'Geral';
+          if (existingIsGeneric && !currentIsGeneric) {
+            uniqueMap.set(key, row);
+          } else if (row.id >= existing.id) {
+            uniqueMap.set(key, row);
+          }
+        }
+      }
+      return Array.from(uniqueMap.values());
     } catch (err) {
-
-        console.warn("[PostgreSQL] Falling back to local operadores data:", err);
-        return getLocalOperadores();
-
+      console.warn("[PostgreSQL] Falling back to local operadores data:", err);
+      const local = getLocalOperadores();
+      const uniqueMap = new Map<string, Operador>();
+      for (const op of local) {
+        if (!op.nome) continue;
+        const key = op.nome.trim().toLowerCase();
+        const existing = uniqueMap.get(key);
+        if (!existing) {
+          uniqueMap.set(key, op);
+        } else if (op.id >= existing.id) {
+          uniqueMap.set(key, op);
+        }
+      }
+      return Array.from(uniqueMap.values());
     }
   },
   addOperador: async (

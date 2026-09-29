@@ -140,10 +140,10 @@ export interface DiarioBordoHistorico {
 export interface DiarioBordoFiltros {
   dataInicial?: string;
   dataFinal?: string;
-  produto?: string;
-  status?: string;
-  responsavel?: string;
-  impacto?: string;
+  produto?: string | string[];
+  status?: string | string[];
+  responsavel?: string | string[];
+  impacto?: string | string[];
   tipo?: string;
   busca?: string;
 }
