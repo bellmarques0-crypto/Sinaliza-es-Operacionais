@@ -17,7 +17,8 @@ import {
   Clock,
   Calendar,
   Trash2,
-  Pencil
+  Pencil,
+  Lock
 } from 'lucide-react';
 import { api } from '../services/api';
 import {
@@ -26,7 +27,8 @@ import {
   Operador,
   Produto,
   Motivo,
-  UserSession
+  UserSession,
+  PerfilConfig
 } from '../types';
 import { exportHistoryToExcel } from '../utils/excelExport';
 import { calculateSLA, isSupervisorMatch } from '../utils/dateUtils';
@@ -47,7 +49,27 @@ const getGravidadeBadge = (grav: string = 'Médio') => {
 };
 
 export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
-  const canRegister = user.perfil === 'Administrador' || user.perfil === 'Planejamento';
+  const [perfisConfig, setPerfisConfig] = useState<PerfilConfig[]>([]);
+
+  useEffect(() => {
+    api.getPerfisConfig().then(setPerfisConfig).catch(console.error);
+  }, []);
+
+  const userPerfilObj = perfisConfig.find(
+    (p) => p.nome.toLowerCase().trim() === (user.perfil || '').toLowerCase().trim()
+  );
+
+  const hasPerm = (key: string) => {
+    if (user.perfil === 'Administrador') return true;
+    if (!userPerfilObj || !userPerfilObj.permissoes) return true;
+    return userPerfilObj.permissoes[key] !== false;
+  };
+
+  const canRegister = hasPerm('sinalizacoes_criar');
+  const canConfirm = hasPerm('sinalizacoes_confirmar');
+  const canEdit = hasPerm('sinalizacoes_editar');
+  const canDelete = hasPerm('sinalizacoes_excluir');
+  const canExport = hasPerm('sinalizacoes_exportar');
 
   // Form State
   const [selectedOperador, setSelectedOperador] = useState('');
@@ -1116,15 +1138,13 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 <th className="px-3.5 py-3 text-center">Gravidade</th>
                 <th className="px-3.5 py-3">Observação</th>
                 <th className="px-3.5 py-3">Usuário Responsável</th>
-                {(user.perfil === 'Administrador' || user.perfil === 'Planejamento') && (
-                  <th className="px-3.5 py-3 text-center">Ações</th>
-                )}
+                <th className="px-3.5 py-3 text-center">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
               {isLoadingHistory ? (
                 <tr>
-                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 13 : 12} className="px-4 py-8 text-center text-slate-400 dark:text-slate-500">
+                  <td colSpan={13} className="px-4 py-8 text-center text-slate-400 dark:text-slate-500">
                     <div className="flex items-center justify-center gap-2">
                       <span className="h-4 w-4 border-2 border-blue-600 dark:border-cyan-400 border-t-transparent rounded-full animate-spin" />
                       Carregando sinalizações...
@@ -1249,35 +1269,37 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     <td className="px-3.5 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                       {item.usuario_responsavel}
                     </td>
-                    {(user.perfil === 'Administrador' || user.perfil === 'Planejamento') && (
-                      <td className="px-3.5 py-3 text-center whitespace-nowrap">
-                        <div className="flex items-center justify-center gap-1.5">
+                    <td className="px-3.5 py-3 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenEditModal(item)}
+                          className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition shadow-2xs cursor-pointer ${
+                            canEdit
+                              ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60'
+                              : 'bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60'
+                          }`}
+                          title={canEdit ? "Editar Sinalização" : "Visualizar Sinalização"}
+                        >
+                          {canEdit ? <Pencil className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                          {canEdit ? 'Editar' : 'Visualizar'}
+                        </button>
+                        {canDelete && (
                           <button
-                            onClick={() => handleOpenEditModal(item)}
-                            className="inline-flex items-center gap-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition shadow-2xs cursor-pointer"
-                            title="Editar Sinalização"
+                            onClick={() => setSinalizacaoToDelete({ id: item.id, operador: item.operador })}
+                            className="inline-flex items-center gap-1 rounded-lg bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 px-2.5 py-1 text-[11px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 transition shadow-2xs cursor-pointer"
+                            title="Excluir Sinalização"
                           >
-                            <Pencil className="h-3.5 w-3.5" />
-                            Editar
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Excluir
                           </button>
-                          {user.perfil === 'Administrador' && (
-                            <button
-                              onClick={() => setSinalizacaoToDelete({ id: item.id, operador: item.operador })}
-                              className="inline-flex items-center gap-1 rounded-lg bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 px-2.5 py-1 text-[11px] font-semibold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 transition shadow-2xs cursor-pointer"
-                              title="Excluir Sinalização"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Excluir
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    )}
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={(user.perfil === 'Administrador' || user.perfil === 'Planejamento') ? 13 : 12} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
+                  <td colSpan={13} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
                     Nenhuma sinalização encontrada com os filtros aplicados.
                   </td>
                 </tr>
@@ -1395,13 +1417,23 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 max-w-2xl w-full p-6 my-8 animate-in fade-in zoom-in-95 duration-150 relative">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-5">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
-                  <Pencil className="h-4 w-4" />
+                <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${canEdit ? 'bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'}`}>
+                  {canEdit ? <Pencil className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Editar Sinalização #{editingSinalizacao.id}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                      {canEdit ? `Editar Sinalização #${editingSinalizacao.id}` : `Visualizar Sinalização #${editingSinalizacao.id}`}
+                    </h3>
+                    {!canEdit && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        <Lock className="h-3 w-3" />
+                        Apenas leitura
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Altere os dados da sinalização e salve as alterações
+                    {canEdit ? 'Altere os dados da sinalização e salve as alterações' : 'Visualizando dados da sinalização (Somente Leitura)'}
                   </p>
                 </div>
               </div>
@@ -1416,6 +1448,13 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 <X className="h-5 w-5" />
               </button>
             </div>
+
+            {!canEdit && (
+              <div className="mb-4 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 p-3 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2 font-medium">
+                <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span>Modo Apenas Leitura: Seu perfil não possui permissão para editar este registro.</span>
+              </div>
+            )}
 
             {editErrorMessage && (
               <div className="mb-4 rounded-xl bg-red-50 dark:bg-red-950/80 border border-red-200 dark:border-red-800 p-3 text-xs text-red-800 dark:text-red-300 flex items-center justify-between">
@@ -1444,6 +1483,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     <input
                       type="text"
                       required
+                      disabled={!canEdit}
                       placeholder="Buscar operador na base..."
                       value={editOperadorQuery}
                       onChange={(e) => {
@@ -1452,11 +1492,11 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                         setShowEditOperadorDropdown(true);
                       }}
                       onFocus={() => setShowEditOperadorDropdown(true)}
-                      className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                     />
                     <Search className="absolute right-3 top-2.5 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                   </div>
-                  {showEditOperadorDropdown && editOperadorQuery.length > 0 && (
+                  {canEdit && showEditOperadorDropdown && editOperadorQuery.length > 0 && (
                     <div className="absolute z-20 left-0 right-0 mt-1 max-h-40 overflow-y-auto rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-lg divide-y divide-slate-100 dark:divide-slate-800">
                       {Array.from(
                         new Map<string, Operador>(
@@ -1495,9 +1535,10 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   </label>
                   <select
                     required
+                    disabled={!canEdit}
                     value={editSupervisor}
                     onChange={(e) => handleEditSupervisorSelect(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                   >
                     <option value="">Selecione o Supervisor</option>
                     {uniqueActiveSupervisores.map((sup, idx) => (
@@ -1515,9 +1556,10 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   </label>
                   <select
                     required
+                    disabled={!canEdit}
                     value={editProduto}
                     onChange={(e) => setEditProduto(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                   >
                     <option value="">Selecione o Produto</option>
                     {uniqueActiveProdutos.map((prod, idx) => (
@@ -1535,9 +1577,10 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   </label>
                   <select
                     required
+                    disabled={!canEdit}
                     value={editMotivo}
                     onChange={(e) => setEditMotivo(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                   >
                     <option value="">Selecione o Motivo</option>
                     {motivosList.map((mot, idx) => (
@@ -1555,9 +1598,10 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   </label>
                   <select
                     required
+                    disabled={!canEdit}
                     value={editGravidade}
                     onChange={(e) => setEditGravidade(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition font-medium"
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition font-medium disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                   >
                     <option value="Muito alto">Muito alto</option>
                     <option value="Alto">Alto</option>
@@ -1573,10 +1617,11 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Observações</label>
                 <textarea
                   rows={2}
+                  disabled={!canEdit}
                   placeholder="Escreva detalhes adicionais..."
                   value={editObservacao}
                   onChange={(e) => setEditObservacao(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                 />
               </div>
 
@@ -1592,11 +1637,13 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     accept="image/png, image/jpeg, image/jpg"
                     onChange={handleEditImageChange}
                     className="hidden"
+                    disabled={!canEdit}
                   />
                   <button
                     type="button"
+                    disabled={!canEdit}
                     onClick={() => editFileInputRef.current?.click()}
-                    className="px-3 py-1.5 border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1.5 border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Upload className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
                     <span>Selecionar Nova Imagem</span>
@@ -1607,13 +1654,15 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                       <span className="text-slate-600 dark:text-slate-300 truncate max-w-[150px]">
                         {editImageFile ? editImageFile.name : 'Evidência Atual'}
                       </span>
-                      <button
-                        type="button"
-                        onClick={handleClearEditImage}
-                        className="text-red-500 hover:text-red-700 dark:hover:text-red-400 ml-1 cursor-pointer"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={handleClearEditImage}
+                          className="text-red-500 hover:text-red-700 dark:hover:text-red-400 ml-1 cursor-pointer"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1629,25 +1678,27 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   }}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
                 >
-                  Cancelar
+                  {canEdit ? 'Cancelar' : 'Fechar'}
                 </button>
-                <button
-                  type="submit"
-                  disabled={isUpdatingSinalizacao}
-                  className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-600/20 disabled:opacity-50 cursor-pointer"
-                >
-                  {isUpdatingSinalizacao ? (
-                    <>
-                      <span className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Salvando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Pencil className="h-3.5 w-3.5" />
-                      <span>Salvar Alterações</span>
-                    </>
-                  )}
-                </button>
+                {canEdit && (
+                  <button
+                    type="submit"
+                    disabled={isUpdatingSinalizacao}
+                    className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-amber-600/20 disabled:opacity-50 cursor-pointer"
+                  >
+                    {isUpdatingSinalizacao ? (
+                      <>
+                        <span className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Salvando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="h-3.5 w-3.5" />
+                        <span>Salvar Alterações</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </form>
           </div>

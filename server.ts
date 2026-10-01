@@ -1858,6 +1858,47 @@ app.get('/api/operadores', authenticateToken, async (req: Request, res: Response
   return res.json(ops);
 });
 
+// --- PERFIS & PERMISSÕES ROUTES ---
+app.get('/api/perfis-regras', authenticateToken, async (req: Request, res: Response) => {
+  return res.json(await db.getPerfisConfig());
+});
+
+app.post(
+  '/api/perfis-regras',
+  authenticateToken,
+  requireRole(['Administrador']),
+  async (req: Request, res: Response) => {
+    const { nome, descricao, permissoes } = req.body;
+    if (!nome) return res.status(400).json({ error: 'Nome do perfil é obrigatório.' });
+    const saved = await db.savePerfilConfig({ nome, descricao, permissoes, is_custom: true });
+    return res.status(201).json(saved);
+  }
+);
+
+app.put(
+  '/api/perfis-regras/:nome',
+  authenticateToken,
+  requireRole(['Administrador']),
+  async (req: Request, res: Response) => {
+    const { nome, descricao, permissoes, is_custom } = req.body;
+    const targetNome = req.params.nome;
+    const saved = await db.savePerfilConfig({ nome: nome || targetNome, descricao, permissoes, is_custom });
+    return res.json(saved);
+  }
+);
+
+app.delete(
+  '/api/perfis-regras/:nome',
+  authenticateToken,
+  requireRole(['Administrador']),
+  async (req: Request, res: Response) => {
+    const targetNome = req.params.nome;
+    const deleted = await db.deletePerfilConfig(targetNome);
+    if (!deleted) return res.status(404).json({ error: 'Perfil não encontrado ou não pode ser excluído.' });
+    return res.json({ message: 'Perfil excluído com sucesso.' });
+  }
+);
+
 // --- PRODUTOS ROUTES ---
 app.get('/api/produtos', authenticateToken, async (req: Request, res: Response) => {
   return res.json(await db.getProdutos());

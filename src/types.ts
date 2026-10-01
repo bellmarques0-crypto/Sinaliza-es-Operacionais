@@ -1,4 +1,38 @@
-export type PerfilAcesso = 'Administrador' | 'Planejamento' | 'Operação' | 'Supervisor';
+export type PerfilAcesso = string;
+
+export interface PerfilConfig {
+  id?: number;
+  nome: string;
+  descricao?: string;
+  permissoes: Record<string, boolean>;
+  is_custom?: boolean;
+}
+
+export const PERMISSOES_SISTEMA = [
+  { key: 'sinalizacoes_ver', label: 'Visualizar Sinalizações Cadastradas', categoria: 'Sinalizações' },
+  { key: 'sinalizacoes_dashboard', label: 'Visualizar Dashboard Executivo', categoria: 'Sinalizações' },
+  { key: 'sinalizacoes_criar', label: 'Registrar Novas Sinalizações', categoria: 'Sinalizações' },
+  { key: 'sinalizacoes_confirmar', label: 'Tratar / Confirmar Ocorrências da Equipe', categoria: 'Sinalizações' },
+  { key: 'sinalizacoes_editar', label: 'Editar Ocorrências Cadastradas', categoria: 'Sinalizações' },
+  { key: 'sinalizacoes_excluir', label: 'Excluir Ocorrências', categoria: 'Sinalizações' },
+  { key: 'sinalizacoes_exportar', label: 'Exportar Relatórios (Excel e PDF)', categoria: 'Sinalizações' },
+  { key: 'diario_bordo_ver', label: 'Visualizar Diário de Bordo', categoria: 'Diário de Bordo' },
+  { key: 'absenteismo_ver', label: 'Visualizar Controle de Absenteísmo', categoria: 'Diário de Bordo' },
+  { key: 'diario_bordo_dashboard', label: 'Visualizar Dashboard e Gráficos', categoria: 'Diário de Bordo' },
+  { key: 'diario_bordo_ver_internas', label: 'Visualizar Ocorrências Internas', categoria: 'Diário de Bordo' },
+  { key: 'diario_bordo_ver_externas', label: 'Visualizar Ocorrências Externas', categoria: 'Diário de Bordo' },
+  { key: 'diario_bordo_criar', label: 'Cadastrar Nova Ocorrência', categoria: 'Diário de Bordo' },
+  { key: 'diario_bordo_editar', label: 'Editar Ocorrências', categoria: 'Diário de Bordo' },
+  { key: 'diario_bordo_excluir', label: 'Excluir Ocorrências', categoria: 'Diário de Bordo' },
+  { key: 'diario_bordo_exportar', label: 'Exportar Ocorrências', categoria: 'Diário de Bordo' },
+  { key: 'diario_bordo_gerenciar', label: 'Registrar & Gerenciar Faltas/Atestados', categoria: 'Diário de Bordo' },
+  { key: 'dashboard_ver', label: 'Visualizar Dashboard BI & Indicadores', categoria: 'Métricas & BI' },
+  { key: 'dashboard_todos', label: 'Visualizar Dados Globais (Todas as Equipes)', categoria: 'Métricas & BI' },
+  { key: 'admin_acesso', label: 'Acesso ao Painel de Administração', categoria: 'Administração' },
+  { key: 'admin_usuarios', label: 'Gerenciar Usuários & Cadastros', categoria: 'Administração' },
+  { key: 'admin_perfis', label: 'Criar & Ajustar Perfis de Acesso', categoria: 'Administração' },
+  { key: 'admin_api', label: 'Configurar Integração de API', categoria: 'Administração' }
+];
 
 export interface Usuario {
   id: number;

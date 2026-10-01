@@ -217,6 +217,31 @@ export const api = {
     });
   },
 
+  // Perfis & Permissões
+  getPerfisConfig: async (): Promise<any[]> => {
+    return request<any[]>('/api/perfis-regras');
+  },
+
+  createPerfilConfig: async (data: any): Promise<any> => {
+    return request<any>('/api/perfis-regras', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  updatePerfilConfig: async (nome: string, data: any): Promise<any> => {
+    return request<any>(`/api/perfis-regras/${encodeURIComponent(nome)}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+
+  deletePerfilConfig: async (nome: string): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/api/perfis-regras/${encodeURIComponent(nome)}`, {
+      method: 'DELETE'
+    });
+  },
+
   // Supervisores
   getSupervisores: async (): Promise<Supervisor[]> => {
     return request<Supervisor[]>('/api/supervisores');

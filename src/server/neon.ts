@@ -33,7 +33,10 @@ import {
   getLocalAbsenteismo,
   saveLocalAbsenteismoBatch,
   saveLocalOperador,
-  updateLocalOperador
+  updateLocalOperador,
+  getLocalPerfisConfig,
+  saveLocalPerfilConfig,
+  deleteLocalPerfilConfig
 } from "./localDb.js";
 
 const connectionString = process.env.DATABASE_URL || "";
@@ -1290,6 +1293,18 @@ saveAbsenteismoBatch: async (records: RegistroAbsenteismo[], usuarioRegistro?: s
     }
 
     return localRes;
+},
+
+getPerfisConfig: async () => {
+  return getLocalPerfisConfig();
+},
+
+savePerfilConfig: async (perfil: any) => {
+  return saveLocalPerfilConfig(perfil);
+},
+
+deletePerfilConfig: async (nome: string) => {
+  return deleteLocalPerfilConfig(nome);
 }
 
 };

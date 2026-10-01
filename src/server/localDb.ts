@@ -262,3 +262,156 @@ export function saveLocalAbsenteismoBatch(records: any[]) {
   return data.absenteismo;
 }
 
+export const DEFAULT_PERFIS_CONFIG = [
+  {
+    nome: 'Administrador',
+    descricao: 'Acesso total a todas as configurações, cadastros, relatórios e parâmetros do sistema.',
+    permissoes: {
+      sinalizacoes_ver: true,
+      sinalizacoes_dashboard: true,
+      sinalizacoes_criar: true,
+      sinalizacoes_confirmar: true,
+      sinalizacoes_editar: true,
+      sinalizacoes_excluir: true,
+      sinalizacoes_exportar: true,
+      diario_bordo_ver: true,
+      absenteismo_ver: true,
+      diario_bordo_dashboard: true,
+      diario_bordo_ver_internas: true,
+      diario_bordo_ver_externas: true,
+      diario_bordo_criar: true,
+      diario_bordo_editar: true,
+      diario_bordo_excluir: true,
+      diario_bordo_exportar: true,
+      diario_bordo_gerenciar: true,
+      dashboard_ver: true,
+      dashboard_todos: true,
+      admin_acesso: true,
+      admin_usuarios: true,
+      admin_perfis: true,
+      admin_api: true
+    },
+    is_custom: false
+  },
+  {
+    nome: 'Planejamento',
+    descricao: 'Acesso a relatórios globais, criação de sinalizações, diário de bordo e exportação.',
+    permissoes: {
+      sinalizacoes_ver: true,
+      sinalizacoes_dashboard: true,
+      sinalizacoes_criar: true,
+      sinalizacoes_confirmar: true,
+      sinalizacoes_editar: true,
+      sinalizacoes_excluir: true,
+      sinalizacoes_exportar: true,
+      diario_bordo_ver: true,
+      absenteismo_ver: true,
+      diario_bordo_dashboard: true,
+      diario_bordo_ver_internas: true,
+      diario_bordo_ver_externas: true,
+      diario_bordo_criar: true,
+      diario_bordo_editar: true,
+      diario_bordo_excluir: true,
+      diario_bordo_exportar: true,
+      diario_bordo_gerenciar: true,
+      dashboard_ver: true,
+      dashboard_todos: true,
+      admin_acesso: false,
+      admin_usuarios: false,
+      admin_perfis: false,
+      admin_api: false
+    },
+    is_custom: false
+  },
+  {
+    nome: 'Supervisor',
+    descricao: 'Gestão da equipe direta: tratar sinalizações, controlar ausências e visualizar dashboard filtrado.',
+    permissoes: {
+      sinalizacoes_ver: true,
+      sinalizacoes_dashboard: true,
+      sinalizacoes_criar: false,
+      sinalizacoes_confirmar: true,
+      sinalizacoes_editar: false,
+      sinalizacoes_excluir: false,
+      sinalizacoes_exportar: true,
+      diario_bordo_ver: true,
+      absenteismo_ver: true,
+      diario_bordo_dashboard: true,
+      diario_bordo_ver_internas: false,
+      diario_bordo_ver_externas: true,
+      diario_bordo_criar: true,
+      diario_bordo_editar: true,
+      diario_bordo_excluir: false,
+      diario_bordo_exportar: true,
+      diario_bordo_gerenciar: true,
+      dashboard_ver: true,
+      dashboard_todos: false,
+      admin_acesso: false,
+      admin_usuarios: false,
+      admin_perfis: false,
+      admin_api: false
+    },
+    is_custom: false
+  },
+  {
+    nome: 'Operação',
+    descricao: 'Acompanhamento e consulta de ocorrências e indicadores da sua célula/supervisão.',
+    permissoes: {
+      sinalizacoes_ver: true,
+      sinalizacoes_dashboard: true,
+      sinalizacoes_criar: false,
+      sinalizacoes_confirmar: true,
+      sinalizacoes_editar: false,
+      sinalizacoes_excluir: false,
+      sinalizacoes_exportar: false,
+      diario_bordo_ver: true,
+      absenteismo_ver: true,
+      diario_bordo_dashboard: true,
+      diario_bordo_ver_internas: false,
+      diario_bordo_ver_externas: true,
+      diario_bordo_criar: false,
+      diario_bordo_editar: false,
+      diario_bordo_excluir: false,
+      diario_bordo_exportar: false,
+      diario_bordo_gerenciar: false,
+      dashboard_ver: true,
+      dashboard_todos: false,
+      admin_acesso: false,
+      admin_usuarios: false,
+      admin_perfis: false,
+      admin_api: false
+    },
+    is_custom: false
+  }
+];
+
+export function getLocalPerfisConfig() {
+  const data = readDb();
+  if (!data.perfis || data.perfis.length === 0) {
+    data.perfis = DEFAULT_PERFIS_CONFIG;
+    writeDb(data);
+  }
+  return data.perfis;
+}
+
+export function saveLocalPerfilConfig(perfil: any) {
+  const data = readDb();
+  if (!data.perfis) data.perfis = DEFAULT_PERFIS_CONFIG;
+  const idx = data.perfis.findIndex((p: any) => p.nome.toLowerCase().trim() === perfil.nome.toLowerCase().trim());
+  if (idx >= 0) {
+    data.perfis[idx] = { ...data.perfis[idx], ...perfil };
+  } else {
+    data.perfis.push({ ...perfil, is_custom: true });
+  }
+  writeDb(data);
+  return perfil;
+}
+
+export function deleteLocalPerfilConfig(nome: string) {
+  const data = readDb();
+  if (!data.perfis) return false;
+  const initialLen = data.perfis.length;
+  data.perfis = data.perfis.filter((p: any) => p.nome.toLowerCase().trim() !== nome.toLowerCase().trim());
+  writeDb(data);
+  return data.perfis.length < initialLen;
+}

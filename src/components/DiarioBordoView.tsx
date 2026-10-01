@@ -38,8 +38,10 @@ import {
   Send,
   UserPlus,
   AtSign,
-  X
+  X,
+  Lock
 } from 'lucide-react';
+import { api } from '../services/api';
 import { exportDashboardToPDF } from '../utils/pdfExport';
 import { getBrasiliaDateString, getBrasiliaTimeString } from '../utils/dateUtils';
 import {
@@ -69,7 +71,8 @@ import {
   DiarioBordoMetrics,
   UserSession,
   Produto,
-  Usuario
+  Usuario,
+  PerfilConfig
 } from '../types';
 import { ImageModal } from './ImageModal';
 
@@ -429,20 +432,46 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
   const [ocorrencias, setOcorrencias] = useState<DiarioBordoOcorrencia[]>([]);
   const [produtos, setProdutos] = useState<string[]>([]);
   const [usuariosList, setUsuariosList] = useState<string[]>([]);
+  const [perfisConfig, setPerfisConfig] = useState<PerfilConfig[]>([]);
+
+  useEffect(() => {
+    api.getPerfisConfig().then(setPerfisConfig).catch(console.error);
+  }, []);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'ocorrencias' | 'ocorrencias_internas' | 'dashboard'>('ocorrencias');
 
-  // Derived filtered lists
-  const ocorrenciasOperacionais = ocorrencias.filter((i) => (i.tipo || 'Operacional') === 'Operacional');
-  const ocorrenciasInternas = ocorrencias.filter((i) => i.tipo === 'Interna');
+  // Permission Checker
+  const userPerfilObj = perfisConfig.find(
+    (p) => p.nome.toLowerCase().trim() === (user.perfil || '').toLowerCase().trim()
+  );
+  const hasPerm = (key: string) => {
+    if (user.perfil === 'Administrador') return true;
+    if (!userPerfilObj || !userPerfilObj.permissoes) return true;
+    return userPerfilObj.permissoes[key] !== false;
+  };
+
+  const canSeeExternas = hasPerm('diario_bordo_ver_externas');
+  const canSeeInternas = hasPerm('diario_bordo_ver_internas');
+
+  // Derived filtered lists based on permissions
+  const ocorrenciasOperacionais = canSeeExternas
+    ? ocorrencias.filter((i) => (i.tipo || 'Operacional') === 'Operacional')
+    : [];
+  const ocorrenciasInternas = canSeeInternas
+    ? ocorrencias.filter((i) => i.tipo === 'Interna')
+    : [];
 
   const displayedOcorrencias =
     activeTab === 'ocorrencias_internas'
       ? ocorrenciasInternas
       : activeTab === 'ocorrencias'
       ? ocorrenciasOperacionais
-      : ocorrencias;
+      : ocorrencias.filter((i) => {
+          const isInterna = (i.tipo || 'Operacional') === 'Interna';
+          if (isInterna) return canSeeInternas;
+          return canSeeExternas;
+        });
 
   const metrics = React.useMemo(() => {
     return calculateMetrics(displayedOcorrencias);
@@ -971,10 +1000,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       if (filtros.tipo && filtros.tipo !== 'Todos') params.append('tipo', filtros.tipo);
       if (filtros.busca) params.append('busca', filtros.busca);
 
-      const [resOcorr, resProds, resUsers] = await Promise.all([
+      const [resOcorr, resProds, resUsers, perfisData] = await Promise.all([
         fetch(`/api/diario-bordo?${params.toString()}`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/produtos', { headers: { Authorization: `Bearer ${token}` } }),
-        fetch('/api/usuarios', { headers: { Authorization: `Bearer ${token}` } })
+        fetch('/api/usuarios', { headers: { Authorization: `Bearer ${token}` } }),
+        api.getPerfisConfig().catch(() => [])
       ]);
 
       if (resOcorr.ok) {
@@ -988,6 +1018,9 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       if (resUsers.ok) {
         const data: Usuario[] = await resUsers.json();
         setUsuariosList(data.map((u) => u.nome));
+      }
+      if (Array.isArray(perfisData) && perfisData.length > 0) {
+        setPerfisConfig(perfisData);
       }
     } catch (err: any) {
       console.error('Error fetching Diario de Bordo data:', err);
@@ -1324,39 +1357,45 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
         {/* View mode switcher */}
         <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('ocorrencias')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'ocorrencias'
-                ? 'bg-white dark:bg-cyan-500 text-blue-600 dark:text-slate-950 shadow-xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <FileText className="h-4 w-4" />
-            <span>Ocorrências</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('ocorrencias_internas')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'ocorrencias_internas'
-                ? 'bg-purple-600 dark:bg-purple-500 text-white dark:text-slate-950 shadow-xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Shield className="h-4 w-4 text-purple-500 dark:text-purple-300" />
-            <span>Ocorrências Internas</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'dashboard'
-                ? 'bg-white dark:bg-cyan-500 text-blue-600 dark:text-slate-950 shadow-xs font-bold'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <BarChart2 className="h-4 w-4" />
-            <span>Dashboard e Gráficos</span>
-          </button>
+          {canSeeExternas && (
+            <button
+              onClick={() => setActiveTab('ocorrencias')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'ocorrencias'
+                  ? 'bg-white dark:bg-cyan-500 text-blue-600 dark:text-slate-950 shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              <span>Ocorrências</span>
+            </button>
+          )}
+          {canSeeInternas && (
+            <button
+              onClick={() => setActiveTab('ocorrencias_internas')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'ocorrencias_internas'
+                  ? 'bg-purple-600 dark:bg-purple-500 text-white dark:text-slate-950 shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Shield className="h-4 w-4 text-purple-500 dark:text-purple-300" />
+              <span>Ocorrências Internas</span>
+            </button>
+          )}
+          {hasPerm('diario_bordo_dashboard') && (
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'dashboard'
+                  ? 'bg-white dark:bg-cyan-500 text-blue-600 dark:text-slate-950 shadow-xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <BarChart2 className="h-4 w-4" />
+              <span>Dashboard e Gráficos</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1445,62 +1484,65 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
               <span>Filtros de Consulta</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleOpenModal()}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 dark:bg-cyan-500 hover:bg-blue-700 dark:hover:bg-cyan-400 text-white dark:text-slate-950 rounded-xl transition-all shadow-md shadow-blue-600/20 dark:shadow-cyan-500/20 cursor-pointer active:scale-95 text-xs font-semibold"
-                title="Novo Registro"
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Novo Registro</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleExportExcel}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-md shadow-emerald-600/20 cursor-pointer active:scale-95 text-xs font-semibold"
-                title="Exportar Excel"
-              >
-                <FileSpreadsheet className="h-4 w-4" />
-                <span className="hidden sm:inline">Exportar Excel</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsImportModalOpen(true)}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition-all shadow-md shadow-teal-600/20 cursor-pointer active:scale-95 text-xs font-semibold"
-                title="Importar Excel / CSV"
-              >
-                <Upload className="h-4 w-4" />
-                <span className="hidden sm:inline">Importar</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleExportPDF}
-                disabled={isExportingPDF}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl transition-all shadow-md shadow-rose-600/20 cursor-pointer active:scale-95 text-xs font-semibold"
-                title={isExportingPDF ? 'Gerando PDF...' : 'Exportar PDF'}
-              >
-                {isExportingPDF ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <FileDown className="h-4 w-4" />
-                )}
-                <span className="hidden sm:inline">{isExportingPDF ? 'Gerando PDF...' : 'Exportar PDF'}</span>
-              </button>
-              {activeTab === 'ocorrencias' && (
+              {hasPerm('diario_bordo_criar') && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenModal()}
+                  className="flex items-center justify-center p-2.5 bg-blue-600 dark:bg-cyan-500 hover:bg-blue-700 dark:hover:bg-cyan-400 text-white dark:text-slate-950 rounded-xl transition-all shadow-md shadow-blue-600/20 dark:shadow-cyan-500/20 cursor-pointer active:scale-95"
+                  title="Novo Registro"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              )}
+              {hasPerm('diario_bordo_exportar') && (
+                <button
+                  type="button"
+                  onClick={handleExportExcel}
+                  className="flex items-center justify-center p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all shadow-md shadow-emerald-600/20 cursor-pointer active:scale-95"
+                  title="Exportar Excel"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                </button>
+              )}
+              {hasPerm('diario_bordo_criar') && (
+                <button
+                  type="button"
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="flex items-center justify-center p-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl transition-all shadow-md shadow-teal-600/20 cursor-pointer active:scale-95"
+                  title="Importar Excel / CSV"
+                >
+                  <Upload className="h-4 w-4" />
+                </button>
+              )}
+              {hasPerm('diario_bordo_exportar') && (
+                <button
+                  type="button"
+                  onClick={handleExportPDF}
+                  disabled={isExportingPDF}
+                  className="flex items-center justify-center p-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl transition-all shadow-md shadow-rose-600/20 cursor-pointer active:scale-95"
+                  title={isExportingPDF ? 'Gerando PDF...' : 'Exportar PDF'}
+                >
+                  {isExportingPDF ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileDown className="h-4 w-4" />
+                  )}
+                </button>
+              )}
+              {activeTab === 'ocorrencias' && hasPerm('diario_bordo_exportar') && (
                 <button
                   type="button"
                   onClick={handleOpenEmailModal}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all shadow-md shadow-purple-600/20 cursor-pointer active:scale-95 text-xs font-semibold"
+                  className="flex items-center justify-center p-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all shadow-md shadow-purple-600/20 cursor-pointer active:scale-95"
                   title="Encaminhar E-mail"
                 >
                   <Mail className="h-4 w-4" />
-                  <span className="hidden sm:inline">E-mail</span>
                 </button>
               )}
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="flex items-center justify-center p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer active:scale-95"
+                className="flex items-center justify-center p-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer active:scale-95"
                 title="Limpar todos os filtros"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -1825,8 +1867,8 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       <tr
                         key={item.id}
                         onDoubleClick={() => handleOpenModal(item)}
-                        className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors"
-                        title="Dê duplo clique para editar esta ocorrência"
+                        className="group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                        title={hasPerm('diario_bordo_editar') ? "Dê duplo clique para editar esta ocorrência" : "Dê duplo clique para visualizar esta ocorrência"}
                       >
                         {/* 1. ID */}
                         <td className="p-3.5 pl-5 font-mono text-slate-500 font-semibold whitespace-nowrap">
@@ -1951,26 +1993,41 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                         {/* Actions (Sticky Column on Right) */}
                         <td className="p-3.5 pr-5 text-center whitespace-nowrap sticky right-0 bg-white group-hover:bg-slate-50 dark:bg-slate-900 dark:group-hover:bg-slate-800 border-l border-slate-200 dark:border-slate-800 z-10">
                           <div className="flex items-center justify-center gap-1.5">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenModal(item, 'dados');
-                              }}
-                              className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                              title="Editar Ocorrência"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(item.id);
-                              }}
-                              className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors cursor-pointer"
-                              title="Excluir Ocorrência"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                            {hasPerm('diario_bordo_editar') ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenModal(item, 'dados');
+                                }}
+                                className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                                title="Editar Ocorrência"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenModal(item, 'dados');
+                                }}
+                                className="p-1.5 text-blue-600 dark:text-cyan-400 hover:bg-blue-50 dark:hover:bg-cyan-500/20 rounded-lg transition-colors cursor-pointer"
+                                title="Visualizar Ocorrência (Apenas Leitura)"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                            )}
+                            {hasPerm('diario_bordo_excluir') && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(item.id);
+                                }}
+                                className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg transition-colors cursor-pointer"
+                                title="Excluir Ocorrência"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1990,24 +2047,36 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
             {/* Modal Header */}
             <div className="bg-slate-50 dark:bg-slate-950 px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 rounded-xl">
+                <div className={`p-2.5 rounded-xl ${editingItem && !hasPerm('diario_bordo_editar') ? 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300' : 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950'}`}>
                   {modalActiveTab === 'historico' ? (
                     <History className="h-5 w-5" />
+                  ) : editingItem && !hasPerm('diario_bordo_editar') ? (
+                    <Lock className="h-5 w-5" />
                   ) : (
                     <BookOpen className="h-5 w-5" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    {modalActiveTab === 'historico'
-                      ? `Linha do Tempo - Ocorrência #${editingItem?.id}`
-                      : editingItem
-                      ? `Editar Ocorrência #${editingItem.id}`
-                      : 'Novo Registro no Diário de Bordo'}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                      {modalActiveTab === 'historico'
+                        ? `Linha do Tempo - Ocorrência #${editingItem?.id}`
+                        : editingItem
+                        ? (!hasPerm('diario_bordo_editar') ? `Visualizar Ocorrência #${editingItem.id}` : `Editar Ocorrência #${editingItem.id}`)
+                        : 'Novo Registro no Diário de Bordo'}
+                    </h3>
+                    {editingItem && !hasPerm('diario_bordo_editar') && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                        <Lock className="h-3 w-3" />
+                        Apenas leitura
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {modalActiveTab === 'historico'
                       ? 'Histórico de alterações e eventos da ocorrência'
+                      : editingItem && !hasPerm('diario_bordo_editar')
+                      ? 'Visualizando dados da ocorrência (Somente Leitura)'
                       : 'Preencha as informações detalhadas da ocorrência operacional'}
                   </p>
                 </div>
@@ -2060,6 +2129,13 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
             {/* Modal Body */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {editingItem && !hasPerm('diario_bordo_editar') && (
+                <div className="rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/60 p-3 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2 font-medium">
+                  <Lock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>Modo Apenas Leitura: Seu perfil não possui permissão para editar este registro.</span>
+                </div>
+              )}
+
               {modalActiveTab === 'dados' && (
                 <div className="space-y-4" onPaste={handlePaste}>
                   {/* Grid 1: Data & Hora */}
@@ -2071,9 +2147,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       <input
                         type="date"
                         required
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         value={formData.data_ocorrencia}
                         onChange={(e) => setFormData((prev) => ({ ...prev, data_ocorrencia: e.target.value }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       />
                     </div>
                     <div>
@@ -2083,10 +2160,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       <input
                         type="text"
                         required
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         placeholder="HH:mm"
                         value={formData.hora_ocorrencia}
                         onChange={(e) => setFormData((prev) => ({ ...prev, hora_ocorrencia: e.target.value }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none font-mono"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none font-mono disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       />
                     </div>
                   </div>
@@ -2099,9 +2177,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       </label>
                       <select
                         required
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         value={formData.produto}
                         onChange={(e) => setFormData((prev) => ({ ...prev, produto: e.target.value }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       >
                         <option value="">Selecione o produto...</option>
                         {produtos.map((p, idx) => (
@@ -2118,9 +2197,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       </label>
                       <select
                         required
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         value={formData.tipo}
                         onChange={(e) => setFormData((prev) => ({ ...prev, tipo: e.target.value as 'Operacional' | 'Interna' }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none font-semibold text-blue-600 dark:text-cyan-400"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none font-semibold text-blue-600 dark:text-cyan-400 disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       >
                         <option value="Operacional">Operacional</option>
                         <option value="Interna">Interna</option>
@@ -2133,9 +2213,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       </label>
                       <select
                         required
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         value={formData.impacto}
                         onChange={(e) => setFormData((prev) => ({ ...prev, impacto: e.target.value }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       >
                         <option value="Baixo">Baixo</option>
                         <option value="Médio">Médio</option>
@@ -2153,10 +2234,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                     <input
                       type="text"
                       required
+                      disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                       placeholder={formData.tipo === 'Operacional' ? 'Ex: INSTABILIDADE INTERGRALL, Telefonia...' : 'Ex: Descrição da ocorrência...'}
                       value={formData.ocorrencia}
                       onChange={(e) => setFormData((prev) => ({ ...prev, ocorrencia: e.target.value }))}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                     />
                   </div>
 
@@ -2169,9 +2251,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       <input
                         type="text"
                         required
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         value={formData.responsavel}
                         onChange={(e) => setFormData((prev) => ({ ...prev, responsavel: e.target.value }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       />
                     </div>
 
@@ -2180,9 +2263,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                         Status
                       </label>
                       <select
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         value={formData.status}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none font-semibold"
+                        onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value as DiarioBordoStatus }))}
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none font-semibold disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       >
                         <option value="Aberto">Aberto</option>
                         <option value="Em Andamento">Em Andamento</option>
@@ -2206,10 +2290,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                     <textarea
                       rows={3}
                       maxLength={2000}
+                      disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                       placeholder={formData.tipo === 'Operacional' ? 'Descreva os detalhes da ocorrência...' : 'Descreva mais detalhes sobre o evento (opcional)...'}
                       value={formData.comentario}
                       onChange={(e) => setFormData((prev) => ({ ...prev, comentario: e.target.value }))}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                     />
                   </div>
 
@@ -2234,20 +2319,22 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                             Imagem vinculada à ocorrência
                           </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEvidencePreview('');
-                            setEvidenceFile(null);
-                            setFormData((prev) => ({ ...prev, caminho_evidencia: '', nome_evidencia: '' }));
-                          }}
-                          className="p-1.5 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900 text-red-600 dark:text-red-400 rounded-lg text-xs font-semibold cursor-pointer"
-                        >
-                          Remover
-                        </button>
+                        {(!editingItem || hasPerm('diario_bordo_editar')) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEvidencePreview('');
+                              setEvidenceFile(null);
+                              setFormData((prev) => ({ ...prev, caminho_evidencia: '', nome_evidencia: '' }));
+                            }}
+                            className="p-1.5 bg-red-50 dark:bg-red-950/50 hover:bg-red-100 dark:hover:bg-red-900 text-red-600 dark:text-red-400 rounded-lg text-xs font-semibold cursor-pointer"
+                          >
+                            Remover
+                          </button>
+                        )}
                       </div>
                     ) : (
-                      <label className="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-cyan-500 rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer bg-slate-50/50 dark:bg-slate-950/50 transition-colors">
+                      <label className={`border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col items-center justify-center gap-2 bg-slate-50/50 dark:bg-slate-950/50 transition-colors ${editingItem && !hasPerm('diario_bordo_editar') ? 'opacity-50 cursor-not-allowed' : 'hover:border-blue-500 dark:hover:border-cyan-500 cursor-pointer'}`}>
                         <Upload className="h-6 w-6 text-slate-400 dark:text-slate-500" />
                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                           Clique para selecionar arquivo ou cole com <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 dark:text-slate-300 rounded text-[10px]">Ctrl + V</kbd>
@@ -2255,6 +2342,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                         <input
                           type="file"
                           accept="image/*"
+                          disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                           onChange={handleFileChange}
                           className="hidden"
                         />
@@ -2278,9 +2366,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       </label>
                       <input
                         type="date"
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         value={formData.data_solucao}
                         onChange={(e) => setFormData((prev) => ({ ...prev, data_solucao: e.target.value }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       />
                     </div>
                     <div>
@@ -2289,10 +2378,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       </label>
                       <input
                         type="text"
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                         placeholder="HH:mm"
                         value={formData.hora_solucao}
                         onChange={(e) => setFormData((prev) => ({ ...prev, hora_solucao: e.target.value }))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none font-mono"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none font-mono disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       />
                     </div>
                   </div>
@@ -2303,10 +2393,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                     </label>
                     <input
                       type="text"
+                      disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                       placeholder="Nome do operador ou especialista que resolveu"
                       value={formData.responsavel_solucao}
                       onChange={(e) => setFormData((prev) => ({ ...prev, responsavel_solucao: e.target.value }))}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                     />
                   </div>
 
@@ -2316,10 +2407,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                     </label>
                     <textarea
                       rows={4}
+                      disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
                       placeholder="Descreva detalhadamente a ação corretiva adotada..."
                       value={formData.solucao}
                       onChange={(e) => setFormData((prev) => ({ ...prev, solucao: e.target.value }))}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                     />
                   </div>
                 </div>
@@ -2419,7 +2511,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
 
               {/* Modal Actions */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                {modalActiveTab === 'historico' ? (
+                {modalActiveTab === 'historico' || (editingItem && !hasPerm('diario_bordo_editar')) ? (
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}

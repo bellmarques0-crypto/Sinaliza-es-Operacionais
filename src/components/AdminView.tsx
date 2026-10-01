@@ -18,7 +18,10 @@ import {
   Radio,
   X,
   Power,
-  Package
+  Package,
+  Check,
+  Slash,
+  Sliders
 } from 'lucide-react';
 import { api } from '../services/api';
 import {
@@ -27,11 +30,13 @@ import {
   Produto,
   Motivo,
   ConfiguracaoApi,
-  PerfilAcesso
+  PerfilAcesso,
+  PerfilConfig,
+  PERMISSOES_SISTEMA
 } from '../types';
 
 export const AdminView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'api' | 'usuarios' | 'supervisores' | 'produtos' | 'motivos'>('api');
+  const [activeTab, setActiveTab] = useState<'api' | 'usuarios' | 'perfis' | 'supervisores' | 'produtos' | 'motivos'>('api');
 
   // Feedback notifications
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -64,6 +69,139 @@ export const AdminView: React.FC = () => {
   const [resetPassUserId, setResetPassUserId] = useState<number | null>(null);
   const [newPassword, setNewPassword] = useState('');
 
+  // --- PERFIS & PERMISSÕES STATE ---
+  const [perfisList, setPerfisList] = useState<PerfilConfig[]>([]);
+  const [perfisSearch, setPerfisSearch] = useState('');
+  const [perfisFilterPerfil, setPerfisFilterPerfil] = useState<string>('Todos');
+  const [updatingUserPerfilId, setUpdatingUserPerfilId] = useState<number | null>(null);
+  const [selectedPerfilNome, setSelectedPerfilNome] = useState<string>('Administrador');
+  const [savingPerfilNome, setSavingPerfilNome] = useState<string | null>(null);
+
+  // New Perfil Modal State
+  const [isNewPerfilModalOpen, setIsNewPerfilModalOpen] = useState(false);
+  const [newPerfilNome, setNewPerfilNome] = useState('');
+  const [newPerfilDescricao, setNewPerfilDescricao] = useState('');
+  const [newPerfilPermissoes, setNewPerfilPermissoes] = useState<Record<string, boolean>>({
+    sinalizacoes_ver: true,
+    sinalizacoes_dashboard: true,
+    sinalizacoes_criar: false,
+    sinalizacoes_confirmar: true,
+    sinalizacoes_editar: false,
+    sinalizacoes_excluir: false,
+    sinalizacoes_exportar: true,
+    diario_bordo_ver: true,
+    absenteismo_ver: true,
+    diario_bordo_dashboard: true,
+    diario_bordo_ver_internas: false,
+    diario_bordo_ver_externas: true,
+    diario_bordo_criar: false,
+    diario_bordo_editar: false,
+    diario_bordo_excluir: false,
+    diario_bordo_exportar: false,
+    diario_bordo_gerenciar: false,
+    dashboard_ver: true,
+    dashboard_todos: false,
+    admin_acesso: false,
+    admin_usuarios: false,
+    admin_perfis: false,
+    admin_api: false
+  });
+
+  const handleQuickUpdatePerfil = async (userId: number, newPerfil: PerfilAcesso) => {
+    setUpdatingUserPerfilId(userId);
+    try {
+      await api.updateUsuario(userId, { perfil: newPerfil });
+      setUsuariosList((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, perfil: newPerfil } : u))
+      );
+      showSuccess(`Perfil do usuário atualizado para "${newPerfil}" com sucesso.`);
+    } catch (err: any) {
+      showError(err.message || 'Erro ao atualizar perfil do usuário.');
+    } finally {
+      setUpdatingUserPerfilId(null);
+    }
+  };
+
+  const handleTogglePermission = (perfilNome: string, key: string) => {
+    setPerfisList((prev) =>
+      prev.map((p) => {
+        if (p.nome === perfilNome) {
+          const currentVal = !!p.permissoes?.[key];
+          return {
+            ...p,
+            permissoes: {
+              ...p.permissoes,
+              [key]: !currentVal
+            }
+          };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleSavePerfilConfig = async (perfil: PerfilConfig) => {
+    setSavingPerfilNome(perfil.nome);
+    try {
+      await api.updatePerfilConfig(perfil.nome, perfil);
+      showSuccess(`Permissões do perfil "${perfil.nome}" salvas com sucesso!`);
+    } catch (err: any) {
+      showError(err.message || 'Erro ao salvar permissões do perfil.');
+    } finally {
+      setSavingPerfilNome(null);
+    }
+  };
+
+  const handleCreateNewPerfil = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPerfilNome.trim()) {
+      showError('O nome do perfil é obrigatório.');
+      return;
+    }
+
+    try {
+      const newPerfilObj: PerfilConfig = {
+        nome: newPerfilNome.trim(),
+        descricao: newPerfilDescricao.trim() || 'Perfil personalizado de acesso',
+        permissoes: newPerfilPermissoes,
+        is_custom: true
+      };
+
+      await api.createPerfilConfig(newPerfilObj);
+      setPerfisList((prev) => [...prev.filter((p) => p.nome !== newPerfilObj.nome), newPerfilObj]);
+      setSelectedPerfilNome(newPerfilObj.nome);
+      setIsNewPerfilModalOpen(false);
+      setNewPerfilNome('');
+      setNewPerfilDescricao('');
+      showSuccess(`Novo perfil "${newPerfilObj.nome}" cadastrado com sucesso!`);
+    } catch (err: any) {
+      showError(err.message || 'Erro ao cadastrar novo perfil.');
+    }
+  };
+
+  const handleDeleteCustomPerfil = async (nome: string) => {
+    if (!window.confirm(`Deseja realmente excluir o perfil customizado "${nome}"?`)) return;
+    try {
+      await api.deletePerfilConfig(nome);
+      setPerfisList((prev) => prev.filter((p) => p.nome !== nome));
+      if (selectedPerfilNome === nome) {
+        setSelectedPerfilNome('Administrador');
+      }
+      showSuccess(`Perfil "${nome}" excluído com sucesso.`);
+    } catch (err: any) {
+      showError(err.message || 'Erro ao excluir perfil.');
+    }
+  };
+
+  const filteredPerfisUsers = usuariosList.filter((u) => {
+    const matchSearch =
+      u.nome.toLowerCase().includes(perfisSearch.toLowerCase()) ||
+      u.login.toLowerCase().includes(perfisSearch.toLowerCase());
+    const matchPerfil =
+      perfisFilterPerfil === 'Todos' || u.perfil === perfisFilterPerfil;
+    return matchSearch && matchPerfil;
+  });
+
   // --- SUPERVISORES STATE ---
   const [supervisoresList, setSupervisoresList] = useState<Supervisor[]>([]);
   const [supSearch, setSupSearch] = useState('');
@@ -95,12 +233,13 @@ export const AdminView: React.FC = () => {
 
   const loadAllData = async () => {
     try {
-      const [config, users, sups, mots, prods] = await Promise.all([
+      const [config, users, sups, mots, prods, perfis] = await Promise.all([
         api.getConfigApi(),
         api.getUsuarios(),
         api.getSupervisores(),
         api.getMotivos(),
-        api.getProdutos()
+        api.getProdutos(),
+        api.getPerfisConfig()
       ]);
 
       setApiUrl(config.url_api || '');
@@ -109,6 +248,7 @@ export const AdminView: React.FC = () => {
       setLastSyncDate(config.ultima_sincronizacao || 'Nunca executada');
 
       setUsuariosList(users);
+      setPerfisList(perfis || []);
       setSupervisoresList(sups);
       setMotivosList(mots);
       setProdutosList(prods);
@@ -489,6 +629,18 @@ export const AdminView: React.FC = () => {
         </button>
 
         <button
+          onClick={() => setActiveTab('perfis')}
+          className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+            activeTab === 'perfis'
+              ? 'border-blue-600 dark:border-cyan-400 text-blue-600 dark:text-cyan-400 bg-blue-50/50 dark:bg-cyan-500/10 rounded-t-xl'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
+          }`}
+        >
+          <Shield className="h-4 w-4" />
+          Ajuste de Perfis de Acesso
+        </button>
+
+        <button
           onClick={() => setActiveTab('supervisores')}
           className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold transition whitespace-nowrap cursor-pointer ${
             activeTab === 'supervisores'
@@ -785,6 +937,292 @@ export const AdminView: React.FC = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* 2.1. AJUSTE DE PERFIS DE ACESSO E MATRIZ DE PERMISSÕES DINÂMICA */}
+      {activeTab === 'perfis' && (
+        <div className="space-y-6">
+          {/* Card Superior: Header e Seleção / Criação de Perfis */}
+          <div className="rounded-2xl bg-white dark:bg-slate-900 p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs dark:shadow-xl space-y-6 transition-colors duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800">
+                  <Shield className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-800 dark:text-white">Gerenciamento & Regras de Perfis de Acesso</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Crie novos perfis customizados e configure em tempo real o que cada perfil pode acessar e realizar no sistema
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsNewPerfilModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 text-xs font-bold shadow-md shadow-purple-600/20 transition cursor-pointer shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                Novo Perfil Customizado
+              </button>
+            </div>
+
+            {/* Seleção de Perfil para Edição de Permissões */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                Selecione um Perfil para Configurar Regras e Permissões:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {perfisList.map((p) => {
+                  const isSelected = selectedPerfilNome === p.nome;
+                  return (
+                    <button
+                      key={`p-tab-${p.nome}`}
+                      type="button"
+                      onClick={() => setSelectedPerfilNome(p.nome)}
+                      className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20 ring-2 ring-purple-400 dark:ring-purple-500'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      <Shield className="h-3.5 w-3.5" />
+                      <span>{p.nome}</span>
+                      {p.is_custom && (
+                        <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-purple-900/40 text-purple-200">
+                          Custom
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Editor de Permissões do Perfil Selecionado */}
+            {(() => {
+              const currentPerfilObj = perfisList.find((p) => p.nome === selectedPerfilNome) || perfisList[0];
+              if (!currentPerfilObj) return null;
+
+              const categorias = Array.from(new Set(PERMISSOES_SISTEMA.map((item) => item.categoria)));
+
+              return (
+                <div className="rounded-xl bg-slate-50/70 dark:bg-slate-950/70 p-5 border border-slate-200 dark:border-slate-800 space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                          Permissões do Perfil: <span className="text-purple-600 dark:text-purple-400">{currentPerfilObj.nome}</span>
+                        </h4>
+                        {currentPerfilObj.is_custom && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                            Customizado
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        {currentPerfilObj.descricao || 'Marque as permissões ativas para os usuários vinculados a este perfil.'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {currentPerfilObj.is_custom && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCustomPerfil(currentPerfilObj.nome)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900 rounded-xl text-xs font-semibold border border-red-200 dark:border-red-800 transition cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Excluir Perfil
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleSavePerfilConfig(currentPerfilObj)}
+                        disabled={savingPerfilNome === currentPerfilObj.nome}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition cursor-pointer"
+                      >
+                        {savingPerfilNome === currentPerfilObj.nome ? (
+                          <>
+                            <span className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Salvar...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Salvar Permissões
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Permissões Agrupadas por Categoria */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {categorias.map((cat) => {
+                      const permCat = PERMISSOES_SISTEMA.filter((item) => item.categoria === cat);
+                      return (
+                        <div key={`cat-${cat}`} className="rounded-xl bg-white dark:bg-slate-900 p-4 border border-slate-200/80 dark:border-slate-800 space-y-3">
+                          <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 pb-2">
+                            {cat}
+                          </h5>
+                          <div className="space-y-2.5">
+                            {permCat.map((perm) => {
+                              const isChecked = !!currentPerfilObj.permissoes?.[perm.key];
+                              return (
+                                <label
+                                  key={`perm-${currentPerfilObj.nome}-${perm.key}`}
+                                  className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition cursor-pointer"
+                                >
+                                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                                    {perm.label}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTogglePermission(currentPerfilObj.nome, perm.key)}
+                                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                      isChecked ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'
+                                    }`}
+                                  >
+                                    <span
+                                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                                        isChecked ? 'translate-x-4' : 'translate-x-0'
+                                      }`}
+                                    />
+                                  </button>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Card Inferior: Ajuste Rápido de Perfis por Usuário */}
+          <div className="rounded-2xl bg-white dark:bg-slate-900 p-6 border border-slate-200/80 dark:border-slate-800 shadow-2xs dark:shadow-xl space-y-6 transition-colors duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-800 dark:text-white">Atribuição de Perfis aos Usuários</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Associe cada colaborador cadastrado a um dos perfis ativos do sistema
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Search */}
+                <div className="relative w-full sm:w-56">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Buscar usuário..."
+                    value={perfisSearch}
+                    onChange={(e) => setPerfisSearch(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 pl-9 pr-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none transition"
+                  />
+                </div>
+
+                {/* Filter Perfil */}
+                <select
+                  value={perfisFilterPerfil}
+                  onChange={(e) => setPerfisFilterPerfil(e.target.value)}
+                  className="rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="Todos">Todos os Perfis</option>
+                  {perfisList.map((p) => (
+                    <option key={`flt-p-${p.nome}`} value={p.nome}>
+                      {p.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Quick Edit Table */}
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-950 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="px-4 py-3">Usuário</th>
+                    <th className="px-4 py-3">Login</th>
+                    <th className="px-4 py-3">Perfil Atual</th>
+                    <th className="px-4 py-3">Alterar Perfil de Acesso</th>
+                    <th className="px-4 py-3">Vínculo (Produto / Supervisor)</th>
+                    <th className="px-4 py-3 text-right">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                  {filteredPerfisUsers.length > 0 ? (
+                    filteredPerfisUsers.map((u) => (
+                      <tr key={`perf-${u.id}`} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+                        <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">{u.nome}</td>
+                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400 font-mono text-[11px]">{u.login}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              u.perfil === 'Administrador'
+                                ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800'
+                                : u.perfil === 'Planejamento'
+                                ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                                : u.perfil === 'Supervisor'
+                                ? 'bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                                : 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                            }`}
+                          >
+                            <Shield className="h-3 w-3" />
+                            {u.perfil}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <select
+                              value={u.perfil}
+                              disabled={updatingUserPerfilId === u.id}
+                              onChange={(e) => handleQuickUpdatePerfil(u.id, e.target.value as PerfilAcesso)}
+                              className="rounded-lg border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none transition cursor-pointer"
+                            >
+                              {perfisList.map((p) => (
+                                <option key={`user-opt-${p.nome}`} value={p.nome}>
+                                  {p.nome}
+                                </option>
+                              ))}
+                            </select>
+                            {updatingUserPerfilId === u.id && (
+                              <span className="h-3.5 w-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-[11px]">
+                          {u.produto || 'Todos'} / {u.supervisor || 'Todos'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span
+                            className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
+                              u.status === 'Ativo' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                            }`}
+                          >
+                            <span className={`h-2 w-2 rounded-full ${u.status === 'Ativo' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                            {u.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
+                        Nenhum usuário encontrado para este filtro.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -1116,9 +1554,11 @@ export const AdminView: React.FC = () => {
                     onChange={(e) => setFormPerfil(e.target.value as PerfilAcesso)}
                     className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none transition"
                   >
-                    <option value="Administrador">Administrador</option>
-                    <option value="Planejamento">Planejamento</option>
-                    <option value="Operação">Operação</option>
+                    {perfisList.map((p) => (
+                      <option key={p.nome} value={p.nome}>
+                        {p.nome}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1148,6 +1588,68 @@ export const AdminView: React.FC = () => {
                   className="rounded-xl px-4 py-2 text-xs font-bold text-white dark:text-slate-950 bg-blue-600 dark:bg-cyan-500 hover:bg-blue-700 dark:hover:bg-cyan-400 shadow-sm transition cursor-pointer"
                 >
                   Salvar Usuário
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: NOVO PERFIL DE ACESSO */}
+      {isNewPerfilModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">Criar Novo Perfil de Acesso</h3>
+              </div>
+              <button onClick={() => setIsNewPerfilModalOpen(false)}>
+                <X className="h-5 w-5 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateNewPerfil} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Nome do Perfil
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newPerfilNome}
+                  onChange={(e) => setNewPerfilNome(e.target.value)}
+                  placeholder="Ex: Coordenador, Auditor, Analista de Qualidade..."
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Descrição / Finalidade
+                </label>
+                <textarea
+                  rows={2}
+                  value={newPerfilDescricao}
+                  onChange={(e) => setNewPerfilDescricao(e.target.value)}
+                  placeholder="Descreva brevemente as responsabilidades e escopo deste perfil..."
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsNewPerfilModalOpen(false)}
+                  className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl px-4 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 shadow-sm transition cursor-pointer"
+                >
+                  Criar Perfil
                 </button>
               </div>
             </form>

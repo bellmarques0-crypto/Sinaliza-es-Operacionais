@@ -194,5 +194,18 @@ export const db = {
     usuarioRegistro?: string
   ): Promise<RegistroAbsenteismo[]> => {
     return await postgresDb.saveAbsenteismoBatch(records, usuarioRegistro);
+  },
+
+  // PERFIS & PERMISSÕES CONFIG METHODS
+  getPerfisConfig: async () => {
+    return await postgresDb.getPerfisConfig();
+  },
+
+  savePerfilConfig: async (perfil: any) => {
+    return await postgresDb.savePerfilConfig(perfil);
+  },
+
+  deletePerfilConfig: async (nome: string) => {
+    return await postgresDb.deletePerfilConfig(nome);
   }
 };
