@@ -15,9 +15,19 @@ import {
   BookOpen,
   UserCheck
 } from 'lucide-react';
-import { UserSession, PerfilAcesso } from '../types';
+import { UserSession, PerfilAcesso, PerfilConfig } from '../types';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { NotificationBell } from './NotificationBell';
+
+function getUserInitials(name?: string): string {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'U';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  const first = parts[0].charAt(0).toUpperCase();
+  const last = parts[parts.length - 1].charAt(0).toUpperCase();
+  return `${first}${last}`;
+}
 
 export type ActiveTab = 'dashboard' | 'sinalizacoes' | 'diario_bordo' | 'absenteismo' | 'administracao';
 
@@ -26,6 +36,7 @@ interface SidebarProps {
   setActiveTab: (tab: ActiveTab) => void;
   user: UserSession;
   onLogout: () => void;
+  perfisConfig?: PerfilConfig[];
   collapsed?: boolean;
   setCollapsed?: (collapsed: boolean) => void;
   userPerfil?: PerfilAcesso;
@@ -38,6 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setActiveTab,
   user,
   onLogout,
+  perfisConfig = [],
   userPerfil,
   isDarkMode = false,
   onToggleDarkMode
@@ -49,6 +61,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const perfil = user?.perfil || userPerfil || 'Operação';
   const isAdmin = perfil === 'Administrador';
+
+  const userPerfilObj = perfisConfig.find(
+    (p) => p.nome.toLowerCase().trim() === (user?.perfil || '').toLowerCase().trim()
+  );
+
+  const hasPerm = (key: string) => {
+    if (isAdmin) return true;
+    if (userPerfilObj && userPerfilObj.permissoes && key in userPerfilObj.permissoes) {
+      return Boolean(userPerfilObj.permissoes[key]);
+    }
+    const perfName = (user?.perfil || userPerfil || '').toLowerCase().trim();
+    if (perfName === 'visualizador') {
+      if (
+        key === 'absenteismo_ver' ||
+        key === 'dashboard_ver' ||
+        key === 'admin_acesso' ||
+        key === 'sinalizacoes_criar' ||
+        key === 'diario_bordo_criar' ||
+        key === 'diario_bordo_editar'
+      ) {
+        return false;
+      }
+    }
+    if (perfName === 'operaçao' || perfName === 'operacao') {
+      if (key === 'admin_acesso' || key === 'sinalizacoes_criar' || key === 'diario_bordo_criar') {
+        return false;
+      }
+    }
+    if (userPerfilObj && userPerfilObj.permissoes) {
+      return userPerfilObj.permissoes[key] !== false;
+    }
+    return true;
+  };
+
+  const canSeeDashboard = hasPerm('dashboard_ver');
+  const canSeeSinalizacoes = hasPerm('sinalizacoes_ver');
+  const canSeeDiarioBordo = hasPerm('diario_bordo_ver');
+  const canSeeAbsenteismo = hasPerm('absenteismo_ver');
+  const canSeeAdmin = isAdmin || hasPerm('admin_acesso');
 
   // Close dropdown menu on click outside
   useEffect(() => {
@@ -104,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="flex items-center gap-2.5 bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 px-3.5 py-1.5 rounded-xl shadow-xs transition cursor-pointer text-left group"
                 >
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold transition-transform group-hover:scale-105 ${
+                    className={`flex h-8 w-8 items-center justify-center rounded-xl text-slate-200 transition-transform group-hover:scale-105 shrink-0 ${
                       perfil === 'Administrador'
                         ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                         : perfil === 'Planejamento'
@@ -112,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                     }`}
                   >
-                    {perfil.charAt(0)}
+                    <User className="h-4 w-4" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-xs font-semibold text-slate-100 leading-tight">
@@ -217,59 +268,67 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Mobile Drawer Navigation */}
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-slate-800 bg-slate-900 px-4 pt-3 pb-4 space-y-2">
-            <button
-              onClick={() => {
-                setActiveTab('dashboard');
-                setMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
-                activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>Dashboard</span>
-            </button>
+            {canSeeDashboard && (
+              <button
+                onClick={() => {
+                  setActiveTab('dashboard');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
+                  activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span>Dashboard</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setActiveTab('sinalizacoes');
-                setMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
-                activeTab === 'sinalizacoes' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <FilePlus2 className="h-4 w-4" />
-              <span>Sinalizações</span>
-            </button>
+            {canSeeSinalizacoes && (
+              <button
+                onClick={() => {
+                  setActiveTab('sinalizacoes');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
+                  activeTab === 'sinalizacoes' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <FilePlus2 className="h-4 w-4" />
+                <span>Sinalizações</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setActiveTab('diario_bordo');
-                setMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
-                activeTab === 'diario_bordo' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <BookOpen className="h-4 w-4" />
-              <span>Diário de Bordo</span>
-            </button>
+            {canSeeDiarioBordo && (
+              <button
+                onClick={() => {
+                  setActiveTab('diario_bordo');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
+                  activeTab === 'diario_bordo' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <BookOpen className="h-4 w-4" />
+                <span>Diário de Bordo</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => {
-                setActiveTab('absenteismo');
-                setMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
-                activeTab === 'absenteismo' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <UserCheck className="h-4 w-4" />
-              <span>Controle de Absenteísmo</span>
-            </button>
+            {canSeeAbsenteismo && (
+              <button
+                onClick={() => {
+                  setActiveTab('absenteismo');
+                  setMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold ${
+                  activeTab === 'absenteismo' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <UserCheck className="h-4 w-4" />
+                <span>Controle de Absenteísmo</span>
+              </button>
+            )}
 
-            {isAdmin && (
+            {canSeeAdmin && (
               <button
                 onClick={() => {
                   setActiveTab('administracao');

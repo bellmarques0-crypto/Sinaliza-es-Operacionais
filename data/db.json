@@ -9426,7 +9426,9 @@
         "sinalizacoes_ver": true,
         "sinalizacoes_dashboard": true,
         "diario_bordo_dashboard": true,
-        "absenteismo_ver": true
+        "absenteismo_ver": true,
+        "diario_bordo_editar": false,
+        "diario_bordo_excluir": false
       },
       "is_custom": false
     },
@@ -9467,12 +9469,13 @@
         "diario_bordo_excluir": false,
         "diario_bordo_exportar": false,
         "diario_bordo_gerenciar": false,
-        "dashboard_ver": true,
+        "dashboard_ver": false,
         "dashboard_todos": false,
         "admin_acesso": false,
         "admin_usuarios": false,
         "admin_perfis": false,
-        "admin_api": false
+        "admin_api": false,
+        "sinalizacoes_ver": false
       },
       "is_custom": true
     }

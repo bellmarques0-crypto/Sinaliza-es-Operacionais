@@ -382,6 +382,36 @@ export const DEFAULT_PERFIS_CONFIG = [
       admin_api: false
     },
     is_custom: false
+  },
+  {
+    nome: 'Visualizador',
+    descricao: 'Acesso restrito de leitura para sinalizações e diário de bordo.',
+    permissoes: {
+      sinalizacoes_ver: true,
+      sinalizacoes_dashboard: false,
+      sinalizacoes_criar: false,
+      sinalizacoes_confirmar: false,
+      sinalizacoes_editar: false,
+      sinalizacoes_excluir: false,
+      sinalizacoes_exportar: false,
+      diario_bordo_ver: true,
+      absenteismo_ver: false,
+      diario_bordo_dashboard: false,
+      diario_bordo_ver_internas: false,
+      diario_bordo_ver_externas: true,
+      diario_bordo_criar: false,
+      diario_bordo_editar: false,
+      diario_bordo_excluir: false,
+      diario_bordo_exportar: false,
+      diario_bordo_gerenciar: false,
+      dashboard_ver: false,
+      dashboard_todos: false,
+      admin_acesso: false,
+      admin_usuarios: false,
+      admin_perfis: false,
+      admin_api: false
+    },
+    is_custom: false
   }
 ];
 
@@ -390,6 +420,21 @@ export function getLocalPerfisConfig() {
   if (!data.perfis || data.perfis.length === 0) {
     data.perfis = DEFAULT_PERFIS_CONFIG;
     writeDb(data);
+  } else {
+    // Ensure any default profile missing in stored data is added
+    let updated = false;
+    DEFAULT_PERFIS_CONFIG.forEach((def) => {
+      const exists = data.perfis.some(
+        (p: any) => p.nome.toLowerCase().trim() === def.nome.toLowerCase().trim()
+      );
+      if (!exists) {
+        data.perfis.push(def);
+        updated = true;
+      }
+    });
+    if (updated) {
+      writeDb(data);
+    }
   }
   return data.perfis;
 }

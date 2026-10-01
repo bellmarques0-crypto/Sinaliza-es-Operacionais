@@ -156,11 +156,44 @@ function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) 
 }
 
 function requireRole(roles: PerfilAcesso[]) {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.perfil)) {
-      return res.status(403).json({ error: 'Você não possui permissão para realizar esta ação.' });
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Acesso não autorizado. Faça login novamente.' });
     }
-    next();
+    if (req.user.perfil === 'Administrador' || roles.includes(req.user.perfil)) {
+      return next();
+    }
+    return res.status(403).json({ error: 'Você não possui permissão para realizar esta ação.' });
+  };
+}
+
+function requirePermission(key: string, fallbackRoles: PerfilAcesso[] = ['Administrador', 'Planejamento']) {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Acesso não autorizado. Faça login novamente.' });
+    }
+    if (req.user.perfil === 'Administrador') {
+      return next();
+    }
+    try {
+      const perfis = await db.getPerfisConfig();
+      const userPerf = perfis.find(
+        (p: any) => p.nome.toLowerCase().trim() === (req.user!.perfil || '').toLowerCase().trim()
+      );
+      if (userPerf && userPerf.permissoes && key in userPerf.permissoes) {
+        if (userPerf.permissoes[key]) {
+          return next();
+        } else {
+          return res.status(403).json({ error: 'Você não possui permissão para realizar esta ação.' });
+        }
+      }
+    } catch (e) {
+      console.warn('[server] Erro ao checar permissão dinâmica:', e);
+    }
+    if (fallbackRoles.includes(req.user.perfil)) {
+      return next();
+    }
+    return res.status(403).json({ error: 'Você não possui permissão para realizar esta ação.' });
   };
 }
 
@@ -359,7 +392,7 @@ app.get('/api/sinalizacoes', authenticateToken, async (req: AuthRequest, res: Re
 app.post(
   '/api/sinalizacoes',
   authenticateToken,
-  requireRole(['Administrador', 'Planejamento']),
+  requirePermission('sinalizacoes_criar', ['Administrador', 'Planejamento']),
   upload.single('evidencia'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -414,7 +447,7 @@ app.post(
 app.put(
   '/api/sinalizacoes/:id',
   authenticateToken,
-  requireRole(['Administrador', 'Planejamento']),
+  requirePermission('sinalizacoes_editar', ['Administrador', 'Planejamento']),
   upload.single('evidencia'),
   async (req: AuthRequest, res: Response) => {
     try {
@@ -976,7 +1009,7 @@ app.delete('/api/diario-bordo/:id', authenticateToken, async (req: AuthRequest, 
 app.delete(
   '/api/sinalizacoes/:id',
   authenticateToken,
-  requireRole(['Administrador']),
+  requirePermission('sinalizacoes_excluir', ['Administrador', 'Planejamento']),
   async (req: Request, res: Response) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {

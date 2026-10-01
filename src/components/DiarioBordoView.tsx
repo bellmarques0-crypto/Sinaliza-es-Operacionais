@@ -454,12 +454,33 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
   const canSeeExternas = hasPerm('diario_bordo_ver_externas');
   const canSeeInternas = hasPerm('diario_bordo_ver_internas');
 
-  // Derived filtered lists based on permissions
+  // Product access rights helper
+  const userAllowedProducts = React.useMemo(() => {
+    if (!user.produto || user.produto === 'Todos' || user.perfil === 'Administrador') {
+      return null;
+    }
+    return user.produto.split(',').map((p) => p.trim().toLowerCase()).filter(Boolean);
+  }, [user.produto, user.perfil]);
+
+  const isItemProductAllowed = (itemProduct?: string) => {
+    if (!userAllowedProducts || userAllowedProducts.length === 0) return true;
+    if (!itemProduct) return true;
+    const normItemProd = itemProduct.trim().toLowerCase();
+    return userAllowedProducts.some(
+      (userProd) => normItemProd === userProd || normItemProd.includes(userProd) || userProd.includes(normItemProd)
+    );
+  };
+
+  // Derived filtered lists based on permissions & product access
   const ocorrenciasOperacionais = canSeeExternas
-    ? ocorrencias.filter((i) => (i.tipo || 'Operacional') === 'Operacional')
+    ? ocorrencias.filter(
+        (i) => (i.tipo || 'Operacional') === 'Operacional' && isItemProductAllowed(i.produto)
+      )
     : [];
   const ocorrenciasInternas = canSeeInternas
-    ? ocorrencias.filter((i) => i.tipo === 'Interna')
+    ? ocorrencias.filter(
+        (i) => i.tipo === 'Interna' && isItemProductAllowed(i.produto)
+      )
     : [];
 
   const displayedOcorrencias =
@@ -469,8 +490,8 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       ? ocorrenciasOperacionais
       : ocorrencias.filter((i) => {
           const isInterna = (i.tipo || 'Operacional') === 'Interna';
-          if (isInterna) return canSeeInternas;
-          return canSeeExternas;
+          const permOk = isInterna ? canSeeInternas : canSeeExternas;
+          return permOk && isItemProductAllowed(i.produto);
         });
 
   const metrics = React.useMemo(() => {
@@ -1835,7 +1856,6 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                 <thead className="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider">
                   <tr>
                     <th className="p-3.5 pl-5">ID</th>
-                    <th className="p-3.5">Tipo Ocorrência</th>
                     <th className="p-3.5">Data Ocorrência</th>
                     <th className="p-3.5">Hora Ocorrência</th>
                     <th className="p-3.5">Produto</th>
@@ -1875,14 +1895,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                           #{item.id}
                         </td>
 
-                        {/* 2. Tipo Ocorrência */}
-                        <td className="p-3.5 whitespace-nowrap">
-                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-cyan-400 border border-blue-200/60 dark:border-cyan-900/50">
-                            {item.tipo || 'Operacional'}
-                          </span>
-                        </td>
-
-                        {/* 3. Data Ocorrência */}
+                        {/* 2. Data Ocorrência */}
                         <td className="p-3.5 font-semibold text-slate-900 dark:text-slate-200 whitespace-nowrap">
                           {item.data_ocorrencia}
                         </td>

@@ -26,7 +26,7 @@ export const PERMISSOES_SISTEMA = [
   { key: 'diario_bordo_excluir', label: 'Excluir Ocorrências', categoria: 'Diário de Bordo' },
   { key: 'diario_bordo_exportar', label: 'Exportar Ocorrências', categoria: 'Diário de Bordo' },
   { key: 'diario_bordo_gerenciar', label: 'Registrar & Gerenciar Faltas/Atestados', categoria: 'Diário de Bordo' },
-  { key: 'dashboard_ver', label: 'Visualizar Dashboard BI & Indicadores', categoria: 'Métricas & BI' },
+  { key: 'dashboard_ver', label: 'Visualizar Aba/Botão Dashboard (Menu Principal)', categoria: 'Métricas & BI' },
   { key: 'dashboard_todos', label: 'Visualizar Dados Globais (Todas as Equipes)', categoria: 'Métricas & BI' },
   { key: 'admin_acesso', label: 'Acesso ao Painel de Administração', categoria: 'Administração' },
   { key: 'admin_usuarios', label: 'Gerenciar Usuários & Cadastros', categoria: 'Administração' },

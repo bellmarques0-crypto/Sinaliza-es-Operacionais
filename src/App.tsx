@@ -7,12 +7,13 @@ import { SinalizacoesView } from './components/SinalizacoesView';
 import { DiarioBordoView } from './components/DiarioBordoView';
 import { AbsenteismoView } from './components/AbsenteismoView';
 import { AdminView } from './components/AdminView';
-import { UserSession } from './types';
+import { UserSession, PerfilConfig } from './types';
 import { api, getStoredToken } from './services/api';
 
 export default function App() {
   const [user, setUser] = useState<UserSession | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [perfisConfig, setPerfisConfig] = useState<PerfilConfig[]>([]);
 
   // Layout & Theme states
   const [activeTab, setActiveTabState] = useState<ActiveTab>(() => {
@@ -47,6 +48,12 @@ export default function App() {
     checkAuthentication();
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      api.getPerfisConfig().then(setPerfisConfig).catch(console.error);
+    }
+  }, [user]);
+
   const checkAuthentication = async () => {
     const token = getStoredToken();
     if (!token) {
@@ -65,6 +72,54 @@ export default function App() {
       setIsAuthChecking(false);
     }
   };
+
+  const userPerfilObj = perfisConfig.find(
+    (p) => p.nome.toLowerCase().trim() === (user?.perfil || '').toLowerCase().trim()
+  );
+
+  const hasPerm = (key: string) => {
+    if (user?.perfil === 'Administrador') return true;
+    if (userPerfilObj && userPerfilObj.permissoes && key in userPerfilObj.permissoes) {
+      return Boolean(userPerfilObj.permissoes[key]);
+    }
+    const perfName = (user?.perfil || '').toLowerCase().trim();
+    if (perfName === 'visualizador') {
+      if (
+        key === 'absenteismo_ver' ||
+        key === 'dashboard_ver' ||
+        key === 'admin_acesso' ||
+        key === 'sinalizacoes_criar' ||
+        key === 'diario_bordo_criar' ||
+        key === 'diario_bordo_editar'
+      ) {
+        return false;
+      }
+    }
+    if (perfName === 'operaçao' || perfName === 'operacao') {
+      if (key === 'admin_acesso' || key === 'sinalizacoes_criar' || key === 'diario_bordo_criar') {
+        return false;
+      }
+    }
+    if (userPerfilObj && userPerfilObj.permissoes) {
+      return userPerfilObj.permissoes[key] !== false;
+    }
+    return true;
+  };
+
+  // Redirect to first permitted tab if activeTab is not permitted
+  useEffect(() => {
+    if (!user) return;
+    const permittedTabs: ActiveTab[] = [];
+    if (hasPerm('dashboard_ver')) permittedTabs.push('dashboard');
+    if (hasPerm('sinalizacoes_ver')) permittedTabs.push('sinalizacoes');
+    if (hasPerm('diario_bordo_ver')) permittedTabs.push('diario_bordo');
+    if (hasPerm('absenteismo_ver')) permittedTabs.push('absenteismo');
+    if (user.perfil === 'Administrador' || hasPerm('admin_acesso')) permittedTabs.push('administracao');
+
+    if (permittedTabs.length > 0 && !permittedTabs.includes(activeTab)) {
+      setActiveTab(permittedTabs[0]);
+    }
+  }, [user, perfisConfig, activeTab]);
 
   const handleLoginSuccess = (userSession: UserSession) => {
     setUser(userSession);
@@ -117,6 +172,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         user={user}
+        perfisConfig={perfisConfig}
         onLogout={handleLogout}
         isDarkMode={isDarkMode}
         onToggleDarkMode={handleToggleDarkMode}
@@ -128,6 +184,7 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         user={user}
+        perfisConfig={perfisConfig}
       />
 
       {/* Main Content Area */}
@@ -137,7 +194,9 @@ export default function App() {
           {activeTab === 'sinalizacoes' && <SinalizacoesView user={user} />}
           {activeTab === 'diario_bordo' && <DiarioBordoView user={user} token={getStoredToken() || ''} />}
           {activeTab === 'absenteismo' && <AbsenteismoView user={user} />}
-          {activeTab === 'administracao' && user.perfil === 'Administrador' && <AdminView />}
+          {activeTab === 'administracao' && (user.perfil === 'Administrador' || hasPerm('admin_acesso')) && (
+            <AdminView onPerfisConfigChange={(updated) => setPerfisConfig(updated)} />
+          )}
         </div>
       </main>
     </div>

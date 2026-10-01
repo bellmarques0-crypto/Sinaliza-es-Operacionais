@@ -35,7 +35,11 @@ import {
   PERMISSOES_SISTEMA
 } from '../types';
 
-export const AdminView: React.FC = () => {
+interface AdminViewProps {
+  onPerfisConfigChange?: (perfis: PerfilConfig[]) => void;
+}
+
+export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) => {
   const [activeTab, setActiveTab] = useState<'api' | 'usuarios' | 'perfis' | 'supervisores' | 'produtos' | 'motivos'>('api');
 
   // Feedback notifications
@@ -145,6 +149,7 @@ export const AdminView: React.FC = () => {
     try {
       await api.updatePerfilConfig(perfil.nome, perfil);
       showSuccess(`Permissões do perfil "${perfil.nome}" salvas com sucesso!`);
+      onPerfisConfigChange?.(perfisList);
     } catch (err: any) {
       showError(err.message || 'Erro ao salvar permissões do perfil.');
     } finally {
@@ -168,7 +173,9 @@ export const AdminView: React.FC = () => {
       };
 
       await api.createPerfilConfig(newPerfilObj);
-      setPerfisList((prev) => [...prev.filter((p) => p.nome !== newPerfilObj.nome), newPerfilObj]);
+      const updatedList = [...perfisList.filter((p) => p.nome !== newPerfilObj.nome), newPerfilObj];
+      setPerfisList(updatedList);
+      onPerfisConfigChange?.(updatedList);
       setSelectedPerfilNome(newPerfilObj.nome);
       setIsNewPerfilModalOpen(false);
       setNewPerfilNome('');
@@ -183,7 +190,9 @@ export const AdminView: React.FC = () => {
     if (!window.confirm(`Deseja realmente excluir o perfil customizado "${nome}"?`)) return;
     try {
       await api.deletePerfilConfig(nome);
-      setPerfisList((prev) => prev.filter((p) => p.nome !== nome));
+      const updatedList = perfisList.filter((p) => p.nome !== nome);
+      setPerfisList(updatedList);
+      onPerfisConfigChange?.(updatedList);
       if (selectedPerfilNome === nome) {
         setSelectedPerfilNome('Administrador');
       }
@@ -1572,6 +1581,70 @@ export const AdminView: React.FC = () => {
                     <option value="Ativo">Ativo</option>
                     <option value="Inativo">Inativo</option>
                   </select>
+                </div>
+              </div>
+
+              {/* PRODUTOS PERMITIDOS (DIÁRIO DE BORDO) */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Produtos Permitidos (Diário de Bordo)
+                </label>
+                <div className="p-3 rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 space-y-2.5">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
+                    <input
+                      type="checkbox"
+                      id="chk-todos-prods"
+                      checked={formProduto === 'Todos' || !formProduto}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormProduto('Todos');
+                        } else if (produtosList.length > 0) {
+                          setFormProduto(produtosList[0].nome);
+                        }
+                      }}
+                      className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4 cursor-pointer"
+                    />
+                    <label htmlFor="chk-todos-prods" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
+                      Todos os Produtos (Acesso Global)
+                    </label>
+                  </div>
+
+                  {formProduto !== 'Todos' && (
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                        Selecione os produtos que este usuário poderá visualizar no Diário de Bordo:
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {produtosList.map((prod) => {
+                          const selectedArr = formProduto.split(',').map((p) => p.trim()).filter(Boolean);
+                          const isSelected = selectedArr.includes(prod.nome);
+                          return (
+                            <button
+                              key={`user-prod-${prod.id}`}
+                              type="button"
+                              onClick={() => {
+                                let updated: string[];
+                                if (isSelected) {
+                                  updated = selectedArr.filter((p) => p !== prod.nome);
+                                } else {
+                                  updated = [...selectedArr, prod.nome];
+                                }
+                                setFormProduto(updated.length > 0 ? updated.join(', ') : 'Todos');
+                              }}
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                                isSelected
+                                  ? 'bg-blue-600 dark:bg-cyan-500 text-white dark:text-slate-950 border-blue-600 dark:border-cyan-500 shadow-xs'
+                                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-400'
+                              }`}
+                            >
+                              {isSelected && <Check className="h-3.5 w-3.5" />}
+                              <span>{prod.nome}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
