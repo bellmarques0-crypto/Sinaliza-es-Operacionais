@@ -9,6 +9,7 @@ import {
   Operador,
   Produto,
   Motivo,
+  Canal,
   Sinalizacao,
   ConfiguracaoApi,
   DiarioBordoOcorrencia,
@@ -20,6 +21,10 @@ import { getBrasiliaFullString } from "../utils/dateUtils.js";
 import {
   getLocalConfigApi,
   getLocalMotivos,
+  getLocalCanais,
+  saveLocalCanal,
+  updateLocalCanal,
+  deleteLocalCanal,
   getLocalOperadores,
   getLocalProdutos,
   getLocalSinalizacoes,
@@ -74,6 +79,12 @@ pool.on("connect", () => {
   console.log("✅ PostgreSQL conectado.");
   dbQuery(`ALTER TABLE diario_bordo ADD COLUMN IF NOT EXISTS tipo VARCHAR(50) DEFAULT 'Operacional';`).catch((e) => {
     console.warn('[PostgreSQL] Migration note on tipo column:', e);
+  });
+  dbQuery(`ALTER TABLE diario_bordo ADD COLUMN IF NOT EXISTS canal VARCHAR(255);`).catch((e) => {
+    console.warn('[PostgreSQL] Migration note on canal column:', e);
+  });
+  dbQuery(`CREATE TABLE IF NOT EXISTS canais (id SERIAL PRIMARY KEY, nome VARCHAR(255) NOT NULL UNIQUE);`).catch((e) => {
+    console.warn('[PostgreSQL] Migration note on canais table:', e);
   });
 });
 
@@ -645,6 +656,81 @@ deleteMotivo: async (id: number): Promise<void> => {
   }
 },
 
+getCanais: async (): Promise<Canal[]> => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM canais
+       ORDER BY id ASC`
+    );
+
+    return result.rows as Canal[];
+  } catch (err) {
+    console.warn('[PostgreSQL] Falling back to local canais data:', err);
+    return getLocalCanais();
+  }
+},
+
+addCanal: async (nome: string): Promise<Canal> => {
+  try {
+    const lowerName = nome.toLowerCase();
+
+    const existing = await pool.query(
+      `SELECT * FROM canais
+       WHERE LOWER(nome) = $1
+       LIMIT 1`,
+      [lowerName]
+    );
+
+    if (existing.rows.length > 0) {
+      return existing.rows[0] as Canal;
+    }
+
+    const result = await pool.query(
+      `INSERT INTO canais (nome)
+       VALUES ($1)
+       RETURNING *`,
+      [nome]
+    );
+
+    return result.rows[0] as Canal;
+  } catch (err) {
+    console.error('[PostgreSQL] Error in addCanal, using localDb fallback:', err);
+    return saveLocalCanal(nome);
+  }
+},
+
+updateCanal: async (id: number, nome: string): Promise<Canal | null> => {
+  try {
+    const result = await pool.query(
+      `UPDATE canais
+       SET nome = $1
+       WHERE id = $2
+       RETURNING *`,
+      [nome, id]
+    );
+
+    return result.rows.length > 0
+      ? (result.rows[0] as Canal)
+      : null;
+  } catch (err) {
+    console.error('[PostgreSQL] Error in updateCanal, using localDb fallback:', err);
+    return updateLocalCanal(id, nome);
+  }
+},
+
+deleteCanal: async (id: number): Promise<void> => {
+  try {
+    await pool.query(
+      `DELETE FROM canais
+       WHERE id = $1`,
+      [id]
+    );
+  } catch (err) {
+    console.error('[PostgreSQL] Error in deleteCanal, using localDb fallback:', err);
+    deleteLocalCanal(id);
+  }
+},
+
 getSinalizacoes: async (): Promise<Sinalizacao[]> => {
   try {
     const result = await pool.query(
@@ -976,6 +1062,8 @@ addDiarioBordo: async (
     const solucao = data.solucao || '';
     const responsavelSolucao = data.responsavel_solucao || '';
 
+    const canal = data.canal || '';
+
     const result = await pool.query(
       `INSERT INTO diario_bordo (
         data_ocorrencia,
@@ -987,6 +1075,7 @@ addDiarioBordo: async (
         comentario,
         status,
         responsavel,
+        canal,
         nome_evidencia,
         caminho_evidencia,
         data_solucao,
@@ -1000,8 +1089,8 @@ addDiarioBordo: async (
       VALUES (
         $1, $2, $3, $4, $5, $6,
         $7, $8, $9, $10, $11,
-        $12, $13, $14, $15,
-        $16, $17, $18
+        $12, $13, $14, $15, $16,
+        $17, $18, $19
       )
       RETURNING *`,
       [
@@ -1014,6 +1103,7 @@ addDiarioBordo: async (
         comentario,
         data.status,
         data.responsavel,
+        canal,
         nomeEvidencia,
         caminhoEvidencia,
         dataSolucao,
@@ -1070,6 +1160,7 @@ updateDiarioBordo: async (
     const comentario = data.comentario ?? current.comentario;
     const status = data.status ?? current.status;
     const responsavel = data.responsavel ?? current.responsavel;
+    const canal = data.canal ?? current.canal ?? '';
     const nome_evidencia = data.nome_evidencia ?? current.nome_evidencia ?? '';
     const caminho_evidencia = data.caminho_evidencia ?? current.caminho_evidencia ?? '';
     const data_solucao = data.data_solucao ?? current.data_solucao ?? '';
@@ -1089,14 +1180,15 @@ updateDiarioBordo: async (
             comentario = $7,
             status = $8,
             responsavel = $9,
-            nome_evidencia = $10,
-            caminho_evidencia = $11,
-            data_solucao = $12,
-            hora_solucao = $13,
-            solucao = $14,
-            responsavel_solucao = $15,
-            data_atualizacao = $16
-         WHERE id = $17
+            canal = $10,
+            nome_evidencia = $11,
+            caminho_evidencia = $12,
+            data_solucao = $13,
+            hora_solucao = $14,
+            solucao = $15,
+            responsavel_solucao = $16,
+            data_atualizacao = $17
+         WHERE id = $18
          RETURNING *`,
         [
             data_ocorrencia,
@@ -1108,6 +1200,7 @@ updateDiarioBordo: async (
             comentario,
             status,
             responsavel,
+            canal,
             nome_evidencia,
             caminho_evidencia,
             data_solucao,

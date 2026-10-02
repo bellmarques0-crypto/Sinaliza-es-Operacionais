@@ -809,7 +809,8 @@ app.post(
         tipo,
         comentario,
         status,
-        responsavel
+        responsavel,
+        canal
       } = req.body;
 
       if (!data_ocorrencia || !hora_ocorrencia || !produto || !ocorrencia || !impacto || !responsavel) {
@@ -846,6 +847,7 @@ app.post(
         comentario: comentario || '',
         status: status || 'Aberto',
         responsavel,
+        canal: canal || '',
         nome_evidencia,
         caminho_evidencia,
         usuario_registro: req.user!.nome,
@@ -891,6 +893,7 @@ app.post('/api/diario-bordo/importar', authenticateToken, async (req: AuthReques
           comentario: item.comentario || '',
           status: item.status || 'Aberto',
           responsavel: item.responsavel || req.user!.nome,
+          canal: item.canal || '',
           data_solucao: item.data_solucao || (item.status === 'Resolvido' ? defaultDate : ''),
           hora_solucao: item.hora_solucao || (item.status === 'Resolvido' ? defaultTime : ''),
           solucao: item.solucao || '',
@@ -941,6 +944,7 @@ app.put(
         comentario,
         status,
         responsavel,
+        canal,
         data_solucao,
         hora_solucao,
         solucao,
@@ -958,6 +962,7 @@ app.put(
       if (comentario !== undefined) updateData.comentario = comentario;
       if (status) updateData.status = status;
       if (responsavel) updateData.responsavel = responsavel;
+      if (canal !== undefined) updateData.canal = canal;
 
       if (data_solucao !== undefined) updateData.data_solucao = data_solucao;
       if (hora_solucao !== undefined) updateData.hora_solucao = hora_solucao;
@@ -2013,6 +2018,48 @@ app.delete(
     const id = parseInt(req.params.id, 10);
     await db.deleteMotivo(id);
     return res.json({ message: 'Motivo excluído com sucesso.' });
+  }
+);
+
+// --- CANAIS ROUTES ---
+app.get('/api/canais', authenticateToken, async (req: Request, res: Response) => {
+  return res.json(await db.getCanais());
+});
+
+app.post(
+  '/api/canais',
+  authenticateToken,
+  requireRole(['Administrador']),
+  async (req: Request, res: Response) => {
+    const { nome } = req.body;
+    if (!nome) return res.status(400).json({ error: 'Nome do canal é obrigatório.' });
+    const canal = await db.addCanal(nome);
+    return res.status(201).json(canal);
+  }
+);
+
+app.put(
+  '/api/canais/:id',
+  authenticateToken,
+  requireRole(['Administrador']),
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    const { nome } = req.body;
+    if (!nome) return res.status(400).json({ error: 'Nome do canal é obrigatório.' });
+    const updated = await db.updateCanal(id, nome);
+    if (!updated) return res.status(404).json({ error: 'Canal não encontrado.' });
+    return res.json(updated);
+  }
+);
+
+app.delete(
+  '/api/canais/:id',
+  authenticateToken,
+  requireRole(['Administrador']),
+  async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id, 10);
+    await db.deleteCanal(id);
+    return res.json({ message: 'Canal excluído com sucesso.' });
   }
 );
 

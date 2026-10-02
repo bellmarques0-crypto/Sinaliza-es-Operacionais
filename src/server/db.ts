@@ -4,6 +4,7 @@ import {
   Operador,
   Produto,
   Motivo,
+  Canal,
   Sinalizacao,
   ConfiguracaoApi,
   DiarioBordoOcorrencia,
@@ -110,6 +111,22 @@ export const db = {
 
   deleteMotivo: async (id: number): Promise<void> => {
       await postgresDb.deleteMotivo(id);
+  },
+
+  getCanais: async (): Promise<Canal[]> => {
+      return await postgresDb.getCanais();
+  },
+
+  addCanal: async (nome: string): Promise<Canal> => {
+      return await postgresDb.addCanal(nome);
+  },
+
+  updateCanal: async (id: number, nome: string): Promise<Canal | null> => {
+      return await postgresDb.updateCanal(id, nome);
+  },
+
+  deleteCanal: async (id: number): Promise<void> => {
+      await postgresDb.deleteCanal(id);
   },
 
   getSinalizacoes: async (): Promise<Sinalizacao[]> => {

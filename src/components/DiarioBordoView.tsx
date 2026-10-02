@@ -72,6 +72,7 @@ import {
   UserSession,
   Produto,
   Usuario,
+  Canal,
   PerfilConfig
 } from '../types';
 import { ImageModal } from './ImageModal';
@@ -111,10 +112,21 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; 
     text: 'text-slate-600',
     border: 'border-slate-200',
     badge: 'bg-slate-200 text-slate-700'
+  },
+  Informativo: {
+    bg: 'bg-cyan-50',
+    text: 'text-cyan-700',
+    border: 'border-cyan-200',
+    badge: 'bg-cyan-100 text-cyan-800'
   }
 };
 
 const IMPACTO_COLORS: Record<string, { bg: string; text: string; badge: string }> = {
+  Informativo: {
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
+    badge: 'bg-blue-100 text-blue-800'
+  },
   Baixo: {
     bg: 'bg-sky-50',
     text: 'text-sky-700',
@@ -431,6 +443,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
   // State
   const [ocorrencias, setOcorrencias] = useState<DiarioBordoOcorrencia[]>([]);
   const [produtos, setProdutos] = useState<string[]>([]);
+  const [canais, setCanais] = useState<string[]>([]);
   const [usuariosList, setUsuariosList] = useState<string[]>([]);
   const [perfisConfig, setPerfisConfig] = useState<PerfilConfig[]>([]);
 
@@ -670,6 +683,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
         }
 
         const produto = getValue(['produto', 'product']) || (produtos[0] || 'Outros');
+        const canal = getValue(['canal de atendimento', 'canal', 'canal_atendimento', 'canal atendimento']) || '';
         const ocorrencia =
           getValue([
             'sistema impactado',
@@ -683,12 +697,12 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
           ]) || 'Ocorrência Importada';
         const impactoRaw = getValue(['tipo de impacto', 'tipo impacto', 'impacto', 'gravidade']);
         const impacto =
-          ['Baixo', 'Médio', 'Alto', 'Crítico'].find((i) => i.toLowerCase() === impactoRaw.toLowerCase()) || 'Médio';
+          ['Informativo', 'Baixo', 'Médio', 'Alto', 'Crítico'].find((i) => i.toLowerCase() === impactoRaw.toLowerCase()) || 'Médio';
         const tipoRaw = getValue(['tipo ocorrência', 'tipo ocorrencia', 'tipo']);
         const tipo = tipoRaw.toLowerCase().includes('interna') ? 'Interna' : 'Operacional';
         const statusRaw = getValue(['status', 'situacao', 'situação']);
         const status =
-          ['Aberto', 'Em Andamento', 'Monitorando', 'Resolvido', 'Cancelado'].find(
+          ['Aberto', 'Em Andamento', 'Monitorando', 'Resolvido', 'Cancelado', 'Informativo'].find(
             (s) => s.toLowerCase() === statusRaw.toLowerCase()
           ) || 'Aberto';
         const responsavel = getValue(['responsável ocorrência', 'responsavel ocorrencia', 'responsavel', 'responsável', 'operador', 'atendente']) || defaultUser;
@@ -871,6 +885,36 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
     }
   };
 
+  const formatTempoImpacto = (item: DiarioBordoOcorrencia): string => {
+    if (!item.data_ocorrencia) return '-';
+    try {
+      const start = new Date(`${item.data_ocorrencia}T${item.hora_ocorrencia || '00:00'}:00`).getTime();
+      let end: number;
+      if (item.status === 'Resolvido' && item.data_solucao) {
+        end = new Date(`${item.data_solucao}T${item.hora_solucao || '00:00'}:00`).getTime();
+      } else {
+        end = Date.now();
+      }
+      if (isNaN(start) || isNaN(end) || end < start) return '-';
+
+      const diffMinutes = Math.floor((end - start) / (1000 * 60));
+      const hours = Math.floor(diffMinutes / 60);
+      const minutes = diffMinutes % 60;
+
+      if (item.status === 'Resolvido') {
+        if (hours === 0) return `${minutes} min`;
+        if (minutes === 0) return `${hours}h`;
+        return `${hours}h ${minutes}min`;
+      } else {
+        if (hours === 0) return `${minutes} min (Em andamento)`;
+        if (minutes === 0) return `${hours}h (Em andamento)`;
+        return `${hours}h ${minutes}min (Em andamento)`;
+      }
+    } catch (e) {
+      return '-';
+    }
+  };
+
   const getEmailContent = () => {
     const dateStr = getBrasiliaDateString();
     const selectedItems = displayedOcorrencias.filter((item) =>
@@ -885,32 +929,16 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       body += `Nenhuma ocorrência operacional selecionada.\n`;
     } else {
       const itemBlocks = selectedItems.map((item) => {
-        let block = `${item.produto || 'Ocorrência'}\n`;
-        block += `Data/Hora: ${item.data_ocorrencia}${item.hora_ocorrencia ? ' às ' + item.hora_ocorrencia : ''}\n`;
-        block += `Impacto: ${item.impacto || 'Médio'} | Status: ${item.status}\n`;
-
-        let desc = item.ocorrencia || '';
-        if (item.comentario) {
-          if (desc) {
-            desc += desc.endsWith('.') || desc.endsWith(' ') ? ` ${item.comentario}` : `. ${item.comentario}`;
-          } else {
-            desc = item.comentario;
-          }
-        }
-        block += `Descrição: ${desc}\n`;
-
-        if (item.responsavel) {
-          block += `Responsável: ${item.responsavel}\n`;
-        }
-
-        if (item.solucao) {
-          block += `Solução: ${item.solucao}${item.responsavel_solucao ? ' (Por: ' + item.responsavel_solucao + ')' : ''}\n`;
-        }
-
-        return block.trimEnd();
+        let block = `Sistema impactado: ${item.ocorrencia || item.produto || '-'}\n`;
+        block += `Data e hora: ${item.data_ocorrencia}${item.hora_ocorrencia ? ' às ' + item.hora_ocorrencia : ''}\n`;
+        block += `Impacto: ${item.impacto || 'Médio'}\n`;
+        block += `Descrição: ${item.comentario || item.ocorrencia || '-'}\n`;
+        block += `Tempo de impacto: ${formatTempoImpacto(item)}\n`;
+        block += `Responsável: ${item.responsavel || '-'}`;
+        return block;
       });
 
-      body += itemBlocks.join('\n\n');
+      body += itemBlocks.join('\n\n----------------------------------------\n\n');
     }
 
     return { subject, body, selectedCount: count };
@@ -944,23 +972,16 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
     }
   };
 
-  const handleOpenEmailModal = async () => {
+  const handleOpenEmailModal = () => {
     const allIds = displayedOcorrencias.map((item) => item.id);
     setSelectedEmailItemIds(allIds);
     setIsEmailModalOpen(true);
     setCopiedSnippet(false);
-
-    const { subject, body } = getEmailContent();
-    const success = await copyToClipboard(`Assunto: ${subject}\n\n${body}`);
-    if (success) {
-      setCopiedSnippet(true);
-    }
   };
 
-
   const handleCopyEmailText = async () => {
-    const { subject, body } = getEmailContent();
-    const success = await copyToClipboard(`Assunto: ${subject}\n\n${body}`);
+    const { body } = getEmailContent();
+    const success = await copyToClipboard(body);
     if (success) {
       setCopiedSnippet(true);
       setTimeout(() => setCopiedSnippet(false), 3000);
@@ -978,6 +999,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
     comentario: '',
     status: 'Aberto' as DiarioBordoStatus,
     responsavel: user.nome || '',
+    canal: '',
     caminho_evidencia: '',
     nome_evidencia: '',
     data_solucao: '',
@@ -1021,10 +1043,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       if (filtros.tipo && filtros.tipo !== 'Todos') params.append('tipo', filtros.tipo);
       if (filtros.busca) params.append('busca', filtros.busca);
 
-      const [resOcorr, resProds, resUsers, perfisData] = await Promise.all([
+      const [resOcorr, resProds, resUsers, resCanais, perfisData] = await Promise.all([
         fetch(`/api/diario-bordo?${params.toString()}`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/produtos', { headers: { Authorization: `Bearer ${token}` } }),
         fetch('/api/usuarios', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/canais', { headers: { Authorization: `Bearer ${token}` } }),
         api.getPerfisConfig().catch(() => [])
       ]);
 
@@ -1039,6 +1062,10 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       if (resUsers.ok) {
         const data: Usuario[] = await resUsers.json();
         setUsuariosList(data.map((u) => u.nome));
+      }
+      if (resCanais && resCanais.ok) {
+        const data: Canal[] = await resCanais.json();
+        setCanais(data.map((c) => c.nome));
       }
       if (Array.isArray(perfisData) && perfisData.length > 0) {
         setPerfisConfig(perfisData);
@@ -1085,6 +1112,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
         comentario: item.comentario || '',
         status: item.status || 'Aberto',
         responsavel: item.responsavel || user.nome,
+        canal: item.canal || '',
         caminho_evidencia: item.caminho_evidencia || '',
         nome_evidencia: item.nome_evidencia || '',
         data_solucao: item.data_solucao || (item.status === 'Resolvido' ? getBrasiliaDateString() : ''),
@@ -1106,6 +1134,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
         comentario: '',
         status: 'Aberto',
         responsavel: user.nome || '',
+        canal: '',
         caminho_evidencia: '',
         nome_evidencia: '',
         data_solucao: '',
@@ -1186,6 +1215,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
       formPayload.append('comentario', formData.comentario);
       formPayload.append('status', formData.status);
       formPayload.append('responsavel', formData.responsavel);
+      formPayload.append('canal', formData.canal || '');
 
       if (formData.data_solucao) formPayload.append('data_solucao', formData.data_solucao);
       if (formData.hora_solucao) formPayload.append('hora_solucao', formData.hora_solucao);
@@ -1275,6 +1305,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
         'Data Ocorrência': safeExcelText(item.data_ocorrencia || '-'),
         'Hora Ocorrência': safeExcelText(item.hora_ocorrencia || '-'),
         Produto: safeExcelText(item.produto || '-'),
+        Canal: safeExcelText(item.canal || '-'),
         'Sistema Impactado': safeExcelText(item.ocorrencia || '-'),
         'Descrição do Sistema': safeExcelText(item.comentario || ''),
         'Tipo de Impacto': safeExcelText(item.impacto || '-'),
@@ -1628,7 +1659,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
             <MultiSelectFilter
               label="Status"
               placeholder="Todos os Status"
-              options={['Aberto', 'Em Andamento', 'Resolvido', 'Monitorando', 'Cancelado']}
+              options={['Aberto', 'Em Andamento', 'Resolvido', 'Monitorando', 'Cancelado', 'Informativo']}
               selected={Array.isArray(filtros.status) ? filtros.status : []}
               onChange={(selected) => setFiltros((prev) => ({ ...prev, status: selected }))}
             />
@@ -1646,9 +1677,18 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
             <MultiSelectFilter
               label="Impacto"
               placeholder="Todos os Impactos"
-              options={['Baixo', 'Médio', 'Alto', 'Crítico']}
+              options={['Informativo', 'Baixo', 'Médio', 'Alto', 'Crítico']}
               selected={Array.isArray(filtros.impacto) ? filtros.impacto : []}
               onChange={(selected) => setFiltros((prev) => ({ ...prev, impacto: selected }))}
+            />
+
+            {/* Canal */}
+            <MultiSelectFilter
+              label="Canal"
+              placeholder="Todos os Canais"
+              options={canais}
+              selected={Array.isArray(filtros.canal) ? filtros.canal : []}
+              onChange={(selected) => setFiltros((prev) => ({ ...prev, canal: selected }))}
             />
           </div>
 
@@ -1734,6 +1774,8 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                       <Bar dataKey="quantidade" name="Ocorrências" radius={[8, 8, 0, 0]}>
                         {metrics.ocorrenciasPorImpacto.map((entry, index) => {
                           let color = '#3b82f6';
+                          if (entry.impacto === 'Informativo') color = '#0284c7';
+                          if (entry.impacto === 'Baixo') color = '#38bdf8';
                           if (entry.impacto === 'Médio') color = '#eab308';
                           if (entry.impacto === 'Alto') color = '#f97316';
                           if (entry.impacto === 'Crítico') color = '#ef4444';
@@ -1859,6 +1901,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                     <th className="p-3.5">Data Ocorrência</th>
                     <th className="p-3.5">Hora Ocorrência</th>
                     <th className="p-3.5">Produto</th>
+                    <th className="p-3.5">Canal</th>
                     <th className="p-3.5">Sistema Impactado</th>
                     <th className="p-3.5">Descrição do Sistema</th>
                     <th className="p-3.5">Tipo de Impacto</th>
@@ -1908,6 +1951,11 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                         {/* 5. Produto */}
                         <td className="p-3.5 font-medium text-slate-900 dark:text-slate-200 whitespace-nowrap">
                           {item.produto}
+                        </td>
+
+                        {/* Canal */}
+                        <td className="p-3.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                          {item.canal || '-'}
                         </td>
 
                         {/* 6. Sistema Impactado */}
@@ -2182,8 +2230,8 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                     </div>
                   </div>
 
-                  {/* Grid 2: Produto, Tipo & Impacto */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Grid 2: Produto, Canal, Tipo & Impacto */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                         Produto *
@@ -2199,6 +2247,25 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                         {produtos.map((p, idx) => (
                           <option key={`modal-prod-${p}-${idx}`} value={p}>
                             {p}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        Canal
+                      </label>
+                      <select
+                        disabled={Boolean(editingItem && !hasPerm('diario_bordo_editar'))}
+                        value={formData.canal}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, canal: e.target.value }))}
+                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
+                      >
+                        <option value="">Selecione o canal...</option>
+                        {canais.map((c, idx) => (
+                          <option key={`modal-canal-${c}-${idx}`} value={c}>
+                            {c}
                           </option>
                         ))}
                       </select>
@@ -2231,6 +2298,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                         onChange={(e) => setFormData((prev) => ({ ...prev, impacto: e.target.value }))}
                         className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                       >
+                        <option value="Informativo">Informativo</option>
                         <option value="Baixo">Baixo</option>
                         <option value="Médio">Médio</option>
                         <option value="Alto">Alto</option>
@@ -2286,6 +2354,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                         <option value="Resolvido">Resolvido</option>
                         <option value="Monitorando">Monitorando</option>
                         <option value="Cancelado">Cancelado</option>
+                        <option value="Informativo">Informativo</option>
                       </select>
                     </div>
                   </div>
@@ -2571,42 +2640,25 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
         title={viewImageModal.title}
       />
 
-      {/* MODAL ENCAMINHAR E-MAIL */}
+      {/* MODAL COPIAR RESUMO DE OCORRÊNCIAS */}
       {isEmailModalOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 w-full max-w-2xl overflow-hidden">
             <div className="bg-slate-50 dark:bg-slate-950 px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 rounded-xl">
-                  <Mail className="h-5 w-5" />
+                  <FileText className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    Encaminhar Relatório por E-mail
+                    Copiar Resumo das Ocorrências
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Copie o resumo formatado das ocorrências selecionadas para a área de transferência
+                    Selecione as ocorrências e copie o resumo formatado para a área de transferência
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyEmailText}
-                  title={copiedSnippet ? 'Copiado!' : 'Copiar resumo para área de transferência'}
-                  className={`p-2 rounded-xl border flex items-center justify-center transition-all cursor-pointer ${
-                    copiedSnippet
-                      ? 'bg-emerald-100 dark:bg-emerald-950/80 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20'
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs active:scale-95'
-                  }`}
-                >
-                  {copiedSnippet ? (
-                    <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
-                  ) : (
-                    <Copy className="h-5 w-5" />
-                  )}
-                </button>
-
                 <button
                   type="button"
                   onClick={() => setIsEmailModalOpen(false)}
@@ -2619,111 +2671,21 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
             </div>
 
             <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              {/* Feedback Alert quando enviado / processado */}
-              {emailStatusFeedback && (
-                <div className="bg-blue-50 dark:bg-cyan-950/60 border border-blue-200 dark:border-cyan-800 p-3 rounded-xl flex items-center justify-between gap-2.5 text-xs font-bold text-blue-800 dark:text-cyan-300 animate-in fade-in">
+              {/* Feedback Alert */}
+              {copiedSnippet && (
+                <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 p-3 rounded-xl flex items-center justify-between gap-2.5 text-xs font-bold text-emerald-800 dark:text-emerald-300 animate-in fade-in">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4.5 w-4.5 text-blue-600 dark:text-cyan-400 shrink-0" />
-                    <span>{emailStatusFeedback}</span>
+                    <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Texto copiado com sucesso para a área de transferência!</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setEmailStatusFeedback(null)}
-                    className="text-blue-500 hover:text-blue-700 dark:text-cyan-400 p-0.5 rounded cursor-pointer"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
                 </div>
               )}
-
-              {/* Cadastrar e Gerenciar Destinatários (Para:) */}
-              <div className="space-y-2 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <AtSign className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                    <span>Destinatários do E-mail (Para:)</span>
-                  </label>
-                  {emailRecipients.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={toggleSelectAllRecipients}
-                      className="text-[11px] font-bold text-blue-600 dark:text-cyan-400 hover:underline cursor-pointer"
-                    >
-                      {selectedEmailRecipients.length === emailRecipients.length
-                        ? 'Desmarcar Todos'
-                        : `Selecionar Todos (${emailRecipients.length})`}
-                    </button>
-                  )}
-                </div>
-
-                {/* Campo para Cadastrar Novo Destinatário */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="email"
-                    placeholder="Cadastrar novo e-mail (ex: gestao@empresa.com.br)..."
-                    value={newRecipientInput}
-                    onChange={(e) => setNewRecipientInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddRecipient();
-                      }
-                    }}
-                    className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-purple-500 font-medium transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddRecipient}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer shrink-0"
-                  >
-                    <UserPlus className="h-3.5 w-3.5" />
-                    <span>Adicionar</span>
-                  </button>
-                </div>
-
-                {/* Lista de Destinatários Cadastrados */}
-                {emailRecipients.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto p-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-                    {emailRecipients.map((email) => {
-                      const isSelected = selectedEmailRecipients.includes(email);
-                      return (
-                        <div
-                          key={`recipient-item-${email}`}
-                          className={`flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs transition border ${
-                            isSelected
-                              ? 'bg-purple-50 dark:bg-purple-950/80 border-purple-300 dark:border-purple-700 text-purple-900 dark:text-purple-200 font-semibold'
-                              : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 opacity-60'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleRecipientSelection(email)}
-                            className="h-3.5 w-3.5 rounded border-slate-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
-                          />
-                          <span>{email}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRecipient(email)}
-                            className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-0.5 rounded cursor-pointer ml-1"
-                            title="Remover destinatário"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-[11px] text-slate-400 italic">Nenhum destinatário cadastrado. Adicione e-mails acima para salvar na lista.</p>
-                )}
-              </div>
 
               {/* Seleção de Ocorrências */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Selecione as Ocorrências a Incluir no E-mail
+                    Selecione as Ocorrências a Incluir
                   </label>
                   <button
                     type="button"
@@ -2736,7 +2698,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                   </button>
                 </div>
 
-                <div className="max-h-36 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-2 divide-y divide-slate-100 dark:divide-slate-800/80">
+                <div className="max-h-44 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-2 divide-y divide-slate-100 dark:divide-slate-800/80">
                   {displayedOcorrencias.length === 0 ? (
                     <p className="text-xs text-slate-500 italic p-2">Nenhuma ocorrência disponível.</p>
                   ) : (
@@ -2777,19 +2739,6 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                 </div>
               </div>
 
-              {/* Assunto */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Assunto do E-mail
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={getEmailContent().subject}
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 outline-none font-medium"
-                />
-              </div>
-
               {/* Corpo */}
               <div>
                 <div className="flex items-center justify-between mb-1">
@@ -2798,7 +2747,7 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                   </label>
                 </div>
                 <textarea
-                  rows={5}
+                  rows={6}
                   readOnly
                   value={getEmailContent().body}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-800 dark:text-slate-200 outline-none font-mono resize-none"
@@ -2816,16 +2765,24 @@ export const DiarioBordoView: React.FC<DiarioBordoViewProps> = ({ user, token })
                 </button>
                 <button
                   type="button"
-                  onClick={handleSendEmail}
-                  disabled={isSendingEmail}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-98 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-md shadow-purple-600/20 cursor-pointer"
+                  onClick={handleCopyEmailText}
+                  className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer ${
+                    copiedSnippet
+                      ? 'bg-emerald-600 text-white shadow-emerald-600/20'
+                      : 'bg-purple-600 hover:bg-purple-700 active:scale-98 text-white shadow-purple-600/20'
+                  }`}
                 >
-                  {isSendingEmail ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                  {copiedSnippet ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      <span>Copiado!</span>
+                    </>
                   ) : (
-                    <Send className="h-4 w-4" />
+                    <>
+                      <Copy className="h-4 w-4" />
+                      <span>Copiar Resumo</span>
+                    </>
                   )}
-                  <span>{isSendingEmail ? 'Enviando...' : 'Enviar E-mail'}</span>
                 </button>
               </div>
             </div>

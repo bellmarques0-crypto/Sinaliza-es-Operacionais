@@ -7,6 +7,7 @@ import type {
   Operador,
   Produto,
   Motivo,
+  Canal,
   Sinalizacao,
   ConfiguracaoApi,
   DiarioBordoOcorrencia,
@@ -150,6 +151,51 @@ export function getLocalProdutos(): Produto[] {
 export function getLocalMotivos(): Motivo[] {
   const data = readDb();
   return (data.motivos || []) as Motivo[];
+}
+
+export function getLocalCanais(): Canal[] {
+  const data = readDb();
+  if (!data.canais) {
+    data.canais = [
+      { id: 1, nome: 'WhatsApp' },
+      { id: 2, nome: 'Telefonia' },
+      { id: 3, nome: 'Chat' },
+      { id: 4, nome: 'E-mail' },
+      { id: 5, nome: 'Presencial' },
+      { id: 6, nome: 'Redes Sociais' }
+    ];
+    writeDb(data);
+  }
+  return (data.canais || []) as Canal[];
+}
+
+export function saveLocalCanal(nome: string): Canal {
+  const data = readDb();
+  if (!data.canais) data.canais = [];
+  const existing = data.canais.find((c: any) => c.nome.toLowerCase() === nome.toLowerCase());
+  if (existing) return existing;
+  const nextId = (data.canais.length > 0 ? Math.max(...data.canais.map((c: any) => c.id || 0)) : 0) + 1;
+  const newCanal: Canal = { id: nextId, nome };
+  data.canais.push(newCanal);
+  writeDb(data);
+  return newCanal;
+}
+
+export function updateLocalCanal(id: number, nome: string): Canal | null {
+  const data = readDb();
+  if (!data.canais) data.canais = [];
+  const idx = data.canais.findIndex((c: any) => c.id === id);
+  if (idx < 0) return null;
+  data.canais[idx] = { ...data.canais[idx], nome };
+  writeDb(data);
+  return data.canais[idx];
+}
+
+export function deleteLocalCanal(id: number): void {
+  const data = readDb();
+  if (!data.canais) return;
+  data.canais = data.canais.filter((c: any) => c.id !== id);
+  writeDb(data);
 }
 
 export function getLocalSinalizacoes(): Sinalizacao[] {

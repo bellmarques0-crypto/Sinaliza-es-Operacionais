@@ -8545,8 +8545,8 @@
       "data": "2026-10-01",
       "operador": "MARIA LUIZA AMORIM DA SILVA",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Falta Injustificada",
-      "observacao": "Precisou sair por motivos pessoais (mãe passando mal).",
+      "status": "Falta Justificada",
+      "observacao": "Declaração lançada no sistema.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 941
     },
@@ -8995,8 +8995,8 @@
       "data": "2026-10-02",
       "operador": "CARLA EDUARDA NASCIMENTO FIGUEIREDO",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado no sistema.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 991
     },
@@ -9049,8 +9049,8 @@
       "data": "2026-10-02",
       "operador": "MARIA LUIZA AMORIM DA SILVA",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado no sistema.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 997
     },
@@ -9103,8 +9103,8 @@
       "data": "2026-10-02",
       "operador": "VITORIA LORRANY RIBEIRO SILVA",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado no sistema.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 1003
     },
@@ -9166,8 +9166,8 @@
       "data": "2026-10-02",
       "operador": "ROBMAR DE FREITAS SANTOS LOPES",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Indisponível",
+      "observacao": "Colaborador desligado.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 1010
     },
@@ -9175,8 +9175,8 @@
       "data": "2026-10-02",
       "operador": "LAYANNE MORAIS DOS SANTOS",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado no sistema.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 1011
     },
@@ -9283,8 +9283,8 @@
       "data": "2026-10-02",
       "operador": "VITORIA CAROLINA PEREIRA DE SOUZA",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Indisponível",
+      "observacao": "Colaboradora solicitou desligamento.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 1023
     },
@@ -9301,8 +9301,8 @@
       "data": "2026-10-02",
       "operador": "ALINE SILVA AMARAL",
       "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
-      "status": "Presente",
-      "observacao": "",
+      "status": "Falta Injustificada",
+      "observacao": "Sem atestado lançado no sistema.",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 1025
     },
@@ -9341,6 +9341,933 @@
       "observacao": "",
       "usuario_registro": "RODRIGO BUENO SAMPAIO",
       "id": 1029
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "PEDRO AUGUSTO BORBA FONSECA RAMOS",
+      "supervisor": "LARISSA MICHAELY SANTOS MARTINS",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "RODRIGO BUENO SAMPAIO",
+      "id": 1030
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JULIANA OLIVEIRA DA ROCHA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1031
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANDREZA DA CONCEICAO MOREIRA DE PAULA BRAGA ALMEIDA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1032
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "IZABELA SILVA BARCELAR",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1033
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "PALOMA CINTIA DA SILVA SANTOS",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1034
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GLEYCIENE MARCELLE DE SOUZA SANTOS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1035
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA CAROLINA FERNANDES MARTINS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1036
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ELIANA ALVES DE MOURA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1037
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ERICK SOARES DA ROCHA GARCIA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1038
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JULIA JESUS FELIX DA FONSECA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1039
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MAURILIA JUNIA OLIVEIRA DE ARAUJO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1040
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANGELO GABRIEL BARBOSA DE JESUS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1041
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JULIA DE SOUZA REZENDE DUTRA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1042
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LAIZA EDUARDA LOPES CARVALHO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1043
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LUIZA DE SOUZA REZENDE DUTRA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1044
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JOICE SAMARA SOARES E ABREU TORRES",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1045
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ELIAS LEMOS SODRE",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1046
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANNA LUIZA SILVA GODINHO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1047
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LIVIA REZENDE DE MAGALHAES",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1048
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JENNIFER VITORIA DE ALMEIDA BARBOSA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1049
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "DAIANE PEREIRA DE OLIVEIRA FARIA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1050
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "DAVID DE SOUZA MARCIANO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1051
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARIA ESTHER NAVA VALLEJO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1052
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GABRIELLY VITORIA DE OLIVEIRA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1053
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ADRYAN ROBERTO ANCHIETA ALVES",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1054
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "DAVID HENRIQUE MENDES LOPES",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1055
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARIA LUIZA SILVA BARBOSA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1056
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "VITORIA DE SOUZA MOREIRA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1057
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "VINICIUS SANTOS DE MELO SOUSA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1058
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "CLARA PORTO GUIMARAES",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1059
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "PEDRO HENRIQUE FERREIRA MARTINS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1060
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "KAYLANE ISABELLY CANDIDA VIEIRA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1061
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JESSICA MARIA LOURENCO SANTOS",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1062
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GABRIEL HENRIQUE PEREIRA FREITAS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1063
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LUIS FERNANDO NOLIBOS RAMOS",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1064
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "KAILANNY VITORIA BARBOSA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1065
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "NICOLE CAROL VIEIRA BARBOSA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1066
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "KEILA CASTELO BRANCO CAJA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1067
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JUAN CARLOS ALVES FERREIRA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1068
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARIANA LUCIA COSTA DOS SANTOS ARAUJO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1069
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LAURANIA SILVA GODOI",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1070
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JULLIE EMANUELE CANUTO PINTO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1071
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "EMMILY GONCALVES DE CARVALHO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1072
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "TAINA CARVALHO TEIXEIRA MARTINS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1073
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARINA GONCALVES CARVALHO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1074
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "EMILLY MERY RIBEIRO DINIZ",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1075
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ARTUR RIBEIRO DA LUZ",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1076
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ARTHUR HENRIQUE DA SILVA COSTA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1077
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LORENA DAIANE SANTANA ARAUJO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1078
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "PAULINA EDUARDA CAMPOS DE ALMEIDA PEREIRA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1079
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "FERNANDO EMANUEL DOS SANTOS SILVA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1080
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LETICIA RAMOS DA SILVA AVILA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1081
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "IASMIN CARVALHO MARQUES",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1082
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LUCIANA VIEIRA DE SOUZA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1083
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARISA DE PAULA BARBOSA SARAIVA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1084
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "BIANCA GOMES MACHADO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1085
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JACQUELINE MICHELE CAMPOS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1086
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA LUIZA NASCIMENTO TEIXEIRA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1087
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "PEDRO HENRIQUE DA FE LIMA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1088
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARINA KAUANE DA PAZ ROCHA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1089
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "BEATRIZ GABRIELLE GUIMARAES CARNEIRO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1090
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JOAO GABRIEL DOS SANTOS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1091
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARIA EDUARDA OLIVEIRA RODRIGUES",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1092
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "DARLIENE SAMARA PEREIRA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1093
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "THAYNA AGATHA XAVIER DA SILVA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1094
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARINA VITORIA SILVA MORAES",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1095
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "DAVI JEFERSON DE ALMEIDA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1096
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GABRIELLY VITORIA DE OLIVEIRA SANTOS",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1097
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "KEVEN COSTA NEVES",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Falta Injustificada",
+      "observacao": "Até o presente momento sem justificativa.",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1098
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JOANY COELHO BARBOSA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1099
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LORANE MARIA PEREIRA DA COSTA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1100
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA CAROLINE LOPES DA SILVA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1101
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "EMILY VITORIA FARIA DE SOUZA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1102
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "HELENA BARBOSA DE SOUSA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1103
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARCELA DE JESUS ALMEIDA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1104
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LUCIMARA MARTINS ROCHA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1105
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA CAROLINA GONCALVES SABINO SILVA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Indisponível",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1106
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "STHEFANY SANTOS ROCHA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1107
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MICHELE RAYANE MOREIRA BENEVENUTO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1108
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LUIZA VITORIA FERNANDES DA SILVA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1109
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "JULYA ROBERTA ALMEIDA MACHADO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1110
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "KEILLA CASTELO BRANCO CAJA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1111
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LUANE VICTORIA DE SOUZA FERREIRA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1112
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "RAFAEL CAMARGO SILVERIO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1113
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "VERONICA PIMENTEL DE JESUS",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1114
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "EVELLYN ALMEIDA SOARES",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1115
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "TAYANA SANTOS DE SIQUEIRA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1116
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARIA EDUARDA MARQUES SILVA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1117
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "GUSTAVO SILVA FELIX DOS ANJOS",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1118
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "RAISSA EMANUELLY ALVES CAETANO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1119
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA CLARA CORREA DE OLIVEIRA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1120
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANA LUIZA SILVA MELO",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1121
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ANNA CLARA DE OLIVEIRA DA COSTA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1122
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "ISABELLY EDUARDA DE OLIVEIRA MORAIS",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1123
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "LIVIA CAMILLE BASILIO DA SILVA",
+      "supervisor": "CAMILY VITORIA SALES MARQUES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1124
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "PAULO HENRIQUE ALVES SANTOS OLIVEIRA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1125
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "PEDRO HENRIQUE TOLENTINO ROSA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1126
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "SABRINA ROCHA CARVALHO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1127
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "YASMIN AGATA CARNEIRO MARQUES",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1128
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "SOPHIA LIMA FRANCA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1129
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "DAVI HENRIQUE FELIPE OLIVEIRA RODRIGUES",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1130
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "MARIA EDUARDA MATIAS VIANA",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1131
+    },
+    {
+      "data": "2026-10-02",
+      "operador": "SURYA MARESSA PAIVA VENTURINI GALINDO MONTANO",
+      "supervisor": "ALAIDE SOUZA SANTOS GONCALVES",
+      "status": "Presente",
+      "observacao": "",
+      "usuario_registro": "LORENA BIANCA DE SALES",
+      "id": 1132
     }
   ],
   "perfis": [

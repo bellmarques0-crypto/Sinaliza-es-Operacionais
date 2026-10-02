@@ -29,6 +29,7 @@ import {
   Supervisor,
   Produto,
   Motivo,
+  Canal,
   ConfiguracaoApi,
   PerfilAcesso,
   PerfilConfig,
@@ -40,7 +41,7 @@ interface AdminViewProps {
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) => {
-  const [activeTab, setActiveTab] = useState<'api' | 'usuarios' | 'perfis' | 'supervisores' | 'produtos' | 'motivos'>('api');
+  const [activeTab, setActiveTab] = useState<'api' | 'usuarios' | 'perfis' | 'supervisores' | 'produtos' | 'motivos' | 'canais'>('api');
 
   // Feedback notifications
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -233,6 +234,13 @@ export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) =>
   const [editingMotivoId, setEditingMotivoId] = useState<number | null>(null);
   const [motivoDescricao, setMotivoDescricao] = useState('');
 
+  // --- CANAIS STATE ---
+  const [canaisList, setCanaisList] = useState<Canal[]>([]);
+  const [canalSearch, setCanalSearch] = useState('');
+  const [isCanalModalOpen, setIsCanalModalOpen] = useState(false);
+  const [editingCanalId, setEditingCanalId] = useState<number | null>(null);
+  const [canalNome, setCanalNome] = useState('');
+
   // --- PRODUTOS LIST FOR DROPDOWNS ---
   const [produtosList, setProdutosList] = useState<Produto[]>([]);
 
@@ -242,13 +250,14 @@ export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) =>
 
   const loadAllData = async () => {
     try {
-      const [config, users, sups, mots, prods, perfis] = await Promise.all([
+      const [config, users, sups, mots, prods, perfis, canais] = await Promise.all([
         api.getConfigApi(),
         api.getUsuarios(),
         api.getSupervisores(),
         api.getMotivos(),
         api.getProdutos(),
-        api.getPerfisConfig()
+        api.getPerfisConfig(),
+        api.getCanais()
       ]);
 
       setApiUrl(config.url_api || '');
@@ -261,6 +270,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) =>
       setSupervisoresList(sups);
       setMotivosList(mots);
       setProdutosList(prods);
+      setCanaisList(canais || []);
     } catch (err: any) {
       setErrorMsg('Erro ao carregar dados administrativos: ' + err.message);
     }
@@ -562,6 +572,45 @@ export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) =>
     }
   };
 
+  // --- CANAIS HANDLERS ---
+  const handleOpenCanalModal = (canal?: Canal) => {
+    if (canal) {
+      setEditingCanalId(canal.id);
+      setCanalNome(canal.nome);
+    } else {
+      setEditingCanalId(null);
+      setCanalNome('');
+    }
+    setIsCanalModalOpen(true);
+  };
+
+  const handleSaveCanal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingCanalId) {
+        await api.updateCanal(editingCanalId, canalNome);
+        showSuccess('Canal atualizado com sucesso.');
+      } else {
+        await api.createCanal(canalNome);
+        showSuccess('Canal cadastrado com sucesso.');
+      }
+      setIsCanalModalOpen(false);
+      loadAllData();
+    } catch (err: any) {
+      showError(err.message || 'Erro ao salvar canal.');
+    }
+  };
+
+  const handleDeleteCanal = async (id: number, nome: string) => {
+    try {
+      await api.deleteCanal(id);
+      showSuccess(`Canal "${nome}" excluído com sucesso.`);
+      loadAllData();
+    } catch (err: any) {
+      showError(err.message || 'Erro ao excluir canal.');
+    }
+  };
+
   // Filters
   const filteredUsers = usuariosList.filter(
     (u) =>
@@ -582,6 +631,10 @@ export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) =>
 
   const filteredMotivos = motivosList.filter((m) =>
     m.descricao.toLowerCase().includes(motivoSearch.toLowerCase())
+  );
+
+  const filteredCanais = canaisList.filter((c) =>
+    c.nome.toLowerCase().includes(canalSearch.toLowerCase())
   );
 
   return (
@@ -683,6 +736,18 @@ export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) =>
         >
           <FileCode className="h-4 w-4" />
           Cadastro de Motivos
+        </button>
+
+        <button
+          onClick={() => setActiveTab('canais')}
+          className={`flex items-center gap-2 px-5 py-3 border-b-2 text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+            activeTab === 'canais'
+              ? 'border-blue-600 dark:border-cyan-400 text-blue-600 dark:text-cyan-400 bg-blue-50/50 dark:bg-cyan-500/10 rounded-t-xl'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
+          }`}
+        >
+          <Radio className="h-4 w-4" />
+          Cadastro de Canais
         </button>
       </div>
 
@@ -1504,6 +1569,87 @@ export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) =>
         </div>
       )}
 
+      {/* 6. PAINEL DE CADASTRO DE CANAIS */}
+      {activeTab === 'canais' && (
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs dark:shadow-xl space-y-4 transition-colors duration-200">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800 dark:text-white">Canais Cadastrados</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Gerencie os canais de atendimento e operação disponíveis no sistema.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Buscar canal..."
+                  value={canalSearch}
+                  onChange={(e) => setCanalSearch(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 pl-9 pr-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none transition"
+                />
+              </div>
+
+              <button
+                onClick={() => handleOpenCanalModal()}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 dark:bg-cyan-500 hover:bg-blue-700 dark:hover:bg-cyan-400 text-white dark:text-slate-950 px-4 py-2 text-xs font-bold shadow-sm transition shrink-0 cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                Novo Canal
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-950 font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th className="px-4 py-3">ID</th>
+                  <th className="px-4 py-3">Nome do Canal</th>
+                  <th className="px-4 py-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+                {filteredCanais.length > 0 ? (
+                  filteredCanais.map((c) => (
+                    <tr key={c.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+                      <td className="px-4 py-3 text-slate-400 dark:text-slate-500 font-mono">#{c.id}</td>
+                      <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200">{c.nome}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenCanalModal(c)}
+                            className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-cyan-400 hover:bg-blue-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                            title="Editar"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCanal(c.id, c.nome)}
+                            className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">
+                      Nenhum canal localizado.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* MODAL: USUÁRIO (CRIAR/EDITAR) */}
       {isUserModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
@@ -1938,6 +2084,54 @@ export const AdminView: React.FC<AdminViewProps> = ({ onPerfisConfigChange }) =>
                 <button
                   type="button"
                   onClick={() => setIsProdModalOpen(false)}
+                  className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl px-4 py-2 text-xs font-bold text-white dark:text-slate-950 bg-blue-600 dark:bg-cyan-500 hover:bg-blue-700 dark:hover:bg-cyan-400 shadow-sm transition cursor-pointer"
+                >
+                  Salvar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CANAL (CRIAR/EDITAR) */}
+      {isCanalModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                {editingCanalId ? 'Editar Canal' : 'Novo Canal'}
+              </h3>
+              <button onClick={() => setIsCanalModalOpen(false)}>
+                <X className="h-5 w-5 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCanal} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Nome do Canal
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={canalNome}
+                  onChange={(e) => setCanalNome(e.target.value)}
+                  placeholder="Ex: WhatsApp, Telefonia, Chat..."
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none transition"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsCanalModalOpen(false)}
                   className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
                 >
                   Cancelar

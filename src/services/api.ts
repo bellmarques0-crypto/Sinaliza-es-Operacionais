@@ -7,6 +7,7 @@ import {
   Operador,
   Produto,
   Motivo,
+  Canal,
   ConfiguracaoApi,
   RegistroAbsenteismo
 } from '../types';
@@ -318,6 +319,31 @@ export const api = {
 
   deleteMotivo: async (id: number): Promise<{ message: string }> => {
     return request<{ message: string }>(`/api/motivos/${id}`, {
+      method: 'DELETE'
+    });
+  },
+
+  // Canais
+  getCanais: async (): Promise<Canal[]> => {
+    return request<Canal[]>('/api/canais');
+  },
+
+  createCanal: async (nome: string): Promise<Canal> => {
+    return request<Canal>('/api/canais', {
+      method: 'POST',
+      body: JSON.stringify({ nome })
+    });
+  },
+
+  updateCanal: async (id: number, nome: string): Promise<Canal> => {
+    return request<Canal>(`/api/canais/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ nome })
+    });
+  },
+
+  deleteCanal: async (id: number): Promise<{ message: string }> => {
+    return request<{ message: string }>(`/api/canais/${id}`, {
       method: 'DELETE'
     });
   },

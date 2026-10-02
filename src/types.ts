@@ -73,6 +73,11 @@ export interface Motivo {
   descricao: string;
 }
 
+export interface Canal {
+  id: number;
+  nome: string;
+}
+
 export interface Sinalizacao {
   id: number;
   data: string; // YYYY-MM-DD
@@ -136,7 +141,7 @@ export interface UserSession {
 }
 
 // --- DIÁRIO DE BORDO TYPES ---
-export type DiarioBordoStatus = 'Aberto' | 'Em Andamento' | 'Monitorando' | 'Resolvido' | 'Cancelado';
+export type DiarioBordoStatus = 'Aberto' | 'Em Andamento' | 'Monitorando' | 'Resolvido' | 'Cancelado' | 'Informativo';
 
 export interface DiarioBordoOcorrencia {
   id: number;
@@ -149,6 +154,7 @@ export interface DiarioBordoOcorrencia {
   comentario: string;
   status: DiarioBordoStatus;
   responsavel: string;
+  canal?: string;
   nome_evidencia?: string;
   caminho_evidencia?: string;
   data_solucao?: string;
@@ -178,6 +184,7 @@ export interface DiarioBordoFiltros {
   status?: string | string[];
   responsavel?: string | string[];
   impacto?: string | string[];
+  canal?: string | string[];
   tipo?: string;
   busca?: string;
 }

@@ -575,6 +575,43 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
     ).values()
   ).sort((a, b) => a.nome.localeCompare(b.nome));
 
+  // Auto fill supervisor and produto from selected operator record
+  const autoFillFromOperador = (op: Operador, isEdit: boolean = false) => {
+    if (op.supervisor) {
+      const rawSup = op.supervisor.trim();
+      const normSup = normalizeSearchText(rawSup);
+      const matchedSup = uniqueActiveSupervisores.find(
+        (s) => normalizeSearchText(s.nome) === normSup
+      ) || uniqueActiveSupervisores.find(
+        (s) => normalizeSearchText(s.nome).includes(normSup) || normSup.includes(normalizeSearchText(s.nome))
+      );
+
+      const targetSup = matchedSup ? matchedSup.nome : rawSup;
+      if (isEdit) {
+        setEditSupervisor(targetSup);
+      } else {
+        setSelectedSupervisor(targetSup);
+      }
+    }
+
+    if (op.produto) {
+      const rawProd = op.produto.trim();
+      const normProd = normalizeSearchText(rawProd);
+      const matchedProd = uniqueActiveProdutos.find(
+        (p) => normalizeSearchText(p.nome) === normProd
+      ) || uniqueActiveProdutos.find(
+        (p) => normalizeSearchText(p.nome).includes(normProd) || normProd.includes(normalizeSearchText(p.nome))
+      );
+
+      const targetProd = matchedProd ? matchedProd.nome : rawProd;
+      if (isEdit) {
+        setEditProduto(targetProd);
+      } else {
+        setSelectedProduto(targetProd);
+      }
+    }
+  };
+
   return (
     <div className="space-y-8 pb-12">
       {/* 1. FORMULARIO DE REGISTRO (Admins & Planejamento) */}
@@ -651,9 +688,26 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     placeholder="Buscar operador na base..."
                     value={operadorQuery}
                     onChange={(e) => {
-                      setOperadorQuery(e.target.value);
-                      setSelectedOperador('');
+                      const val = e.target.value;
+                      setOperadorQuery(val);
                       setShowOperadorDropdown(true);
+
+                      const normVal = normalizeSearchText(val.trim());
+                      if (normVal.length > 2) {
+                        const foundOp = operadoresList.find((op) => {
+                          const opNorm = normalizeSearchText(op.nome);
+                          return opNorm === normVal || opNorm.startsWith(normVal);
+                        });
+
+                        if (foundOp) {
+                          setSelectedOperador(foundOp.nome);
+                          autoFillFromOperador(foundOp, false);
+                        } else {
+                          setSelectedOperador('');
+                        }
+                      } else {
+                        setSelectedOperador('');
+                      }
                     }}
                     onFocus={() => setShowOperadorDropdown(true)}
                     className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition"
@@ -672,8 +726,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                           onClick={() => {
                             setSelectedOperador(op.nome);
                             setOperadorQuery(op.nome);
-                            setSelectedSupervisor(op.supervisor);
-                            setSelectedProduto(op.produto);
+                            autoFillFromOperador(op, false);
                             setShowOperadorDropdown(false);
                           }}
                           className="w-full text-left px-3.5 py-2.5 hover:bg-blue-50 dark:hover:bg-slate-800 text-xs transition flex flex-col cursor-pointer"
@@ -705,6 +758,9 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition"
                 >
                   <option value="">Selecione o supervisor...</option>
+                  {selectedSupervisor && !uniqueActiveSupervisores.some((s) => s.nome === selectedSupervisor) && (
+                    <option value={selectedSupervisor}>{selectedSupervisor}</option>
+                  )}
                   {uniqueActiveSupervisores.map((s, idx) => (
                     <option key={`sup-${s.id}-${s.nome}-${idx}`} value={s.nome}>
                       {s.nome}
@@ -725,6 +781,9 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                   className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2.5 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition"
                 >
                   <option value="">Selecione o produto...</option>
+                  {selectedProduto && !uniqueActiveProdutos.some((p) => p.nome === selectedProduto) && (
+                    <option value={selectedProduto}>{selectedProduto}</option>
+                  )}
                   {uniqueActiveProdutos.map((p, idx) => (
                     <option key={`prod-${p.id}-${p.nome}-${idx}`} value={p.nome}>
                       {p.nome}
@@ -1487,9 +1546,26 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                       placeholder="Buscar operador na base..."
                       value={editOperadorQuery}
                       onChange={(e) => {
-                        setEditOperadorQuery(e.target.value);
-                        setEditOperador('');
+                        const val = e.target.value;
+                        setEditOperadorQuery(val);
                         setShowEditOperadorDropdown(true);
+
+                        const normVal = normalizeSearchText(val.trim());
+                        if (normVal.length > 2) {
+                          const foundOp = operadoresList.find((op) => {
+                            const opNorm = normalizeSearchText(op.nome);
+                            return opNorm === normVal || opNorm.startsWith(normVal);
+                          });
+
+                          if (foundOp) {
+                            setEditOperador(foundOp.nome);
+                            autoFillFromOperador(foundOp, true);
+                          } else {
+                            setEditOperador('');
+                          }
+                        } else {
+                          setEditOperador('');
+                        }
                       }}
                       onFocus={() => setShowEditOperadorDropdown(true)}
                       className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
@@ -1511,9 +1587,7 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                           onClick={() => {
                             setEditOperador(op.nome);
                             setEditOperadorQuery(op.nome);
-                            if (op.supervisor) {
-                              handleEditSupervisorSelect(op.supervisor);
-                            }
+                            autoFillFromOperador(op, true);
                             setShowEditOperadorDropdown(false);
                           }}
                           className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-700 dark:hover:text-cyan-400 flex flex-col cursor-pointer"
@@ -1541,6 +1615,9 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                   >
                     <option value="">Selecione o Supervisor</option>
+                    {editSupervisor && !uniqueActiveSupervisores.some((s) => s.nome === editSupervisor) && (
+                      <option value={editSupervisor}>{editSupervisor}</option>
+                    )}
                     {uniqueActiveSupervisores.map((sup, idx) => (
                       <option key={`edit-sup-${sup.id}-${sup.nome}-${idx}`} value={sup.nome}>
                         {sup.nome}
@@ -1562,6 +1639,9 @@ export const SinalizacoesView: React.FC<SinalizacoesViewProps> = ({ user }) => {
                     className="w-full rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-xs text-slate-800 dark:text-slate-200 focus:border-blue-500 dark:focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-500/30 transition disabled:opacity-60 disabled:bg-slate-100 dark:disabled:bg-slate-900"
                   >
                     <option value="">Selecione o Produto</option>
+                    {editProduto && !uniqueActiveProdutos.some((p) => p.nome === editProduto) && (
+                      <option value={editProduto}>{editProduto}</option>
+                    )}
                     {uniqueActiveProdutos.map((prod, idx) => (
                       <option key={`edit-prod-${prod.id}-${prod.nome}-${idx}`} value={prod.nome}>
                         {prod.nome}
